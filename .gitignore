@@ -1,0 +1,18 @@
+*.iml
+.gradle/
+.idea/
+local.properties
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.jks
+*.keystore
+
+
+# EASYCUT v0: APK/AAB et logs hors du Git source
+artifacts/
+*.apk
+*.aab
+*-build.log
