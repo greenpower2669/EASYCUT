@@ -105,3 +105,15 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Fab : exporter le scénario réel V3 court puis V2 débutant plus tard ; observer une image non noire de V2 dans le fichier MP4 et durée maximale ; vérifier un vrai clip noir, opacité, photo, chevauchements et pistes audio.
 - [ ] Fab : tests téléphone aperçu CompositionPlayer vs fallback ExoPlayer, lecture à travers lacune, pause/reprise et son, photos et vidéos, interruptions/échec décodeur, changement d'ordre de plans et undo.
 - [ ] P0 hérités de l'audit : sauvegarde catalogue JSON récupérable et annulation native des FFmpeg/proxies transactionnels ; NON traités dans ce correctif pour éviter une refonte concurrente du moteur.
+
+
+## EASYCUT v0.0.2 — EASYCUT-IMPORT-008
+- [x] Lire rapport Android utilisateur (échec FFPROBE avec noms de sortie JSON vides/illisibles, sans crash) et confronter à la commande source réelle.
+- [x] Forcer une sortie FFprobe JSON dans cache privé unique (argument `-o` séparé) et lire seulement le fichier contrôlé 1..4 Mio ; suppression systématique après lecture/erreur.
+- [x] Sérialiser les 3 points d'appel FFprobe, sans bloquer les exports FFmpeg ; retirer le clearSessions() global du scanner.
+- [x] Ajouter tests JVM de la construction d'arguments et de la sérialisation de sessions parallèles ; corriger l'en-tête du diagnostic EASYCUT ; nommer v0.0.2/versionCode 35, APK/AAB GitHub Releases.
+- [x] Synchroniser les quatre mémoires avec le code dans le même commit ; FabVidEdit original inchangé.
+- [ ] Vérifier CI v0.0.2 : tests unitaires, lint, APK, AAB et liens directs de GitHub Release, sans les annoncer comme disponibles avant publication.
+- [ ] Fab : réessayer le même import plusieurs fois avec nouveau média et ancien média, vérifier pistes détectées et absence de fichier temporaire/proxy non référencé après erreur, puis montage V3→V2 exporté.
+- [ ] Si FFprobe échoue encore : récupérer rapport sans effacer données projets, distinguer code de retour, fichier JSON vide, problème fork natif et accès concurrent. Prévoir instrumentations Android FFprobe réel et scénario grands médias.
+- [ ] Bugs P0 indépendants restant : sauvegarde projet récupérable, annulation native FFmpeg par session, contrôles de conformité MP4, contrôle de l'aperçu multipiste sur smartphone.

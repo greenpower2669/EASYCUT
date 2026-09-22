@@ -13,28 +13,41 @@ import com.fabvidedit.app.model.VideoStreamScore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
 object FfprobeMediaInspector {
+    private const val MAX_INVENTORY_JSON_BYTES = 4L * 1024L * 1024L
     suspend fun inspect(context: Context, uri: Uri): MediaStreamInventory =
-        LocalFfmpegInput.withPath(context, uri) { input -> inspectInput(input) }
+        LocalFfmpegInput.withPath(context, uri) { input -> inspectInput(input, context.cacheDir) }
 
-    private fun inspectInput(input: String): MediaStreamInventory {
-        val session = FFprobeKit.executeWithArguments(
-            arrayOf(
-                "-v", "error",
-                "-print_format", "json",
-                "-show_format",
-                "-show_streams",
-                input,
-            ),
-        )
-        if (!ReturnCode.isSuccess(session.returnCode)) {
-            error("FFprobe n'a pas pu analyser le média : ${session.output.takeLast(600)}")
+    private fun inspectInput(input: String, cacheDir: File): MediaStreamInventory {
+        // Explicit -o is vital: the native FFprobe JSON writer must not depend on
+        // the FFmpegKit stdout/log callback, which also carries diagnostic text.
+        val dir = File(cacheDir, "ffprobe_metadata")
+        require(dir.isDirectory || dir.mkdirs()) { "Cache FFprobe indisponible" }
+        val metadata = File.createTempFile("inventory-", ".json", dir)
+        val root = try {
+            val session = FfprobeNativeGate.run {
+                FFprobeKit.executeWithArguments(
+                    FfprobeInventoryCommand.arguments(input, metadata.absolutePath),
+                )
+            }
+            val detail = session.output.orEmpty().replace(Regex("\\s+"), " ").takeLast(600)
+            if (!ReturnCode.isSuccess(session.returnCode)) {
+                error("FFprobe n'a pas pu analyser le média (code=${session.returnCode}) : $detail")
+            }
+            val length = metadata.length()
+            require(metadata.isFile && length in 1L..MAX_INVENTORY_JSON_BYTES) {
+                "Inventaire FFprobe vide ou trop volumineux ($length octets)."
+            }
+            JSONObject(metadata.readText(Charsets.UTF_8))
+        } finally {
+            if (metadata.exists() && !metadata.delete()) {
+                android.util.Log.w("EASYCUT_FFprobe", "Unable to remove disposable inventory")
+            }
         }
-
-        val root = JSONObject(session.output)
         val format = root.optJSONObject("format")
         val containerDurationMs = format?.optString("duration")
             ?.toDoubleOrNull()

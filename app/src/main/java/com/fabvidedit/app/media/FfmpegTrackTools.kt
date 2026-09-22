@@ -68,17 +68,19 @@ object FfmpegTrackTools {
     ): Pair<Int, Int>? = withContext(Dispatchers.IO) {
         val input = FFmpegKitConfig.getSafParameterForRead(context, uri)
         val seconds = String.format(Locale.US, "%.3f", timeMs.coerceAtLeast(0L) / 1_000.0)
-        val session = FFprobeKit.executeWithArguments(
-            arrayOf(
-                "-v", "error",
-                "-read_intervals", "$seconds%+0.50",
-                "-select_streams", streamIndex.toString(),
-                "-show_frames",
-                "-show_entries", "frame=width,height",
-                "-print_format", "json",
-                input,
-            ),
-        )
+        val session = FfprobeNativeGate.run {
+            FFprobeKit.executeWithArguments(
+                arrayOf(
+                    "-v", "error",
+                    "-read_intervals", "$seconds%+0.50",
+                    "-select_streams", streamIndex.toString(),
+                    "-show_frames",
+                    "-show_entries", "frame=width,height",
+                    "-print_format", "json",
+                    input,
+                ),
+            )
+        }
         if (!ReturnCode.isSuccess(session.returnCode)) return@withContext null
         val frames = runCatching { JSONObject(session.output).optJSONArray("frames") }.getOrNull()
             ?: return@withContext null

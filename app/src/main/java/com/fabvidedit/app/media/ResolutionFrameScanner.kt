@@ -3,7 +3,6 @@ package com.fabvidedit.app.media
 import android.util.Log
 import com.fabvidedit.app.FabVidDiagnostics
 import java.util.Locale
-import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.FFprobeKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.fabvidedit.app.model.MediaStreamInfo
@@ -84,10 +83,11 @@ object ResolutionFrameScanner {
                 FabVidDiagnostics.mark("SCAN_KEYFRAMES")
             }
             args += input
-            val session = FFprobeKit.executeWithArguments(args.toTypedArray())
+            val session = FfprobeNativeGate.run {
+                FFprobeKit.executeWithArguments(args.toTypedArray())
+            }
             val success = ReturnCode.isSuccess(session.returnCode)
             val diagnostic = session.output.orEmpty().takeLast(300)
-            FFmpegKitConfig.clearSessions()
             if (!success || !metadata.isFile || metadata.length() == 0L ||
                 metadata.length() > MAX_SCAN_FILE_BYTES
             ) {

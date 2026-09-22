@@ -104,7 +104,7 @@ object FabVidDiagnostics {
                 journal.readText().takeLast(25_000)
             } else "Journal non encore initialisé"
         }.getOrDefault("Journal indisponible")
-        return "FabVidEdit " + BuildConfig.VERSION_NAME + "\n" +
+        return "EASYCUT " + BuildConfig.VERSION_NAME + "\n" +
             "Motif du dernier arrêt Android : " + getLastExitReason(context) + "\n" +
             "Dernière étape : " + getLastStage() + "\n" +
             "Dernière erreur : " + getLastError() + "\n\n" + lines
