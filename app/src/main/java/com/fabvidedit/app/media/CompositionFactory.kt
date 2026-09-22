@@ -12,6 +12,8 @@ import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.OverlaySettings
+import androidx.media3.common.VideoCompositorSettings
+import androidx.media3.common.util.Size
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.ChannelMixingAudioProcessor
 import androidx.media3.common.audio.ChannelMixingMatrix
@@ -39,6 +41,7 @@ import com.fabvidedit.app.model.SourceAudioTrack
 import com.fabvidedit.app.model.TextLayer
 import com.fabvidedit.app.model.TimelineMode
 import com.fabvidedit.app.model.TransitionType
+import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.VisualMediaKind
@@ -73,6 +76,23 @@ object CompositionFactory {
         }
 
         val builder = Composition.Builder(sequences)
+        if (project.timelineMode == TimelineMode.MULTITRACK) {
+            // Media3 emits blank VIDEO frames for addGap(); hide each blank frame
+            // rather than let an upper lane cover the media below it.
+            val lanes = VideoLayerPolicy.frontToBack(project)
+            builder.setVideoCompositorSettings(object : VideoCompositorSettings {
+                override fun getOutputSize(inputSizes: List<Size>): Size =
+                    VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
+
+                override fun getOverlaySettings(inputId: Int, presentationTimeUs: Long): OverlaySettings {
+                    val lane = lanes.getOrNull(inputId)
+                        ?: return StaticOverlaySettings.Builder().build()
+                    return StaticOverlaySettings.Builder()
+                        .setAlphaScale(VideoLayerPolicy.opacityAt(project.clips, lane, presentationTimeUs / 1_000L))
+                        .build()
+                }
+            })
+        }
         val globalEffects = buildList<Effect> {
             resolutionShortSide?.let { add(Presentation.createForShortSide(it)) }
             textOverlayEffect(project.textLayers)?.let(::add)
@@ -88,11 +108,9 @@ object CompositionFactory {
         canvasRatio: Float?,
         frameRate: Int?,
     ): List<EditedMediaItemSequence> = buildList {
-        project.clips
-            .groupBy(VideoClip::timelineTrackIndex)
-            .toSortedMap(compareByDescending { it })
-            .values
-            .forEach { unsortedTrack ->
+        val groupedTracks = project.clips.groupBy(VideoClip::timelineTrackIndex)
+        VideoLayerPolicy.frontToBack(project).forEach { lane ->
+                val unsortedTrack = groupedTracks.getValue(lane)
                 val track = unsortedTrack.sortedBy(VideoClip::timelineStartMs)
                 val builder = EditedMediaItemSequence.Builder(setOf(C.TRACK_TYPE_VIDEO))
                 var cursorMs = 0L

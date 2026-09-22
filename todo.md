@@ -92,3 +92,16 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Prouver ou réfuter l'occultation par gaps/trailing gaps dans Media3 et corriger l'ordre de composition sans échanger une disparition de piste contre une autre.
 - [ ] Permettre z-order et opacité personnalisables indépendamment du temps ; distinguer aperçu robuste simplifié de l'aperçu fidèle ; conformité sortie/aperçu à tester sur téléphone.
 - [ ] Tests sur téléphone de l'installation et de la signature debug (APK CI d'un autre signataire incompatible avec l'ancienne app), sauvegarder les projets avant manipulation ; stabilisation et APK/AAB de distribution encore non faits.
+
+
+## EASYCUT v0.0.1 — corrections en cours FABVID-MULTI-007
+- [x] Modifier CompositionFactory pour rendre chaque séquence vidéo transparente hors des vrais clips et garder l'ordre V descendant, sans changer le timelineStartMs ni supprimer les trous nécessaires à Media3.
+- [x] Ajouter politique de plans testable, commandes Plan ↑ / ↓ échangeant les pistes complètes sans déplacement temporel/audio, opacité de clip sérialisée rétrocompatible et slider.
+- [x] Corriger le secours qui retenait un clip achevé ou sélectionné derrière un autre ; visualiser un trou comme vide et poursuivre l'horloge du projet au cours de ce trou. Identifier honnêtement l'aperçu mono-piste comme simplifié.
+- [x] Conserver le maximum des fins en multipiste et ajouter tests JVM sur 0..3, trou 3..6, seconde vidéo 6..16, prolongation à 18, échange de pistes et opacité.
+- [x] Synchroniser brain, brainmap, debughistorical et todo avec le code, même commit ; versions Android EASYCUT v0.0.1/versionCode 34 et workflow de prerelease APK/AAB nommé par projet après CI OK.
+- [ ] Vérifier GitHub Actions : unit tests, lint, assembleDebug, bundleDebug ; si échec, corriger dans le même cycle de quatre mémoires.
+- [ ] Contrôler les liens réels APK/AAB en Release ; ne pas annoncer de binaire avant publication. Vérifier icône EASYCUT personnalisée : les ressources de l'ancienne icône ont été conservées durant la migration, rebranding graphique encore à concevoir/valider.
+- [ ] Fab : exporter le scénario réel V3 court puis V2 débutant plus tard ; observer une image non noire de V2 dans le fichier MP4 et durée maximale ; vérifier un vrai clip noir, opacité, photo, chevauchements et pistes audio.
+- [ ] Fab : tests téléphone aperçu CompositionPlayer vs fallback ExoPlayer, lecture à travers lacune, pause/reprise et son, photos et vidéos, interruptions/échec décodeur, changement d'ordre de plans et undo.
+- [ ] P0 hérités de l'audit : sauvegarde catalogue JSON récupérable et annulation native des FFmpeg/proxies transactionnels ; NON traités dans ce correctif pour éviter une refonte concurrente du moteur.

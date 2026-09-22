@@ -144,6 +144,8 @@ data class VideoClip(
     val speed: Float = 1f,
     val volume: Float = 1f,
     val brightness: Float = 1f,
+    /** Per-clip opacity for the video compositor, independent from audio gain. */
+    val opacity: Float = 1f,
     val rotationDegrees: Int = 0,
     val filter: ClipFilter = ClipFilter.NONE,
     val transform: ClipTransform = ClipTransform(),

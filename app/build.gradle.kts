@@ -14,8 +14,8 @@ android {
         applicationId = "com.fabvidedit.app.poc"
         minSdk = 29
         targetSdk = 36
-        versionCode = 33
-        versionName = "0.0.0"
+        versionCode = 34
+        versionName = "0.0.1"
 
         // POC Android build: keep only ARM64 native FFmpeg libraries so the APK stays
         // below GitHub's 100 MB repository file limit and can be published as a RAW file.

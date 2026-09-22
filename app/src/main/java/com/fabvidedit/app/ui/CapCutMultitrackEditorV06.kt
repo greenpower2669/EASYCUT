@@ -3,6 +3,7 @@ package com.fabvidedit.app.ui
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import androidx.compose.foundation.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -123,6 +124,7 @@ import com.fabvidedit.app.model.TextPosition
 import com.fabvidedit.app.model.TransformKeyframe
 import com.fabvidedit.app.model.TransitionType
 import com.fabvidedit.app.model.VideoClip
+import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.VisualMediaKind
 import com.fabvidedit.app.ui.theme.FabBackground
@@ -180,6 +182,11 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     var previewHeightPx by remember(project.id) { mutableFloatStateOf(1f) }
     var directPreviewTransform by remember(selectedClip?.id) { mutableStateOf(ClipTransform()) }
     var directGestureActive by remember(project.id) { mutableStateOf(false) }
+    // ExoPlayer cannot drive the PROJECT clock through a gap, so the robust
+    // one-layer fallback has a separate wall-clock transport for holes/clip switches.
+    var fallbackTransportPlaying by remember(project.id) { mutableStateOf(false) }
+    var fallbackAnchorPositionMs by remember(project.id) { mutableLongStateOf(0L) }
+    var fallbackAnchorRealtimeMs by remember(project.id) { mutableLongStateOf(0L) }
     var linkArmedClipId by remember(project.id) { mutableStateOf<String?>(null) }
 
     val selectedLocalSourceMs = if (selectedIndex >= 0) {
@@ -231,17 +238,10 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         it?.let(viewModel::setAudio)
     }
 
-    fun previewClipFor(positionMs: Long): VideoClip? {
-        val active = project.clips.filter { clip ->
-            positionMs >= clip.timelineStartMs && positionMs < clip.timelineStartMs + clip.outputDurationMs
-        }
-        selectedClip?.timelineTrackIndex?.let { preferredTrack ->
-            active.lastOrNull { it.timelineTrackIndex == preferredTrack }?.let { return it }
-        }
-        active.maxByOrNull(VideoClip::timelineTrackIndex)?.let { return it }
-        selectedClip?.let { return it }
-        return project.clips.minByOrNull { abs(it.timelineStartMs - positionMs) }
-    }
+    // Simplified preview must select the VISUAL front lane, never stale selected footage
+    // after its end or an invisible clip while a lower lane is actually on screen.
+    fun previewClipFor(positionMs: Long): VideoClip? =
+        VideoLayerPolicy.activeClip(project.clips, positionMs)
 
     fun syncFallback(positionMs: Long, playWhenReady: Boolean) {
         val clip = previewClipFor(positionMs)
@@ -345,14 +345,23 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     LaunchedEffect(player, fallbackPlayer, stablePreview, fallbackClip?.id) {
         while (true) {
             if (stablePreview) {
-                val clip = fallbackClip
-                if (clip != null && fallbackPlayer.currentPosition >= 0L) {
-                    val sourceDeltaMs = (fallbackPlayer.currentPosition - clip.trimStartMs).coerceAtLeast(0L)
-                    val projectDeltaMs = (sourceDeltaMs / clip.speed.coerceAtLeast(0.01f)).toLong()
-                    currentPositionMs = (clip.timelineStartMs + projectDeltaMs)
-                        .coerceIn(0L, project.durationMs.coerceAtLeast(1L))
+                if (fallbackTransportPlaying) {
+                    val elapsed = (SystemClock.elapsedRealtime() - fallbackAnchorRealtimeMs).coerceAtLeast(0L)
+                    val next = (fallbackAnchorPositionMs + elapsed).coerceAtMost(project.durationMs)
+                    currentPositionMs = next
+                    val front = previewClipFor(next)
+                    if (front?.id != fallbackClip?.id) {
+                        syncFallback(next, front != null)
+                        syncStableAudio(next, true)
+                    }
+                    if (next >= project.durationMs) {
+                        fallbackTransportPlaying = false
+                        fallbackPlayer.pause()
+                        sourceAudioPlayer.pause()
+                        musicPreviewPlayer.pause()
+                    }
                 }
-                isPlaying = fallbackPlayer.isPlaying
+                isPlaying = fallbackTransportPlaying
                 project.sourceAudioTracks
                     .filter { currentPositionMs >= it.timelineStartMs && currentPositionMs < it.timelineStartMs + it.outputDurationMs }
                     .maxByOrNull { it.timelineTrackIndex }
@@ -384,6 +393,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
             val resume = isPlaying
             if (stablePreview) {
                 player.pause()
+                fallbackTransportPlaying = resume
+                fallbackAnchorPositionMs = restore
+                fallbackAnchorRealtimeMs = SystemClock.elapsedRealtime()
                 runCatching {
                     syncFallback(restore, resume)
                     syncStableAudio(restore, resume)
@@ -414,6 +426,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         val snapped = snapV06(project, candidate)
         player.pause()
         fallbackPlayer.pause()
+        fallbackTransportPlaying = false
+        isPlaying = false
         currentPositionMs = snapped
         if (stablePreview) {
             syncFallback(snapped, false)
@@ -527,7 +541,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                             modifier = Modifier
                                 .fillMaxSize()
                                 .graphicsLayer {
-                                    if (stablePreview && fallbackVisual != null) {
+                                    if (stablePreview && fallbackVisual == null) {
+                                        alpha = 0f // hide the stale Surface frame throughout an empty interval
+                                    } else if (stablePreview && fallbackVisual != null) {
                                         scaleX = fallbackVisual.transform.scaleX
                                         scaleY = fallbackVisual.transform.scaleY
                                         rotationZ = fallbackVisual.transform.rotationDegrees
@@ -538,7 +554,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                             pivotFractionX = ((fallbackVisual.transform.pivotX + 1f) / 2f).coerceIn(0f, 1f),
                                             pivotFractionY = ((1f - fallbackVisual.transform.pivotY) / 2f).coerceIn(0f, 1f),
                                         )
-                                        alpha = fallbackVisual.alpha
+                                        alpha = fallbackVisual.alpha * fallbackClip!!.opacity
                                     }
                                 },
                         )
@@ -579,6 +595,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             sourceAudioPlayer.pause()
                                                             musicPreviewPlayer.pause()
                                                             isPlaying = false
+                                                            fallbackTransportPlaying = false
                                                             stablePreview = true
                                                             panel = EditorPanel.MOTION
                                                             inspectorOpen = false
@@ -651,8 +668,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     }
                     Text(
                         if (stablePreview) {
-                            "APERÇU ROBUSTE • V${(fallbackClip?.timelineTrackIndex ?: selectedClip?.timelineTrackIndex ?: 0) + 1}" +
-                                (fallbackVisual?.transitionLabel?.let { " • TRANSITION $it" } ?: " • PISTE ACTIVE")
+                            "APERÇU SIMPLIFIÉ • " +
+                                (fallbackClip?.let { "V${it.timelineTrackIndex + 1} • PISTE ACTIVE" } ?: "INTERVALLE VIDE")
                         } else "APERÇU MULTIPISTE • FIT",
                         modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
                             .clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.72f))
@@ -688,12 +705,18 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                 },
                 onTogglePlay = {
                     if (stablePreview) {
-                        if (isPlaying) {
+                        if (fallbackTransportPlaying) {
+                            fallbackTransportPlaying = false
                             fallbackPlayer.pause()
                             sourceAudioPlayer.pause()
                             musicPreviewPlayer.pause()
+                            isPlaying = false
                         } else {
                             if (currentPositionMs >= project.durationMs - 100L) currentPositionMs = 0L
+                            fallbackAnchorPositionMs = currentPositionMs
+                            fallbackAnchorRealtimeMs = SystemClock.elapsedRealtime()
+                            fallbackTransportPlaying = true
+                            isPlaying = true
                             syncFallback(currentPositionMs, true)
                             syncStableAudio(currentPositionMs, true)
                         }
@@ -717,11 +740,20 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
 
             if (selectedClip != null || selectedSourceAudio != null || linkArmedClipId != null) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().background(FabSurfaceHigh).padding(horizontal = 8.dp, vertical = 2.dp),
+                    modifier = Modifier.fillMaxWidth().background(FabSurfaceHigh)
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     selectedClip?.let { clip ->
+                        Text("V${clip.timelineTrackIndex + 1}", color = FabMint, fontSize = 11.sp)
+                        TextButton(onClick = { viewModel.changeSelectedLayer(1) },
+                            enabled = VideoLayerPolicy.frontToBack(project).firstOrNull() != clip.timelineTrackIndex
+                        ) { Text("Plan ↑", fontSize = 11.sp) }
+                        TextButton(onClick = { viewModel.changeSelectedLayer(-1) },
+                            enabled = VideoLayerPolicy.frontToBack(project).lastOrNull() != clip.timelineTrackIndex
+                        ) { Text("Plan ↓", fontSize = 11.sp) }
                         TextButton(onClick = { viewModel.setClipSyncLocked(clip.id, !clip.syncLocked) }) {
                             Text(if (clip.syncLocked) "🔗 Aimanté" else "🔓 Libre", fontSize = 11.sp)
                         }
@@ -737,6 +769,23 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     if (linkArmedClipId != null && selectedClip?.id != linkArmedClipId) {
                         Text("Touchez une vidéo, image ou piste audio", color = FabMint, fontSize = 10.sp)
                     }
+                }
+            }
+
+            if (selectedClip != null && inspectorOpen && panel == EditorPanel.MOTION) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(FabSurfaceHigh)
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Opacité ${(selectedClip.opacity * 100).roundToInt()} %",
+                        fontSize = 11.sp, color = FabMint)
+                    Slider(
+                        value = selectedClip.opacity.coerceIn(0f, 1f),
+                        onValueChange = viewModel::setSelectedOpacity,
+                        valueRange = 0f..1f,
+                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                    )
                 }
             }
 
@@ -951,7 +1000,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         is ExportState.Success -> AlertDialog(
             onDismissRequest = viewModel::clearExportResult,
             title = { Text("Export terminé") },
-            text = { Text("${state.fileName}\nEnregistré dans Films/FabVidEdit.") },
+            text = { Text("${state.fileName}\nEnregistré dans Films/EASYCUT.") },
             confirmButton = {
                 Button(onClick = {
                     val intent = Intent(Intent.ACTION_SEND).apply {

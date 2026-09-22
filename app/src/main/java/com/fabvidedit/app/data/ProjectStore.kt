@@ -90,6 +90,7 @@ class ProjectStore(context: Context) {
         put("speed", speed.toDouble())
         put("volume", volume.toDouble())
         put("brightness", brightness.toDouble())
+        put("opacity", opacity.toDouble())
         put("rotationDegrees", rotationDegrees)
         put("filter", filter.name)
         put("transform", transform.toJson())
@@ -259,6 +260,7 @@ class ProjectStore(context: Context) {
             speed = json.optDouble("speed", 1.0).toFloat().coerceIn(0.25f, 4f),
             volume = baseVolume,
             brightness = baseBrightness,
+            opacity = json.optDouble("opacity", 1.0).toFloat().takeIf(Float::isFinite)?.coerceIn(0f, 1f) ?: 1f,
             rotationDegrees = json.optInt("rotationDegrees", 0),
             filter = enumValue(json.optString("filter"), ClipFilter.NONE),
             transform = json.optJSONObject("transform")?.let(::transformFromJson) ?: ClipTransform(),

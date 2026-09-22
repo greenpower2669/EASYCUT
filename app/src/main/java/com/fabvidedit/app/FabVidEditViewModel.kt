@@ -31,6 +31,7 @@ import com.fabvidedit.app.model.TimelineMode
 import com.fabvidedit.app.model.TransformKeyframe
 import com.fabvidedit.app.model.TransitionType
 import com.fabvidedit.app.model.VideoClip
+import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.VisualMediaKind
 import com.fabvidedit.app.model.moveClipOnTimeline
@@ -465,6 +466,17 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         updateProject(moved)
         _selectedClipId.value = clipId
     }
+
+    /** Exchange entire visual lanes. This changes depth, never any clip or audio timestamp. */
+    fun changeSelectedLayer(direction: Int) {
+        val project = _activeProject.value ?: return
+        val id = _selectedClipId.value ?: return
+        val reordered = VideoLayerPolicy.moveLayer(project, id, direction)
+        if (reordered != project) updateProject(reordered)
+    }
+
+    fun setSelectedOpacity(value: Float) =
+        updateSelectedClip { it.copy(opacity = value.coerceIn(0f, 1f)) }
 
     fun setClipSyncLocked(clipId: String, locked: Boolean) {
         val project = _activeProject.value ?: return

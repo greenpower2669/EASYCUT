@@ -4,7 +4,7 @@
 
 ## État réel
 
-Ceci est un portage de code, **pas une correction du moteur de montage**. Bugs connus de la base : une seconde vidéo peut être absente de l'export multipiste, des trous de piste sont suspectés d'occulter une piste située derrière et l'aperçu robuste n'affiche qu'une piste ; durée et conformité export/aperçu demandent des tests Android. Les causes exactes sont suivies dans `debughistorical.md` et `todo.md`.
+La base v0.0.1 contient un **correctif candidat multipiste**, non encore validé sur téléphone. La composition rend les trous de pistes transparents et propose Plan ↑/↓ et opacité par clip. Une seconde vidéo pouvait disparaître de l'export v0 : la correction nécessite encore un test sur un MP4 réel ; l'aperçu de secours affiche toujours une seule piste, désormais identifiée comme simplifiée. Les causes exactes sont suivies dans `debughistorical.md` et `todo.md`.
 
 ## Conventions à préserver
 
@@ -17,13 +17,13 @@ Ceci est un portage de code, **pas une correction du moteur de montage**. Bugs c
 
 ## Architecture et compilation
 
-Android SDK 36, JDK 17, Gradle 8.13, Kotlin/Compose, Media3 et FFmpegKit ; fichiers sous `app/`. Identifiant d'installation `com.fabvidedit.app.poc` et packages internes volontairement conservés pour ne pas réécrire le format et le stockage existant. Nom visible **EASYCUT**, versionName `0.0.0`, versionCode `33`. Nouveaux exports destinés à `Films/EASYCUT`.
+Android SDK 36, JDK 17, Gradle 8.13, Kotlin/Compose, Media3 et FFmpegKit ; fichiers sous `app/`. Identifiant d'installation `com.fabvidedit.app.poc` et packages internes volontairement conservés pour ne pas réécrire le format et le stockage existant. Nom visible **EASYCUT**, versionName `0.0.1`, versionCode `34`. Nouveaux exports destinés à `Films/EASYCUT`.
 
 ```bash
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleDebug
 ```
 
-Noms prévus : `EASYCUT-v0-arm64-debug.apk` et `EASYCUT-v0-arm64-debug.aab`. Une GitHub prerelease est déclenchée **manuellement seulement** via le workflow Android avec `publish=true` après CI réussie, et ne signifie pas validation sur téléphone. Les APK debug signés sur un autre appareil de build peuvent ne pas s'installer par-dessus l'ancien éditeur : sauvegarder les projets avant toute désinstallation.
+Noms prévus : `EASYCUT-v0.0.1-arm64-debug.apk` et `EASYCUT-v0.0.1-arm64-debug.aab`. Une GitHub prerelease est publiée automatiquement après réussite de la CI sur `main` (ou lancement manuel avec `publish=true`) ; elle ne signifie pas validation sur téléphone. Les APK debug signés sur un autre appareil de build peuvent ne pas s'installer par-dessus l'ancien éditeur : sauvegarder les projets avant toute désinstallation.
 
 ## Licence
 
