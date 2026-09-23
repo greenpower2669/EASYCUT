@@ -215,3 +215,22 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Vérifier et noter résultat réel CI tests + lint + APK + AAB avant de déclarer publication.
 - [ ] Valider sur Samsung avec média source ayant échoué -o, vidéo qui fonctionne et vidéo problématique, avant/après pinch, dernier frame retenu, contre-test pause (frames=0 acceptable), puis image qui suit les doigts ; surveiller nouvelle instrumentation.
 - [ ] Vérifier MP4 export WYSIWYG/keyframes 321/380%, rotation volontaire 10°, audio, contenu multi-pistes, mémoire/température.
+
+## P0 — RETROUVER LE COMPORTEMENT QUI MARCHAIT — retour Fab après EASYCUT 0.0.8 (23/09/2026)
+
+**Priorité absolue : stopper les régressions et la répétition de tests coûteux pour Fab. Aucun nouveau code, APK, release ou nettoyage des données n'est autorisé par cette entrée documentaire. Ne pas transformer une compilation CI réussie en promesse de bon rendu Android.**
+
+### Éléments certains du dernier retour
+- Fab indique que l'aperçu/la manipulation fonctionnait auparavant et qu'il est épuisé par les tentatives successives. La version exacte du dernier comportement satisfaisant n'est pas encore établie ; ne pas l'inventer ni lui redemander des tests sans hypothèse discriminante.
+- EASYCUT 0.0.8 : Android « aucun arrêt identifié », « aucune erreur capturée », `SCAN_SKIPPED_NATIVE_UNVERIFIED`, `OPEN_PROJECT clips=1`. Le journal ne montre pas d'échec d'import.
+- PERF `mode=multi frames=120 matrices=2 frozenDraws=0 recovered=0 freeze=false waiting=false ageMs=1259 playing=false state=2 binds=1 clockMs=2489` : la récupération d'image n'était PAS activée à ce relevé ; `state=2` est BUFFERING et `playing=false` décrit un instant, mais `frames=120` exclut de conclure à « aucune frame affichée ». Une seule mesure ne caractérise pas l'impression visuelle ni une panne permanente.
+- En 0.0.8 le scan optionnel des changements de résolution est délibérément ignoré sur TOUS les fichiers afin d'éviter le bug natif `-o`. Cela supprime le message FFPROBE_KEYFRAME, mais n'est PAS une réparation du scan et peut dégrader un vrai flux à résolution variable.
+
+### Actions AVANT tout changement fonctionnel
+- [ ] **Gel fonctionnel / écoute :** ne pas relancer de modifications de preview ni publier une nouvelle version au seul motif des journaux ; préserver 0.0.6, 0.0.7, 0.0.8, leurs tags et leurs APK existants.
+- [ ] **Établir le point de retour exact** en comparant les changements de code et les versions pré-régression disponibles, avec les symptômes déjà fournis. Si un test Android devient indispensable, formuler un test A/B minimal, ciblé, avec ce qu'il permet de trancher ; pas de matrice d'essais imposée d'emblée à Fab.
+- [ ] **Séparer les deux fils causaux :** (A) fluidité/manipulation visuelle sur un clip et transitions CompositionPlayer↔ExoPlayer ; (B) scan FFprobe natif des images-clés et fichiers réellement à résolution variable. Ne pas attribuer arbitrairement l'un à l'autre.
+- [ ] **Préparer un retour au comportement de preview antérieur** par un patch ciblé, en conservant données et exports ; ne pas faire désinstaller/effacer les données utilisateur. Une éventuelle APK de rétablissement devra avoir un versionCode supérieur à 41 et un nom/version distincts.
+- [ ] **Définir une validation visible :** une vidéo que Fab sait fonctionner et une qui dysfonctionne ; premier pinch, zoom/dézoom, pan, rotation intentionnelle, passage à lecture, sortie/export à cadrage identique. Critère de clôture : Fab confirme que l'image suit les doigts et que la lecture est utilisable ; succès CI/JVM seul insuffisant.
+- [ ] **Réparer le scan sans suppression fonctionnelle générale :** solution bornée et validée Android pour changements de résolution (ou désactivation clairement explicite sur la seule classe de fichiers à risque), sans charger toutes les frames en RAM ; ne pas réactiver la commande native actuelle sans preuve.
+- [ ] **Respect FAB Copilot :** pour toute intervention ultérieure, mettre à jour `brain.md`, `brainmap.md`, `debughistorical.md`, `todo.md` et `topo.md` dans le même cycle/commit. Cette entrée est UNIQUEMENT une mise à jour documentaire de `todo.md`, sans changement de code.
