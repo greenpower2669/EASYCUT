@@ -25,6 +25,22 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
     private var previewTransform: ClipTransform? = null
     private var previewSourceAspectRatio = 1f
     private var previewCanvasAspectRatio = 1f
+    // Applying an unchanged matrix invalidates the video view for no visual benefit.
+    // Reapply after surface creation/resize, even when the parameters match.
+    private data class MatrixKey(
+        val transform: ClipTransform?,
+        val sourceAspectRatio: Float,
+        val canvasAspectRatio: Float,
+        val width: Int,
+        val height: Int,
+    )
+    private var appliedMatrixKey: MatrixKey? = null
+    var renderedFrameCount: Long = 0L
+        private set
+    var appliedPreviewMatrixCount: Long = 0L
+        private set
+    var surfaceBindCount: Long = 0L
+        private set
     var onBindFailure: ((Throwable) -> Unit)? = null
 
     init {
@@ -48,6 +64,7 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
                 }
                 attached = player
                 attachedSize = size
+                surfaceBindCount++
             } catch (error: RuntimeException) {
                 FabVidDiagnostics.logError("VIDEO_SURFACE_BIND", error)
                 // Do not let CompositionPlayer's unsupported output type kill the main thread.
@@ -70,6 +87,8 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         previewTransform = transform
         previewSourceAspectRatio = sourceAspectRatio
         previewCanvasAspectRatio = canvasAspectRatio
+        val key = MatrixKey(transform, sourceAspectRatio, canvasAspectRatio, width, height)
+        if (key == appliedMatrixKey) return
         val matrix = Matrix()
         if (transform != null && width > 0 && height > 0) {
             val f = PreviewCanvasGeometry.forFrame(
@@ -82,6 +101,8 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
             matrix.postTranslate(f.translationX, f.translationY)
         }
         setTransform(matrix)
+        appliedPreviewMatrixCount++
+        appliedMatrixKey = key
     }
 
     private fun unbind() {
@@ -99,6 +120,7 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         unbind()
         output?.release()
         output = null
+        appliedMatrixKey = null
         onBindFailure = null
     }
 
@@ -106,12 +128,14 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         unbind()
         output?.release()
         output = Surface(texture)
+        appliedMatrixKey = null
         applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio)
         bind(wanted)
     }
 
     override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-        // Fit/zoom pixel geometry changes with the surface; do not reuse old px pivots.
+        // The surface backing changed; preserve FIT, zoom and finger pivot.
+        appliedMatrixKey = null
         applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio)
         bind(wanted)
     }
@@ -120,8 +144,11 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         unbind()
         output?.release()
         output = null
+        appliedMatrixKey = null
         return true
     }
 
-    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
+    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
+        renderedFrameCount++
+    }
 }

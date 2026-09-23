@@ -177,3 +177,17 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 ### Garde-fous FAB Copilot
 - [x] Consigner contrat / architecture / historique / travail dans brain.md, brainmap.md, debughistorical.md et todo.md AU MÊME COMMIT DOCUMENTAIRE.
 - [ ] Après audit, chaque vraie modification fonctionnelle doit à nouveau mettre à jour ces quatre fichiers dans son propre commit, compiler, tester, puis valider sur téléphone. Les anciennes obligations catalogue JSON récupérable, annulation FFmpeg native et éventuels soucis import/scan résolution sont toujours ouvertes indépendamment.
+
+
+## CODE v0.0.6 — EASYCUT-PREVIEW-012
+- [x] Appliquer la matrice au TextureView depuis le geste avant la recomposition Compose ; préserver le point sous les deux doigts et seuil rotation 10° ; pas de nouveau keyframe avant levée des doigts.
+- [x] N'invalider TextureView que pour nouvelle matrice ou nouvelle surface/taille ; compteurs matrices/frames/binds locaux et `PERF preview` toutes ~10s sans URI ni télémétrie réseau.
+- [x] Animer la transformation des keyframes/transitions sur le lecteur de secours à cadence ~33ms, découplée de l'horloge/contrôles Compose ~80ms ; pas de nouveau décodage ou proxy pendant le pinch.
+- [x] `PreviewMediaIdentity` empêche reprepare/seek lors d'un changement seulement visuel, tout en re-sync sur source/trim/vitesse/timing/opacité ; retirer relance de boucle par fallbackClip.id ; tester zoom 321/380% versus les changements réels de média.
+- [x] Version v0.0.6/code 39, noms APK/AAB et quatre mémoires FAB Copilot dans le même commit que les sources.
+- [ ] Valider CI tests/lint/assemble/bundle ET publication APK/AAB avant de donner un lien ; puis test téléphone sur 1Go, 2 doigts, retour après rotation/surface, KEYFRAME 321/380%, V1→V2, audio, MP4 cadré identique.
+- [ ] Examiner PERF preview en cas de lag (frames / 10s, matrices, binds, clock), notamment audio et rendu keyframes ; corriger cause réelle si la fluidité reste faible. Surveiller fallbackSelected vs premier clip après changement de piste ; instrumenter des tests Android GPU si possible.
+- [ ] Véritable fallback 480p/360p de vidéo source : seulement avec un proxy pré-calculé, stocké à part et vérifié (format, rotation, timecodes, trim, espace disque), retour automatique haute qualité une fois disponible, sans modifier source/export. NON IMPLÉMENTÉ dans ce cycle ; le dernier frame actuellement décodé sert à rendre le pinch réactif.
+- [ ] Backlog EASYCUT-EXPORT-SMALL-013 (cadences +Autres 1..60, 480p, débit, audio, taille estimée) demeure planifié après P0 ; ne pas le confondre avec la qualité du preview.
+
+- [x] Basculer immédiatement vers le lecteur simplifié au premier pinch depuis le mode multipiste, avant transformation native, plutôt que double-zoomer pendant le rebind différé ; revalidation téléphone encore requise.

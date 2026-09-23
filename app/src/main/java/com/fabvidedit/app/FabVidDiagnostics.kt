@@ -58,6 +58,11 @@ object FabVidDiagnostics {
             " type=" + kind + " message=" + message + "\n" + trace)
     }
 
+    /** Low-rate, device-local performance counters; do not change the fatal error stage. */
+    fun metric(message: String) {
+        append("PERF " + message.take(260))
+    }
+
     fun getLastStage(): String = currentStage
     fun getLastError(): String = lastError
 

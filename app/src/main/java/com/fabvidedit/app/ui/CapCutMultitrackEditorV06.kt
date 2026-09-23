@@ -75,6 +75,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,6 +104,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.transformer.CompositionPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.fabvidedit.app.FabVidEditViewModel
+import com.fabvidedit.app.FabVidDiagnostics
 import com.fabvidedit.app.media.CompositionFactory
 import com.fabvidedit.app.media.ExportState
 import com.fabvidedit.app.media.ExportSettings
@@ -116,6 +118,7 @@ import com.fabvidedit.app.media.TimelineWaveformCache
 import com.fabvidedit.app.model.AspectRatioPreset
 import com.fabvidedit.app.model.ClipTransform
 import com.fabvidedit.app.model.PreviewGestureMath
+import com.fabvidedit.app.model.previewMediaIdentity
 import com.fabvidedit.app.model.PreviewRotationGate
 import com.fabvidedit.app.model.SourceAudioKeyframe
 import com.fabvidedit.app.model.SourceAudioTrack
@@ -147,6 +150,11 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         val memory = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         if (memory.isLowRamDevice) 480 else 720
     }
+    val latestProject by rememberUpdatedState(project)
+    // Decoder/surface references intentionally are not Compose state: a pointer move
+    // can update the last decoded texture without recomposing the entire editor.
+    val previewTextureRef = remember(project.id) { arrayOfNulls<FabVidVideoTextureView>(1) }
+    val mediaIdentity = project.previewMediaIdentity()
     val selectedClipId by viewModel.selectedClipId.collectAsStateWithLifecycleCompat()
     val exportState by viewModel.exportState.collectAsStateWithLifecycleCompat()
     val canUndo by viewModel.canUndo.collectAsStateWithLifecycleCompat()
@@ -242,7 +250,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     // Simplified preview must select the VISUAL front lane, never stale selected footage
     // after its end or an invisible clip while a lower lane is actually on screen.
     fun previewClipFor(positionMs: Long): VideoClip? =
-        VideoLayerPolicy.activeClip(project.clips, positionMs)
+        VideoLayerPolicy.activeClip(latestProject.clips, positionMs)
 
     fun syncFallback(positionMs: Long, playWhenReady: Boolean) {
         val clip = previewClipFor(positionMs)
@@ -273,7 +281,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     }
 
     fun syncStableAudio(positionMs: Long, playWhenReady: Boolean) {
-        val activeSource = project.sourceAudioTracks
+        val audioProject = latestProject
+        val activeSource = audioProject.sourceAudioTracks
             .filter { positionMs >= it.timelineStartMs && positionMs < it.timelineStartMs + it.outputDurationMs }
             .maxByOrNull { it.timelineTrackIndex }
         if (activeSource == null) {
@@ -292,7 +301,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
             if (playWhenReady) sourceAudioPlayer.play() else sourceAudioPlayer.pause()
         }
 
-        val music = project.audioTrack
+        val music = audioProject.audioTrack
         if (music == null || music.durationMs <= 0L) {
             musicPreviewPlayer.pause()
             musicPreviewUri = null
@@ -343,19 +352,48 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         }
     }
 
-    LaunchedEffect(player, fallbackPlayer, stablePreview, fallbackClip?.id) {
+    // The decoded TextureView and finger transforms must not wait for an 80 ms
+    // recomposition of the entire timeline. Drive moving matrices directly at ~30 Hz
+    // while publishing the playhead to Compose at the old, cheaper ~12.5 Hz.
+    LaunchedEffect(player, fallbackPlayer, stablePreview) {
+        var lastUiUpdateMs = 0L
+        var lastMetricsMs = SystemClock.elapsedRealtime()
+        var lastFrameCount = 0L
+        var lastMatrixCount = 0L
         while (true) {
+            val nowMs = SystemClock.elapsedRealtime()
+            val playingProject = latestProject
             if (stablePreview) {
                 if (fallbackTransportPlaying) {
-                    val elapsed = (SystemClock.elapsedRealtime() - fallbackAnchorRealtimeMs).coerceAtLeast(0L)
-                    val next = (fallbackAnchorPositionMs + elapsed).coerceAtMost(project.durationMs)
-                    currentPositionMs = next
+                    val elapsed = (nowMs - fallbackAnchorRealtimeMs).coerceAtLeast(0L)
+                    val next = (fallbackAnchorPositionMs + elapsed).coerceAtMost(playingProject.durationMs)
                     val front = previewClipFor(next)
-                    if (front?.id != fallbackClip?.id) {
+                    val laneChanged = front?.id != fallbackClip?.id
+                    if (laneChanged) {
                         syncFallback(next, front != null)
                         syncStableAudio(next, true)
                     }
-                    if (next >= project.durationMs) {
+                    if (nowMs - lastUiUpdateMs >= 80L || laneChanged || next >= playingProject.durationMs) {
+                        currentPositionMs = next
+                        lastUiUpdateMs = nowMs
+                    }
+                    if (!directGestureActive && front != null && (
+                        front.keyframes.isNotEmpty() ||
+                        playingProject.transitions.any { it.fromClipId == front.id || it.toClipId == front.id }
+                    )) {
+                        // A clip's visual animation is cheap: no decoder seek, no
+                        // Compose timeline rebuild and no source proxy/reencoding.
+                        val canvasRatio = (playingProject.aspectRatio.ratio
+                            ?: playingProject.clips.firstNotNullOfOrNull { it.displayAspectRatio() }
+                            ?: (16f / 9f)).coerceIn(0.25f, 4f)
+                        val visual = v020FallbackVisual(playingProject, front, next, null)
+                        previewTextureRef[0]?.applyPreviewTransform(
+                            visual.transform,
+                            front.displayAspectRatio() ?: canvasRatio,
+                            canvasRatio,
+                        )
+                    }
+                    if (next >= playingProject.durationMs) {
                         fallbackTransportPlaying = false
                         fallbackPlayer.pause()
                         sourceAudioPlayer.pause()
@@ -363,7 +401,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     }
                 }
                 isPlaying = fallbackTransportPlaying
-                project.sourceAudioTracks
+                playingProject.sourceAudioTracks
                     .filter { currentPositionMs >= it.timelineStartMs && currentPositionMs < it.timelineStartMs + it.outputDurationMs }
                     .maxByOrNull { it.timelineTrackIndex }
                     ?.let { source ->
@@ -371,20 +409,39 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                             .coerceIn(source.trimStartMs, source.trimEndMs)
                         sourceAudioPlayer.volume = if (previewMuted) 0f else source.volumeAtSourceTime(sourceTime)
                     }
-                project.audioTrack?.let { music ->
+                playingProject.audioTrack?.let { music ->
                     musicPreviewPlayer.volume = if (previewMuted) 0f else music.volumeAtProjectTime(currentPositionMs)
                 }
             } else {
                 if (player.currentPosition >= 0L) currentPositionMs = player.currentPosition
                 isPlaying = player.isPlaying
             }
-            delay(80L)
+            // Local bounded diagnostics only once per 10 seconds. Do not report
+            // a user's media URI or turn a performance sample into a crash stage.
+            if (nowMs - lastMetricsMs >= 10_000L) {
+                val view = previewTextureRef[0]
+                if (view != null) {
+                    FabVidDiagnostics.metric(
+                        "preview mode=" + (if (stablePreview) "simple" else "multi") +
+                        " frames=" + (view.renderedFrameCount - lastFrameCount) +
+                        " matrices=" + (view.appliedPreviewMatrixCount - lastMatrixCount) +
+                        " binds=" + view.surfaceBindCount +
+                        " clockMs=" + currentPositionMs,
+                    )
+                    lastFrameCount = view.renderedFrameCount
+                    lastMatrixCount = view.appliedPreviewMatrixCount
+                }
+                lastMetricsMs = nowMs
+            }
+            delay(if (stablePreview && fallbackTransportPlaying) 33L else 80L)
         }
     }
 
     LaunchedEffect(unequalVideoSpans) { if (unequalVideoSpans) stablePreview = true }
 
-    LaunchedEffect(project.updatedAt, project.clips.size, project.sourceAudioTracks.size, stablePreview, selectedClip?.timelineTrackIndex) {
+    // Visual edits (321%/380% zoom, keyframe, brightness, etc.) never
+    // re-prepare/re-seek video and audio or reset the project clock.
+    LaunchedEffect(mediaIdentity, stablePreview) {
         delay(120L)
         if (project.clips.isEmpty()) {
             player.stop()
@@ -525,6 +582,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                         ),
                                     )
                                     texture.bind(if (stablePreview) fallbackPlayer else player)
+                                    previewTextureRef[0] = texture
                                 }
                             },
                             update = { frame ->
@@ -543,7 +601,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                 )
                             },
                             onRelease = { frame ->
-                                (frame.getChildAt(0) as? FabVidVideoTextureView)?.dispose()
+                                val texture = frame.getChildAt(0) as? FabVidVideoTextureView
+                                if (previewTextureRef[0] === texture) previewTextureRef[0] = null
+                                texture?.dispose()
                             },
                             modifier = Modifier
                                 .fillMaxSize()
@@ -596,6 +656,13 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             musicPreviewPlayer.pause()
                                                             isPlaying = false
                                                             fallbackTransportPlaying = false
+                                                            if (!stablePreview) {
+                                                                // On the first pinch frame, switch the output
+                                                                // to the single clip BEFORE transforming it.
+                                                                // Never zoom the full composition a second time.
+                                                                syncFallback(editPositionMs, false)
+                                                                previewTextureRef[0]?.bind(fallbackPlayer)
+                                                            }
                                                             stablePreview = true
                                                             panel = EditorPanel.MOTION
                                                             inspectorOpen = false
@@ -612,6 +679,13 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             panY = pan.y,
                                                             zoom = zoom,
                                                             rotationDeltaDegrees = rotationDelta,
+                                                        )
+                                                        // Immediately transform the retained decoded frame
+                                                        // under the fingers, even when Media3 is late.
+                                                        previewTextureRef[0]?.applyPreviewTransform(
+                                                            working,
+                                                            selectedClip?.displayAspectRatio() ?: outputRatio,
+                                                            outputRatio,
                                                         )
                                                         directPreviewTransform = working
                                                         changed = true
