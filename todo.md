@@ -1,5 +1,27 @@
 # todo.md — FabVidEdit
 
+## TABLEAU DE BORD VIVANT — petits chantiers à retrouver en premier (23/09/2026)
+
+Ce tableau est l'**index du travail réellement en attente**, pas le journal des anciens builds. Les longues sections par version conservées ci-dessous sont l'historique de progression : leurs anciennes cases non cochées, parfois répétées ou dépassées, ne sont **pas** autant de projets nouveaux. Ne pas détruire cet historique lors d'un tri. Un bug détaillé appartient à `debughistorical.md` ; seule l'action corrective reste ici.
+
+### P0 — Ne pas régresser sur le montage validé
+- [x] Prévisualisation EASYCUT **0.0.10 validée « nickel » par Fab**, à conserver ; premier export **avant déplacement** validé. Ne pas rouvrir les vieux bugs de preview par simple comptage des cases historiques.
+- [ ] **EXPORT-MOVE-017 :** corriger l'export après glisser-déposer de la vidéo 2 (karaté) sur la piste au-dessus : zoom inattendu vidéo 1, transformations vidéo 2 non conformes. Détail et hypothèses dans `debughistorical.md`; actions et tests dans la section dédiée en fin de fichier. Pas de code demandé pendant ce rangement documentaire.
+
+### P1 — Petites fonctionnalités d'interface demandées par Fab, non codées
+- [ ] **Journal GET ERR — classement visuel :** erreurs véritables en rouge ; réussites/informations normales en vert ; étapes ignorées/timeout **récupéré sans perte fonctionnelle** en gris. Un timeout qui empêche la fonction demandée est rouge. Ajouter libellés lisibles « ERREUR », « OK », « INFO » : couleur jamais seule.
+- [ ] **Journal GET ERR accessible à deux endroits :** accueil **et éditeur sans quitter le montage**, ouvrant un journal commun.
+- [ ] **Effacer le journal :** bouton avec confirmation ; ne supprimer ni projets, ni médias ; conserver identification de version et information de panne en cours, indiquer clairement que l'historique a été remis à zéro.
+- [ ] **Export compact / + Autres sur la cadence :** source et 1–60 i/s, présélections 1–5, 10–12, 15, 20, 24/25/30/50/60 ; sans accélérer le montage ni le son. Cahier précis : section `EASYCUT-EXPORT-SMALL-013` et `brain.md`.
+- [ ] **Petites résolutions et économie d'espace :** 240/360/480/540p, profils de débit/codec, choix AAC mono/stéréo/muet, estimation de taille, contrôles suffisamment grands pour être lisibles. Même section `EASYCUT-EXPORT-SMALL-013` ; aucune promesse de codec/bitrate non vérifiée.
+
+### P2 — Robustesse séparée des demandes UI
+- [ ] Réparer le scan **intra-vidéo** des changements de résolution sans commande native FFprobe `-o` défectueuse ni collecte illimitée en RAM. Import courant OK ; `SCAN_SKIPPED_NATIVE_UNVERIFIED` reste un contournement, pas la résolution du bug.
+- [ ] Sauvegarde/catalogue des projets récupérables, annulation effective des traitements natifs FFmpeg/FFprobe, nettoyage protégé des temporaires et grands médias ; les engagements détaillés figurent dans les premières sections historiques.
+- [ ] Contrôles Android ciblés sur vrais projets multipistes, médias volumineux et export WYSIWYG uniquement en réponse à un scénario discriminant ; pas de batterie d'essais imposée sans raison à Fab.
+
+---
+
 ## État de cette intervention (FAB-MEM-001)
 - [x] Retrouver FabVidEdit privé, la branche v0.25 et le commit de référence.
 - [x] Lire FAB Copilot v0.2 et son protocole de mémoires ; constater que les quatre fichiers manquaient de la v0.25.
@@ -254,22 +276,11 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Validation Fab minimaliste : image visible, zoom/dézoom/pan intuitif et rotation volontaire, reprise lecture ; vérifier l'export MP4 = zoom UNE fois, pas deux. Ne pas transformer chiffres PERF en preuve de fluidité.
 - [ ] Reste ensuite et SÉPARÉ : FFprobe variation de résolution, colour journal rouge/vert/gris, entrée journal depuis éditeur et effacement confirmé. Ne pas mêler ces fonctions à ce patch P0.
 
-## P0 — EASYCUT 0.0.10 — export après déplacement de la vidéo 2 sur une autre piste
+## P0 — EASYCUT-EXPORT-MOVE-017 — export après déplacement vertical du clip 2
 
-**Retour sur téléphone de Fab : prévisualisation v0.0.10 validée « nickel » ; premier export, avant déplacement, validé. Préserver impérativement ces deux acquis et ne PAS reprendre le zoom de prévisu.**
+**Bug détaillé et preuves :** voir `debughistorical.md`, section `EASYCUT-EXPORT-MOVE-017`. Prévisualisation 0.0.10 et premier export avant déplacement **validés par Fab : ne pas les modifier**.
 
-### Reproduction rapportée (données utilisateur, pas cause racine démontrée)
-- Fab exporte un montage vidéo 1 + séquence karaté vidéo 2 : premier export correct.
-- Fab glisse-dépose ensuite **la deuxième vidéo une piste au-dessus** (changement de ligne Vn sur la timeline) et relance l'export.
-- Résultat rapporté : **zoom indésirable sur la vidéo 1 dans le MP4**, alors que les **keyframes / transformations de karaté de la vidéo 2 ne sont pas appliquées comme prévu**. Le premier export et l'aperçu restent des références positives ; ne pas confondre défaut MP4 après déplacement avec ancien défaut de prévisualisation.
-- Hypothèse de travail, NON confirmée : déplacement `moveClipOnTimeline` → projet `TimelineMode.MULTITRACK` → export construit les `EditedMediaItemSequence` par piste ; vérifier si positions globales, trims, temps locaux des keyframes, ordre des effets/transformations et correspondance clip↔piste sont correctement conservés. **Ne pas affirmer que les keyframes ont été transférées sans preuve.**
-
-### Travail restant — audit ciblé AVANT de coder
-- [ ] Reproduire le scénario exact sur projet à **deux clips avec karaté/keyframes** : exporter avant déplacement, déplacer vidéo 2 verticalement d'une piste sans changer volontairement son temps, réexporter ; comparer visuellement vidéo 1, vidéo 2 et cadrage MP4, ainsi que les identifiants/temps/valeurs de leurs keyframes avant/après.
-- [ ] Auditer `VideoProject.moveClipOnTimeline`, `FabVidEditViewModel.moveClip`, `TimelineMode` et `CompositionFactory.multitrackSequences/editedVideoItem` ; distinguer conversion séquentiel→multipiste, éventuels changements réels de `timelineStartMs`, tri de pistes, temps source/trim/speed et origine temporelle d'`AnimatedTransformEffect` / keyframes pour chaque clip.
-- [ ] Distinguer le cas « transformation de la vidéo 2 perdue ou mal synchronisée » du cas « zoom de vidéo 1 réellement ajouté » et de toute **superposition de pistes** rendant une vidéo visible au-dessus d'une autre. Mesurer le rendu, ne pas diagnostiquer une cause sur la seule capture.
-- [ ] Proposer un patch **localisé à la timeline et/ou à l'export multipiste**, avec tests de non-régression export avant/après changement vertical de piste, deux clips aux keyframes distinctes, ordre de superposition, trim/vitesse, transitions et audio. Ne modifier ni le rendu de prévisualisation v0.0.10 validé ni le premier export validé.
-- [ ] Faire ensuite valider sur le téléphone le MP4 après déplacement, en conservant le premier export comme référence. Réussite CI seule insuffisante.
-- [ ] Reporter dans les cinq fichiers FAB Copilot (`brain.md`, `brainmap.md`, `debughistorical.md`, `todo.md`, `topo.md`) lors de **toute future modification de code**, dans le même cycle/commit.
-
-**Cette entrée est uniquement documentaire : aucune modification de code, aucune APK et aucune release demandées maintenant.**
+- [ ] Reproduire l'export avant/après déplacement vertical du clip karaté sur une autre piste, mêmes keyframes et mêmes paramètres ; vérifier séparément vidéo 1, vidéo 2 et superposition.
+- [ ] Auditer déplacement séquentiel→multipiste, `timelineStartMs`, origine locale/source des keyframes, trims/vitesse, ordre des séquences et effet animé dans l'export ; distinguer bug réel et hypothèses.
+- [ ] Corriger seulement timeline/export multipiste, ajouter tests ciblés et protéger premier export + aperçu validés ; validation du second MP4 par Fab indispensable.
+- [ ] Actualiser les quatre mémoires et `topo.md` avec le code dans le même commit lorsqu'une correction sera demandée.
