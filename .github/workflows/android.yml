@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.9-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.9-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.10-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.10-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.9-preview-${short_sha}"
+          tag="easycut-v0.0.10-preview-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.9-arm64-debug.apk \
-            EASYCUT-v0.0.9-arm64-debug.aab \
+            EASYCUT-v0.0.10-arm64-debug.apk \
+            EASYCUT-v0.0.10-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.9 — aperçu ${short_sha}" \
-            --notes "Un clip vidéo sans effet nécessitant la composition utilise ExoPlayer dès l'ouverture : pas de bascule de surface au premier pinch. Multipiste/texte/filtres conservent CompositionPlayer; scan FFprobe natif non validé reste neutralisé (EASYCUT-PREVIEW-015). Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."
+            --title "EASYCUT v0.0.10 — aperçu ${short_sha}" \
+            --notes "Prévisualisation 0.0.3 restaurée : zoom/rotation/pan sur graphicsLayer Compose uniquement, TextureView native identité, pont snapshot désactivé sur geste, export Media3 inchangé. ExoPlayer mono-vidéo de v0.0.9 préservé ; FFprobe natif non validé toujours neutralisé (EASYCUT-PREVIEW-016). Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."

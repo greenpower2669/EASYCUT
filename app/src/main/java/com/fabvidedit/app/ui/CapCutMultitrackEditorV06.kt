@@ -107,8 +107,6 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import com.fabvidedit.app.FabVidEditViewModel
 import com.fabvidedit.app.FabVidDiagnostics
 import com.fabvidedit.app.media.CompositionFactory
-import com.fabvidedit.app.media.PreviewFrameRecovery
-import com.fabvidedit.app.media.PreviewRecoveryPolicy
 import com.fabvidedit.app.media.ExportState
 import com.fabvidedit.app.media.ExportSettings
 import com.fabvidedit.app.media.ExportVideoCodec
@@ -124,6 +122,7 @@ import com.fabvidedit.app.model.PreviewGestureMath
 import com.fabvidedit.app.model.previewMediaIdentity
 import com.fabvidedit.app.model.PreviewRotationGate
 import com.fabvidedit.app.model.PreviewRoutingPolicy
+import com.fabvidedit.app.model.PreviewV03RenderPolicy
 import com.fabvidedit.app.model.SourceAudioKeyframe
 import com.fabvidedit.app.model.SourceAudioTrack
 import com.fabvidedit.app.model.TextLayer
@@ -144,8 +143,6 @@ import com.fabvidedit.app.ui.theme.FabSurfaceHigh
 import com.fabvidedit.app.util.formatDuration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -162,7 +159,6 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     // can update the last decoded texture without recomposing the entire editor.
     val previewTextureRef = remember(project.id) { arrayOfNulls<FabVidVideoTextureView>(1) }
     val previewFreezeRef = remember(project.id) { arrayOfNulls<PreviewFreezeOverlayView>(1) }
-    val frameRecoveryScope = rememberCoroutineScope()
     val frameRecoveryJob = remember(project.id) { arrayOfNulls<Job>(1) }
     val mediaIdentity = project.previewMediaIdentity()
     val selectedClipId by viewModel.selectedClipId.collectAsStateWithLifecycleCompat()
@@ -267,29 +263,6 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     // after its end or an invisible clip while a lower lane is actually on screen.
     fun previewClipFor(positionMs: Long): VideoClip? =
         VideoLayerPolicy.activeClip(latestProject.clips, positionMs)
-
-    // Also usable while already in simple preview; no reprepare or decoder seek.
-    fun beginFrameBridge(positionMs: Long, initial: ClipTransform, ratio: Float, snapshot: android.graphics.Bitmap?) {
-        val overlay = previewFreezeRef[0] ?: return
-        if (overlay.awaitingFirstFrame) return
-        overlay.beginWait(snapshot, initial, ratio)
-        frameRecoveryJob[0]?.cancel()
-        frameRecoveryJob[0] = null
-        if (!PreviewRecoveryPolicy.shouldRecover(snapshot != null)) return
-        val front = previewClipFor(positionMs) ?: return
-        if (front.mediaKind != VisualMediaKind.VIDEO) return
-        val localMs = (positionMs - front.timelineStartMs).coerceIn(0L, front.outputDurationMs)
-        val sourceMs = (front.trimStartMs + (localMs * front.speed).toLong())
-            .coerceIn(front.trimStartMs, front.trimEndMs)
-        frameRecoveryJob[0] = frameRecoveryScope.launch {
-            for (edge in PreviewRecoveryPolicy.recoveryEdges(previewShortSide == 480)) {
-                val frame = PreviewFrameRecovery.load(context, Uri.parse(front.uri), sourceMs, edge)
-                if (frame != null) overlay.offerRecoveredFrame(
-                    frame, edge, front.displayAspectRatio() ?: ratio,
-                )
-            }
-        }
-    }
 
     fun syncFallback(positionMs: Long, playWhenReady: Boolean) {
         val clip = previewClipFor(positionMs)
@@ -399,9 +372,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         }
     }
 
-    // The decoded TextureView and finger transforms must not wait for an 80 ms
-    // recomposition of the entire timeline. Drive moving matrices directly at ~30 Hz
-    // while publishing the playhead to Compose at the old, cheaper ~12.5 Hz.
+    // v0.0.3 preview restored: Compose applies the user's transform once
+    // on the outer image host. Native TextureView matrix stays identity.
+    // Project clock still publishes updates at the existing ~12.5 Hz.
     LaunchedEffect(player, fallbackPlayer, stablePreview) {
         var lastUiUpdateMs = 0L
         var lastMetricsMs = SystemClock.elapsedRealtime()
@@ -426,22 +399,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                         currentPositionMs = next
                         lastUiUpdateMs = nowMs
                     }
-                    if (!directGestureActive && front != null && (
-                        front.keyframes.isNotEmpty() ||
-                        playingProject.transitions.any { it.fromClipId == front.id || it.toClipId == front.id }
-                    )) {
-                        // A clip's visual animation is cheap: no decoder seek, no
-                        // Compose timeline rebuild and no source proxy/reencoding.
-                        val canvasRatio = (playingProject.aspectRatio.ratio
-                            ?: playingProject.clips.firstNotNullOfOrNull { it.displayAspectRatio() }
-                            ?: (16f / 9f)).coerceIn(0.25f, 4f)
-                        val visual = v020FallbackVisual(playingProject, front, next, null)
-                        previewTextureRef[0]?.applyPreviewTransform(
-                            visual.transform,
-                            front.displayAspectRatio() ?: canvasRatio,
-                            canvasRatio,
-                        )
-                    }
+                    // v0.0.3: Compose owns the preview transform. Do NOT also
+                    // animate TextureView's native matrix while it is zoomed
+                    // by the outer graphicsLayer; the same zoom would stack.
                     if (next >= playingProject.durationMs) {
                         fallbackTransportPlaying = false
                         fallbackPlayer.pause()
@@ -668,10 +628,14 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                     stablePreview = true
                                 }
                                 texture.bind(if (stablePreview) fallbackPlayer else player)
-                                val rawAspectRatio = fallbackClip?.displayAspectRatio() ?: outputRatio
+                                // One owner only: v0.0.3 outer Compose host.
+                                // Reset any stale TextureView matrix to identity.
+                                val renderPlan = PreviewV03RenderPolicy.plan(
+                                    stablePreview, fallbackVisual?.transform,
+                                )
                                 texture.applyPreviewTransform(
-                                    if (stablePreview) fallbackVisual?.transform else null,
-                                    sourceAspectRatio = rawAspectRatio,
+                                    renderPlan.textureTransform,
+                                    sourceAspectRatio = fallbackClip?.displayAspectRatio() ?: outputRatio,
                                     canvasAspectRatio = outputRatio,
                                 )
                             },
@@ -688,9 +652,23 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                     if (stablePreview && fallbackVisual == null) {
                                         alpha = 0f // hide the stale Surface frame throughout an empty interval
                                     } else if (stablePreview && fallbackVisual != null) {
-                                        // TextureView owns the video FIT + zoom + rotation + pan.
-                                        // Do NOT zoom AndroidView again: its outer transform was
-                                        // a different geometry from Media3's FIT export canvas.
+                                        // Restore *preview only* to the known-good 0.0.3
+                                        // Compose graphicsLayer; TextureView stays identity.
+                                        // Export Media3 transformations remain unchanged.
+                                        val outer = PreviewV03RenderPolicy.plan(
+                                            stablePreview, fallbackVisual.transform,
+                                        ).outerTransform
+                                        if (outer != null) {
+                                            scaleX = outer.scaleX
+                                            scaleY = outer.scaleY
+                                            rotationZ = outer.rotationDegrees
+                                            translationX = outer.positionX * previewWidthPx * 0.5f
+                                            translationY = -outer.positionY * previewHeightPx * 0.5f
+                                            transformOrigin = androidx.compose.ui.graphics.TransformOrigin(
+                                                pivotFractionX = ((outer.pivotX + 1f) / 2f).coerceIn(0f, 1f),
+                                                pivotFractionY = ((1f - outer.pivotY) / 2f).coerceIn(0f, 1f),
+                                            )
+                                        }
                                         alpha = fallbackVisual.alpha * (fallbackClip?.opacity ?: 0f)
                                     }
                                 },
@@ -733,23 +711,15 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             musicPreviewPlayer.pause()
                                                             isPlaying = false
                                                             fallbackTransportPlaying = false
+                                                            // v0.0.3: one decoder change only
+                                                            // when editing a real multipiste
+                                                            // composition. A simple video
+                                                            // started on ExoPlayer in v0.0.9.
+                                                            frameRecoveryJob[0]?.cancel()
+                                                            previewFreezeRef[0]?.clearFrame()
                                                             if (!stablePreview) {
-                                                                // Multi input alone may still need the legacy
-                                                                // hand-off; single VIDEO started on ExoPlayer already.
-                                                                // Capture ONCE before CompositionPlayer → ExoPlayer.
-                                                                val snapshot = previewTextureRef[0]?.captureFrame(
-                                                                    PreviewRecoveryPolicy.captureEdge(previewShortSide == 480),
-                                                                )
-                                                                beginFrameBridge(editPositionMs, working, outputRatio, snapshot)
                                                                 syncFallback(editPositionMs, false)
                                                                 previewTextureRef[0]?.bind(fallbackPlayer)
-                                                            } else if (PreviewRecoveryPolicy.shouldRecoverInSimpleMode(
-                                                                    previewTextureRef[0]?.hasPresentedFrameOnCurrentSurface == true,
-                                                                    previewFreezeRef[0]?.awaitingFirstFrame == true,
-                                                                )) {
-                                                                // Simple reader is already active: only recover a
-                                                                // missing frame; never seek or rebind during a pinch.
-                                                                beginFrameBridge(editPositionMs, working, outputRatio, null)
                                                             }
                                                             stablePreview = true
                                                             panel = EditorPanel.MOTION
@@ -768,14 +738,10 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             zoom = zoom,
                                                             rotationDeltaDegrees = rotationDelta,
                                                         )
-                                                        // Immediately transform the retained decoded frame
-                                                        // under the fingers, even when Media3 is late.
-                                                        previewTextureRef[0]?.applyPreviewTransform(
-                                                            working,
-                                                            selectedClip?.displayAspectRatio() ?: outputRatio,
-                                                            outputRatio,
-                                                        )
-                                                        previewFreezeRef[0]?.updateTransform(working)
+                                                        // The 0.0.3 visible preview followed this
+                                                        // Compose state, never a second native
+                                                        // TextureView zoom. One history/keyframe
+                                                        // commit still happens on finger release.
                                                         directPreviewTransform = working
                                                         changed = true
                                                         event.changes.forEach { it.consume() }

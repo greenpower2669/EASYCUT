@@ -244,3 +244,12 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Essai minimal Fab : ouvrir vidéo qui posait problème, essayer play puis pinch/dézoom à deux doigts et rotation intentionnelle, vérifier image suit doigts et reprise play ; comparer avec une vidéo saine ; envoyer uniquement le nouveau PERF si problème. Vérifier que premier pinch ne fait pas passer mode=multi→simple ni augmenter binds.
 - [ ] Vérifier si nécessaire texte/filtre/images multiples, rotation/ratio, keyframes 321/380%, audio et export WYSIWYG. Préserver 0.0.8 et les releases précédentes sans effacer les données ni imposer désinstallation.
 - [ ] Indépendant de preview : remplacer proprement le scan FFprobe natif -o de résolution variable, neutralisé v0.0.8 ; ne pas le faire passer pour déjà réparé.
+
+## P0 — v0.0.10 — EASYCUT-PREVIEW-016 : PRÉVISU v0.0.3, PAS son export
+- [x] Corriger l'historique : Fab confirme 0.0.3 prévisualisation correcte et double zoom UNIQUEMENT à l'export. 0.0.9 import/ouverture OK, prévisualisation KO malgré logs state=3.
+- [x] Réintroduire le graphicsLayer Compose v0.0.3 pour échelle/rotation/pan/pivot de la vidéo simple. Interdire une deuxième application sur TextureView (matrice identité) via PreviewV03RenderPolicy et tests.
+- [x] Enlever le traitement bitmap conditionnel du PREMIER GESTE et animation de matrices natives en lecture ; garder v0.0.9 mono-vidéo ExoPlayer direct, et export Media3 inchangé (ne pas réintroduire double zoom MP4).
+- [x] Version 0.0.10/code43, APK/AAB versionnés ; synchroniser brain.md, brainmap.md, debughistorical.md, todo.md et topo.md dans le même commit que code/tests.
+- [ ] CI : vérifier testDebugUnitTest, lintDebug, assembleDebug, bundleDebug et publication avant lien APK.
+- [ ] Validation Fab minimaliste : image visible, zoom/dézoom/pan intuitif et rotation volontaire, reprise lecture ; vérifier l'export MP4 = zoom UNE fois, pas deux. Ne pas transformer chiffres PERF en preuve de fluidité.
+- [ ] Reste ensuite et SÉPARÉ : FFprobe variation de résolution, colour journal rouge/vert/gris, entrée journal depuis éditeur et effacement confirmé. Ne pas mêler ces fonctions à ce patch P0.
