@@ -1,9 +1,5 @@
 package com.fabvidedit.app.ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,8 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -60,10 +54,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import com.fabvidedit.app.FabVidEditViewModel
-import com.fabvidedit.app.FabVidDiagnostics
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.ui.theme.FabBackground
 import com.fabvidedit.app.ui.theme.FabMint
@@ -75,8 +67,7 @@ import com.fabvidedit.app.util.formatDuration
 
 @Composable
 fun HomeScreen(viewModel: FabVidEditViewModel) {
-    val context = LocalContext.current
-    var errorReport by remember { mutableStateOf<String?>(null) }
+    var showDiagnosticJournal by remember { mutableStateOf(false) }
     val projects by viewModel.projects.collectAsStateWithLifecycleCompat()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) {
         viewModel.createProject(it)
@@ -105,7 +96,7 @@ fun HomeScreen(viewModel: FabVidEditViewModel) {
         ) {
             item {
                 OutlinedButton(
-                    onClick = { errorReport = FabVidDiagnostics.getReport(context) },
+                    onClick = { showDiagnosticJournal = true },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                 ) { Text("Journal d’erreurs — GET ERR") }
             }
@@ -132,39 +123,8 @@ fun HomeScreen(viewModel: FabVidEditViewModel) {
         }
     }
 
-    errorReport?.let { report ->
-        AlertDialog(
-            onDismissRequest = { errorReport = null },
-            title = { Text("Journal local des erreurs") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Ce rapport peut contenir des noms de fichiers ou des traces techniques. Aucun envoi automatique.")
-                    Text(
-                        text = report,
-                        modifier = Modifier.height(360.dp).verticalScroll(rememberScrollState()),
-                        fontSize = 12.sp,
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("EASYCUT errors", report))
-                }) { Text("Copier") }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = {
-                        val share = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, report)
-                        }
-                        context.startActivity(Intent.createChooser(share, "Partager le journal"))
-                    }) { Text("Partager") }
-                    TextButton(onClick = { errorReport = null }) { Text("Fermer") }
-                }
-            },
-        )
+    if (showDiagnosticJournal) {
+        DiagnosticJournalDialog(onDismiss = { showDiagnosticJournal = false })
     }
 
     projectToDelete?.let { project ->

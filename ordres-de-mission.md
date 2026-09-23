@@ -32,19 +32,25 @@
 - **Origine :** Fab, 23/09/2026.
 - **Demande :** **vraies erreurs en rouge**, **informations normales et réussites en vert**, **timeout récupéré / étape facultative ignorée / échec sans conséquence sur l'action demandée en gris**. Un timeout empêchant la fonction demandée reste une vraie erreur rouge. Conserver aussi des mots lisibles (**ERREUR / OK / INFO**) pour que la couleur ne soit jamais le seul signal.
 - **Résultat attendu :** affichage cohérent, contrasté et lisible dans le journal.
-- **Statut : À faire — commande conservée, pas encore codée.**
+- **Statut : Livré dans le code v0.0.11, à valider par Fab sur Android.**
 
 ### FAB-JOURNAL-ACCESS-005 — Journal accessible dans l'éditeur aussi
 - **Origine :** Fab, 23/09/2026.
 - **Demande :** ajouter dans **la vue de montage / l'éditeur** un accès au **même journal GET ERR** que depuis l'accueil, sans quitter ni perdre le montage.
 - **Résultat attendu :** les deux accès ouvrent le journal partagé ; la navigation ne ferme ni n'efface le projet.
-- **Statut : À faire — commande conservée, pas encore codée.**
+- **Statut : Livré dans le code v0.0.11, à valider par Fab sur Android.**
 
 ### FAB-JOURNAL-CLEAR-006 — Bouton pour vider le journal
 - **Origine :** Fab, 23/09/2026.
 - **Demande :** ajouter au journal un bouton **« Vider / Effacer le journal »** avec confirmation pour éviter une suppression accidentelle ; vider les anciennes lignes sans toucher aux projets et vidéos.
 - **Résultat attendu :** remise à zéro visible et confirmée ; conserver la version et l'information de panne encore pertinente, sans fausse déclaration « aucune erreur n'a jamais existé ».
-- **Statut : À faire — commande conservée, pas encore codée.**
+- **Statut : Livré dans le code v0.0.11, à valider par Fab sur Android.**
+
+### FAB-JOURNAL-COPY-007 — Balises HTML uniquement dans le texte copié
+- **Origine :** Fab, 23/09/2026, clarification explicite avant autorisation de coder.
+- **Demande :** l'affichage du journal GET ERR doit rester **coloré visuellement sans HTML affiché** ; le bouton **Copier** produit du texte contenant des **balises HTML littérales** `<span style="color:...">` pour les lignes rouges, vertes et grises, avec **ERREUR / OK / INFO** lisibles pour un humain et pour l'IA. Échapper les caractères des noms de fichiers et des traces pour ne pas confondre un `<` du journal avec une balise.
+- **Résultat attendu :** le texte copié comporte la couleur et le statut de chaque ligne, l'écran reste lisible sans balises ; aucun changement rétroactif du journal brut sur disque.
+- **Statut : Livré dans le code v0.0.11, à valider par Fab après copie/collage.**
 
 ## Missions produites et validées — ne pas perdre les acquis
 

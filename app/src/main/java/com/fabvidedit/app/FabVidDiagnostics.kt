@@ -103,13 +103,37 @@ object FabVidDiagnostics {
         }.onFailure { Log.w(TAG, "Unable to read Android process exit reason", it) }
     }
 
+    @Synchronized
+    fun clearJournal(context: Context): Boolean {
+        if (!::journal.isInitialized) return false
+        return runCatching {
+            val parent = journal.parentFile ?: return@runCatching false
+            if (!parent.exists() && !parent.mkdirs()) return@runCatching false
+            FileOutputStream(journal, false).use { it.flush() }
+            context.getSharedPreferences("fabvid_diagnostics", Context.MODE_PRIVATE)
+                .edit().putLong("journal_cleared_at", System.currentTimeMillis()).apply()
+            true
+        }.getOrElse {
+            Log.w(TAG, "Unable to clear local journal", it)
+            false
+        }
+    }
+
+    @Synchronized
     fun getReport(context: Context): String {
         val lines = runCatching {
             if (::journal.isInitialized && journal.isFile) {
                 journal.readText().takeLast(25_000)
             } else "Journal non encore initialisé"
         }.getOrDefault("Journal indisponible")
+        val clearedAt = context.getSharedPreferences("fabvid_diagnostics", Context.MODE_PRIVATE)
+            .getLong("journal_cleared_at", 0L)
+        val clearNotice = if (clearedAt > 0L) {
+            "Anciennes lignes du journal vidées sur demande (date ms=$clearedAt). " +
+                "Le dernier arrêt et la dernière erreur restent conservés.\n"
+        } else ""
         return "EASYCUT " + BuildConfig.VERSION_NAME + "\n" +
+            clearNotice +
             "Motif du dernier arrêt Android : " + getLastExitReason(context) + "\n" +
             "Dernière étape : " + getLastStage() + "\n" +
             "Dernière erreur : " + getLastError() + "\n\n" + lines

@@ -195,6 +195,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     var editingText by remember { mutableStateOf<TextLayer?>(null) }
     var showTextDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showDiagnosticJournal by remember { mutableStateOf(false) }
     var previewMuted by remember { mutableStateOf(false) }
     var selectedSourceAudioId by remember(project.id) { mutableStateOf<String?>(null) }
     var sourceAudioPreviewId by remember(project.id) { mutableStateOf<String?>(null) }
@@ -542,11 +543,19 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                             val streams = clips.mapNotNull(VideoClip::sourceStreamIndex).distinct().sorted()
                             if (streams.isEmpty()) "V${track + 1}" else "V${track + 1}(S${streams.joinToString(",")})"
                         }
-                    Text(
-                        "EASYCUT v${com.fabvidedit.app.BuildConfig.VERSION_NAME} • ${trackSummary.ifBlank { "aucune piste visuelle" }}",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "EASYCUT v${com.fabvidedit.app.BuildConfig.VERSION_NAME} • ${trackSummary.ifBlank { "aucune piste visuelle" }}",
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = { showDiagnosticJournal = true }) {
+                            Text("GET ERR", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
                 IconButton(onClick = viewModel::undo, enabled = canUndo) {
                     Icon(Icons.AutoMirrored.Rounded.Undo, contentDescription = "Annuler")
@@ -1091,6 +1100,10 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                 }
             }
         }
+    }
+
+    if (showDiagnosticJournal) {
+        DiagnosticJournalDialog(onDismiss = { showDiagnosticJournal = false })
     }
 
     if (showExportDialog) {

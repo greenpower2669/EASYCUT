@@ -284,3 +284,12 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Auditer déplacement séquentiel→multipiste, `timelineStartMs`, origine locale/source des keyframes, trims/vitesse, ordre des séquences et effet animé dans l'export ; distinguer bug réel et hypothèses.
 - [ ] Corriger seulement timeline/export multipiste, ajouter tests ciblés et protéger premier export + aperçu validés ; validation du second MP4 par Fab indispensable.
 - [ ] Actualiser les quatre mémoires et `topo.md` avec le code dans le même commit lorsqu'une correction sera demandée.
+
+## Intervention ciblée v0.0.11 — GET ERR (missions FAB-JOURNAL-004 à 007)
+- [x] [AGENT] Unifier le dialogue GET ERR de l'accueil et des deux vues de montage ; ne pas toucher au lecteur ni à l'export.
+- [x] [AGENT] Colorer par statut sans HTML visible, ajouter ERREUR / OK / INFO ; générer des balises HTML **uniquement dans la copie**, avec échappement.
+- [x] [AGENT] Ajouter Vider avec confirmation, tronquer les seules anciennes lignes et garder la dernière information de panne, version et projets.
+- [x] [AGENT] Ajouter tests JVM pour classification/timeout récupéré vs bloquant, continuation de pile et échappement HTML ; version 0.0.11/code44 et publication conditionnée à CI.
+- [ ] [AGENT] Vérifier réellement Actions tests/lint/APK/AAB et obtenir URL de release avant de déclarer la livraison installable.
+- [ ] [FAB] Valider sur téléphone : couleurs, COPIER puis coller avec balises, accès accueil et montage sans quitter le projet, annuler Vider puis confirmer Vider, persistance des indications dernière erreur/arrêt. Le résultat restera « Livré, à valider » jusqu'à confirmation.
+- [ ] [AGENT] Poursuivre séparément EASYCUT-EXPORT-MOVE-017 sans régression de l'aperçu 0.0.10.

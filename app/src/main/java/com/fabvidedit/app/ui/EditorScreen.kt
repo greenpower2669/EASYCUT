@@ -151,6 +151,7 @@ fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
     var playbackError by remember { mutableStateOf<String?>(null) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showDiagnosticJournal by remember { mutableStateOf(false) }
     var editingText by remember { mutableStateOf<TextLayer?>(null) }
     var showTextDialog by remember { mutableStateOf(false) }
     var isScrubbing by remember { mutableStateOf(false) }
@@ -241,6 +242,7 @@ fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
                 onBack = viewModel::closeProject,
                 onRename = { showRenameDialog = true },
                 onExport = { showExportDialog = true },
+                onJournal = { showDiagnosticJournal = true },
             )
         },
     ) { padding ->
@@ -469,6 +471,10 @@ fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
         )
     }
 
+    if (showDiagnosticJournal) {
+        DiagnosticJournalDialog(onDismiss = { showDiagnosticJournal = false })
+    }
+
     if (showExportDialog) {
         ExportOptionsDialog(
             onDismiss = { showExportDialog = false },
@@ -519,6 +525,7 @@ private fun EditorHeader(
     onBack: () -> Unit,
     onRename: () -> Unit,
     onExport: () -> Unit,
+    onJournal: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -551,6 +558,9 @@ private fun EditorHeader(
                 modifier = Modifier.size(17.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        TextButton(onClick = onJournal) {
+            Text("GET ERR", fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Button(
             onClick = onExport,
