@@ -3,6 +3,7 @@ package com.fabvidedit.app.ui
 import android.content.Context
 import android.graphics.Matrix
 import android.graphics.Bitmap
+import android.os.SystemClock
 import kotlin.math.max
 import android.graphics.SurfaceTexture
 import android.view.Surface
@@ -39,6 +40,13 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
     private var appliedMatrixKey: MatrixKey? = null
     var renderedFrameCount: Long = 0L
         private set
+    var hasPresentedFrameOnCurrentSurface: Boolean = false
+        private set
+    private var lastFrameElapsedMs = -1L
+
+    fun presentedFrameAgeMs(nowMs: Long = SystemClock.elapsedRealtime()): Long =
+        if (!hasPresentedFrameOnCurrentSurface || lastFrameElapsedMs < 0L) -1L
+        else (nowMs - lastFrameElapsedMs).coerceAtLeast(0L)
     var appliedPreviewMatrixCount: Long = 0L
         private set
     var surfaceBindCount: Long = 0L
@@ -54,6 +62,8 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         val size = Size(width.coerceAtLeast(1), height.coerceAtLeast(1))
         if (attached === player && output != null && attachedSize == size) return
         unbind()
+        hasPresentedFrameOnCurrentSurface = false
+        lastFrameElapsedMs = -1L
         val ready = output ?: surfaceTexture?.let { texture ->
             Surface(texture).also { output = it }
         }
@@ -109,7 +119,7 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
 
     /** One bounded copy on decoder hand-off, never per finger movement. */
     fun captureFrame(maxEdge: Int): Bitmap? {
-        if (!isAvailable || renderedFrameCount <= 0L || width <= 0 || height <= 0) return null
+        if (!isAvailable || !hasPresentedFrameOnCurrentSurface || width <= 0 || height <= 0) return null
         val factor = (maxEdge.coerceAtLeast(1).toFloat() / max(width, height)).coerceAtMost(1f)
         return runCatching {
             getBitmap((width * factor).toInt().coerceAtLeast(1),
@@ -133,6 +143,8 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         output?.release()
         output = null
         appliedMatrixKey = null
+        hasPresentedFrameOnCurrentSurface = false
+        lastFrameElapsedMs = -1L
         onBindFailure = null
     }
 
@@ -140,6 +152,8 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         unbind()
         output?.release()
         output = Surface(texture)
+        hasPresentedFrameOnCurrentSurface = false
+        lastFrameElapsedMs = -1L
         appliedMatrixKey = null
         applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio)
         bind(wanted)
@@ -156,11 +170,15 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         unbind()
         output?.release()
         output = null
+        hasPresentedFrameOnCurrentSurface = false
+        lastFrameElapsedMs = -1L
         appliedMatrixKey = null
         return true
     }
 
     override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
         renderedFrameCount++
+        hasPresentedFrameOnCurrentSurface = true
+        lastFrameElapsedMs = SystemClock.elapsedRealtime()
     }
 }

@@ -205,3 +205,13 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Vérifier plusieurs imports successifs, FFprobe -o puis stdout, remux et miniatures sous concurrence ; garder journal sans URI privées.
 - [ ] Vérifier export WYSIWYG, zoom 321%/380%, plusieurs pistes, pauses, audio et MP4 ; aucun test JVM ne prouve cela.
 - [ ] Réévaluer après essais la nécessité d'un proxy VIDEO 480p permanent. La récupération de deux frames ponctuelles ne remplace pas un proxy de lecture continue.
+
+## v0.0.8 — EASYCUT-RECOVERY-014 — intervention à la suite du journal 0.0.7
+- [x] Neutraliser le scan FFprobe natif de frames connu défectueux pour petites vidéos également ; retour sans exception aux dimensions de l'inventaire ; stage SCAN_SKIPPED_NATIVE_UNVERIFIED.
+- [x] Conserver le pont multipiste→simple de v0.0.7 et étendre le secours frame au mode déjà simple UNIQUEMENT quand aucune image n'a été présentée sur la surface actuelle ; pas de seek/reprepare/rebind lors du pinch simple normal.
+- [x] Suivre l'état surface courant + âge de la dernière présentation vidéo ; ajouter frozenDraws, recovered, freeze, waiting, playing, state à PERF borné ; journal sans URI privées.
+- [x] Ajouter tests JVM politique scanner non validé et politique mode simple, passer versionName 0.0.8/versionCode 41 et noms APK/AAB 0.0.8 ; actualiser les cinq .md avec ce même commit.
+- [ ] Réimplémenter un scan intra-vidéo fiable et borné des vraies variations de résolution SANS le writer natif Android -o bugué ; tant que non validé, les changements dynamiques sont ignorés. Ne pas activer un stdout -show_frames volumineux sur longues vidéos.
+- [ ] Vérifier et noter résultat réel CI tests + lint + APK + AAB avant de déclarer publication.
+- [ ] Valider sur Samsung avec média source ayant échoué -o, vidéo qui fonctionne et vidéo problématique, avant/après pinch, dernier frame retenu, contre-test pause (frames=0 acceptable), puis image qui suit les doigts ; surveiller nouvelle instrumentation.
+- [ ] Vérifier MP4 export WYSIWYG/keyframes 321/380%, rotation volontaire 10°, audio, contenu multi-pistes, mémoire/température.

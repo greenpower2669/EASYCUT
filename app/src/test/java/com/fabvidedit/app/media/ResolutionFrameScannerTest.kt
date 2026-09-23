@@ -2,6 +2,8 @@ package com.fabvidedit.app.media
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ResolutionFrameScannerTest {
@@ -20,5 +22,14 @@ class ResolutionFrameScannerTest {
         assertNull(ResolutionFrameScanner.parseFrame("stream_index=0|width=0|height=1080"))
         assertNull(ResolutionFrameScanner.parseFrame("stream_index=0|width=1920|height=1080"))
         assertNull(ResolutionFrameScanner.parseFrame(""))
+    }
+
+    @Test
+    fun `unverified native writer cannot enter optional scan for small videos`() {
+        assertFalse(ResolutionFrameScanner.mayScanKeyframes(12_000_000L))
+        assertFalse(ResolutionFrameScanner.mayScanKeyframes(null))
+        assertFalse(ResolutionFrameScanner.mayScanKeyframes(300_000_000L))
+        assertTrue(ResolutionFrameScanner.mayScanKeyframes(12_000_000L, nativeWriterValidated = true))
+        assertFalse(ResolutionFrameScanner.mayScanKeyframes(300_000_000L, nativeWriterValidated = true))
     }
 }

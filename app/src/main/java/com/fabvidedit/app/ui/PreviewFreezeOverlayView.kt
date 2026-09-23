@@ -24,6 +24,11 @@ internal class PreviewFreezeOverlayView(context: Context) : View(context) {
     private var qualityEdge = 0
     var awaitingFirstFrame = false
         private set
+    var drawnFrameCount = 0L
+        private set
+    var recoveredFrameCount = 0L
+        private set
+    val displayingFrozenFrame: Boolean get() = awaitingFirstFrame && picture != null
 
     init { visibility = GONE }
 
@@ -43,6 +48,7 @@ internal class PreviewFreezeOverlayView(context: Context) : View(context) {
     fun offerRecoveredFrame(frame: Bitmap, edge: Int, sourceAspectRatio: Float) {
         if (!awaitingFirstFrame || outputSnapshot || edge <= qualityEdge) return
         picture = frame
+        recoveredFrameCount++
         qualityEdge = edge
         sourceRatio = sourceAspectRatio
         visibility = VISIBLE
@@ -84,6 +90,7 @@ internal class PreviewFreezeOverlayView(context: Context) : View(context) {
             }
         }
         canvas.drawBitmap(bitmap, render, paint)
+        drawnFrameCount++
     }
 
     private fun canvasMatrix(transform: ClipTransform, sourceAspect: Float): Matrix {

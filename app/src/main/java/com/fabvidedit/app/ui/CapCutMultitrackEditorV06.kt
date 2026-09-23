@@ -261,6 +261,29 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     fun previewClipFor(positionMs: Long): VideoClip? =
         VideoLayerPolicy.activeClip(latestProject.clips, positionMs)
 
+    // Also usable while already in simple preview; no reprepare or decoder seek.
+    fun beginFrameBridge(positionMs: Long, initial: ClipTransform, ratio: Float, snapshot: android.graphics.Bitmap?) {
+        val overlay = previewFreezeRef[0] ?: return
+        if (overlay.awaitingFirstFrame) return
+        overlay.beginWait(snapshot, initial, ratio)
+        frameRecoveryJob[0]?.cancel()
+        frameRecoveryJob[0] = null
+        if (!PreviewRecoveryPolicy.shouldRecover(snapshot != null)) return
+        val front = previewClipFor(positionMs) ?: return
+        if (front.mediaKind != VisualMediaKind.VIDEO) return
+        val localMs = (positionMs - front.timelineStartMs).coerceIn(0L, front.outputDurationMs)
+        val sourceMs = (front.trimStartMs + (localMs * front.speed).toLong())
+            .coerceIn(front.trimStartMs, front.trimEndMs)
+        frameRecoveryJob[0] = frameRecoveryScope.launch {
+            for (edge in PreviewRecoveryPolicy.recoveryEdges(previewShortSide == 480)) {
+                val frame = PreviewFrameRecovery.load(context, Uri.parse(front.uri), sourceMs, edge)
+                if (frame != null) overlay.offerRecoveredFrame(
+                    frame, edge, front.displayAspectRatio() ?: ratio,
+                )
+            }
+        }
+    }
+
     fun syncFallback(positionMs: Long, playWhenReady: Boolean) {
         val clip = previewClipFor(positionMs)
         if (clip == null) {
@@ -377,6 +400,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         var lastMetricsMs = SystemClock.elapsedRealtime()
         var lastFrameCount = 0L
         var lastMatrixCount = 0L
+        var lastFrozenDrawCount = 0L
+        var lastRecoveredFrameCount = 0L
         while (true) {
             val nowMs = SystemClock.elapsedRealtime()
             val playingProject = latestProject
@@ -438,15 +463,25 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
             if (nowMs - lastMetricsMs >= 10_000L) {
                 val view = previewTextureRef[0]
                 if (view != null) {
+                    val bridge = previewFreezeRef[0]
                     FabVidDiagnostics.metric(
                         "preview mode=" + (if (stablePreview) "simple" else "multi") +
                         " frames=" + (view.renderedFrameCount - lastFrameCount) +
                         " matrices=" + (view.appliedPreviewMatrixCount - lastMatrixCount) +
+                        " frozenDraws=" + ((bridge?.drawnFrameCount ?: 0L) - lastFrozenDrawCount) +
+                        " recovered=" + ((bridge?.recoveredFrameCount ?: 0L) - lastRecoveredFrameCount) +
+                        " freeze=" + (bridge?.displayingFrozenFrame == true) +
+                        " waiting=" + (bridge?.awaitingFirstFrame == true) +
+                        " ageMs=" + view.presentedFrameAgeMs(nowMs) +
+                        " playing=" + (if (stablePreview) fallbackPlayer.isPlaying else player.isPlaying) +
+                        " state=" + (if (stablePreview) fallbackPlayer.playbackState else player.playbackState) +
                         " binds=" + view.surfaceBindCount +
                         " clockMs=" + currentPositionMs,
                     )
                     lastFrameCount = view.renderedFrameCount
                     lastMatrixCount = view.appliedPreviewMatrixCount
+                    lastFrozenDrawCount = bridge?.drawnFrameCount ?: 0L
+                    lastRecoveredFrameCount = bridge?.recoveredFrameCount ?: 0L
                 }
                 lastMetricsMs = nowMs
             }
@@ -682,38 +717,20 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             isPlaying = false
                                                             fallbackTransportPlaying = false
                                                             if (!stablePreview) {
-                                                                // On the first pinch frame, switch the output
-                                                                // to the single clip BEFORE transforming it.
-                                                                // Never zoom the full composition a second time.
-                                                                // Keep a bounded copy of the presented image BEFORE
-                                                                // switching the decoder output surface.
-                                                                val overlay = previewFreezeRef[0]
+                                                                // Capture ONCE before CompositionPlayer → ExoPlayer.
                                                                 val snapshot = previewTextureRef[0]?.captureFrame(
                                                                     PreviewRecoveryPolicy.captureEdge(previewShortSide == 480),
                                                                 )
-                                                                overlay?.beginWait(snapshot, working, outputRatio)
-                                                                frameRecoveryJob[0]?.cancel()
-                                                                if (PreviewRecoveryPolicy.shouldRecover(snapshot != null) && overlay != null) {
-                                                                    val front = previewClipFor(editPositionMs)
-                                                                    if (front != null && front.mediaKind == VisualMediaKind.VIDEO) {
-                                                                        val clipMs = (editPositionMs - front.timelineStartMs)
-                                                                            .coerceIn(0L, front.outputDurationMs)
-                                                                        val sourceMs = (front.trimStartMs + (clipMs * front.speed).toLong())
-                                                                            .coerceIn(front.trimStartMs, front.trimEndMs)
-                                                                        frameRecoveryJob[0] = frameRecoveryScope.launch {
-                                                                            for (edge in PreviewRecoveryPolicy.recoveryEdges(previewShortSide == 480)) {
-                                                                                val frame = PreviewFrameRecovery.load(
-                                                                                    context, Uri.parse(front.uri), sourceMs, edge,
-                                                                                )
-                                                                                if (frame != null) overlay.offerRecoveredFrame(
-                                                                                    frame, edge, front.displayAspectRatio() ?: outputRatio,
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
+                                                                beginFrameBridge(editPositionMs, working, outputRatio, snapshot)
                                                                 syncFallback(editPositionMs, false)
                                                                 previewTextureRef[0]?.bind(fallbackPlayer)
+                                                            } else if (PreviewRecoveryPolicy.shouldRecoverInSimpleMode(
+                                                                    previewTextureRef[0]?.hasPresentedFrameOnCurrentSurface == true,
+                                                                    previewFreezeRef[0]?.awaitingFirstFrame == true,
+                                                                )) {
+                                                                // Simple reader is already active: only recover a
+                                                                // missing frame; never seek or rebind during a pinch.
+                                                                beginFrameBridge(editPositionMs, working, outputRatio, null)
                                                             }
                                                             stablePreview = true
                                                             panel = EditorPanel.MOTION

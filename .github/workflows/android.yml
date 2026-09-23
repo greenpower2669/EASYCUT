@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.7-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.7-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.8-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.8-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.7-preview-${short_sha}"
+          tag="easycut-v0.0.8-preview-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.7-arm64-debug.apk \
-            EASYCUT-v0.0.7-arm64-debug.aab \
+            EASYCUT-v0.0.8-arm64-debug.apk \
+            EASYCUT-v0.0.8-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.7 — aperçu ${short_sha}" \
-            --notes "Aperçu frame freeze, reprise 360/480/720 conditionnelle, MP4 prioritaire, FFprobe avec repli stdout et protections natives (EASYCUT-RECOVERY-013). Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."
+            --title "EASYCUT v0.0.8 — aperçu ${short_sha}" \
+            --notes "Scanner facultatif natif non fiabilisé neutralisé avec conservation des dimensions de pistes; pont image étendu au mode simple avant première frame; diagnostics frames/freeze/state/age (EASYCUT-RECOVERY-014). Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."

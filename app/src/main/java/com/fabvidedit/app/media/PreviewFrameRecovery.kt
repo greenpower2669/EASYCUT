@@ -13,6 +13,8 @@ internal object PreviewRecoveryPolicy {
     fun captureEdge(lowRam: Boolean): Int = if (lowRam) 480 else 720
     fun recoveryEdges(lowRam: Boolean): List<Int> = if (lowRam) listOf(360, 480) else listOf(480, 720)
     fun shouldRecover(snapshotAvailable: Boolean): Boolean = !snapshotAvailable
+    fun shouldRecoverInSimpleMode(presentedOnCurrentSurface: Boolean, bridgeActive: Boolean): Boolean =
+        !presentedOnCurrentSurface && !bridgeActive
 }
 
 /** Small independently decoded source frames while a replacement Media3 surface warms up. */

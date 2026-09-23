@@ -46,6 +46,13 @@ object ResolutionFrameScanner {
     private const val MAX_UNCOALESCED_SEGMENTS = 256
     private const val MAX_SCAN_FILE_BYTES = 64L * 1024L * 1024L
     private const val LARGE_INPUT_BYTES = 256L * 1024L * 1024L
+    // The Android FFprobeKit -o frame writer is not validated on Fab's device:
+    // code=1 with a corrupted pre-existing output filename. Fail OPEN using
+    // inventory dimensions, not a noisy ERROR that looks like an import crash.
+    private const val NATIVE_FRAME_WRITER_VALIDATED = false
+
+    internal fun mayScanKeyframes(sourceBytes: Long?, nativeWriterValidated: Boolean = NATIVE_FRAME_WRITER_VALIDATED): Boolean =
+        nativeWriterValidated && sourceBytes != null && sourceBytes < LARGE_INPUT_BYTES
 
     fun scanInput(
         input: String,
@@ -61,8 +68,8 @@ object ResolutionFrameScanner {
         // Do not enter this optional scan for large or size-unknown files:
         // the already-read stream inventory remains usable and the project opens.
         // Restore keyframe inspection only after an instrumented on-device fix.
-        if (sourceBytes == null || sourceBytes >= LARGE_INPUT_BYTES) {
-            FabVidDiagnostics.mark("SCAN_SKIPPED_NATIVE_RISK")
+        if (!mayScanKeyframes(sourceBytes)) {
+            FabVidDiagnostics.mark("SCAN_SKIPPED_NATIVE_UNVERIFIED")
             return fallback(videos, inventory.durationMs)
         }
         val metadata = File(temporaryDirectory, "resolution-frames-" + System.nanoTime() + ".txt")

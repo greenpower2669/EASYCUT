@@ -17,4 +17,10 @@ class PreviewRecoveryPolicyTest {
         assertEquals(listOf(360, 480), PreviewRecoveryPolicy.recoveryEdges(true))
         assertEquals(listOf(480, 720), PreviewRecoveryPolicy.recoveryEdges(false))
     }
+
+    @Test fun simpleModeRecoveryOnlyWhenNoFrameAndNoExistingBridge() {
+        assertTrue(PreviewRecoveryPolicy.shouldRecoverInSimpleMode(false, false))
+        assertFalse(PreviewRecoveryPolicy.shouldRecoverInSimpleMode(true, false))
+        assertFalse(PreviewRecoveryPolicy.shouldRecoverInSimpleMode(false, true))
+    }
 }
