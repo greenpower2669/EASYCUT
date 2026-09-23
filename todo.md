@@ -5,6 +5,7 @@
 **Les ordres de mission de Fab sont dans [`ordres-de-mission.md`](ordres-de-mission.md), registre canonique séparé et persistant.** Lire ce fichier AVANT de décider de quoi coder et AVANT de répondre « que reste-t-il ? ». Une demande utilisateur reste inchangée tant que non produite ; seul Fab peut l'annuler, la remplacer ou en changer la priorité. `todo.md` décrit MES actions techniques et les vérifications, pas le carnet des projets de Fab. `debughistorical.md` = récit de bugs ; `topo.md` = aide-mémoire technique facultatif de l'agent.
 
 ### Export après changement de piste — [BUG] EASYCUT-EXPORT-MOVE-017
+- [ ] Fab : essayer v0.0.12 et partager GET ERR + MP4 multipiste ; la prévisualisation est parfaite, ne pas la modifier.
 - [ ] Reproduire seulement l'export MP4 avant/après déplacement vertical de la deuxième vidéo karaté, vérifier temps des deux clips, keyframes et superposition ; le récit et les hypothèses restent dans `debughistorical.md`.
 - [ ] Auditer et tester la construction de l'export multipiste et corriger localement après preuve ; **ne pas retoucher la prévisualisation EASYCUT 0.0.10 validée « nickel »**, ni le premier export validé par Fab.
 
@@ -293,3 +294,11 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] [AGENT] Vérifier réellement Actions tests/lint/APK/AAB et obtenir URL de release avant de déclarer la livraison installable.
 - [ ] [FAB] Valider sur téléphone : couleurs, COPIER puis coller avec balises, accès accueil et montage sans quitter le projet, annuler Vider puis confirmer Vider, persistance des indications dernière erreur/arrêt. Le résultat restera « Livré, à valider » jusqu'à confirmation.
 - [ ] [AGENT] Poursuivre séparément EASYCUT-EXPORT-MOVE-017 sans régression de l'aperçu 0.0.10.
+
+## v0.0.12 — demandes exécutées : journal sortie et cadences
+- [x] Export seulement : instrumentation du projet/paramètres/clips/keyframes, préflight, construction séquentielle/multipiste et gaps, effets, matrices Media3, compositeur et résultat encodeur/galerie. L'aperçu reste parfaitement intact, bug visuel MP4 non corrigé.
+- [x] Options Source/1–5/10/12/15/20/24/25/30/50/60 i/s et + Autres (1..60) dans les deux dialogues d'export.
+- [x] Tests JVM de cadence personnalisée et classification des traces dans GET ERR ajoutés.
+- [ ] Vérifier GitHub CI, compilation APK/AAB et release ; ne pas annoncer d'artefact sans confirmation.
+- [ ] Fab : tester une vidéo réelle à 10 puis 15 i/s ; exporter le projet multipiste défectueux, copier GET ERR après export et joindre le MP4 pour comparer. La prévisualisation ne fait pas partie du débogage.
+- [ ] EXPORT-MOVE-017 reste ouvert. Export compact autres résolutions / économies / AAC toujours à faire d'après ordres-de-mission.md.

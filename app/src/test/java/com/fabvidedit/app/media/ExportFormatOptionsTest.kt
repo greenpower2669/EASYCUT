@@ -19,12 +19,25 @@ class ExportFormatOptionsTest {
     }
 
     @Test
-    fun `export frame rate choices expose source 24 25 30 50 and 60 fps`() {
+    fun `export frame rate choices include small cadences and existing presets`() {
         assertEquals(
-            listOf(null, 24, 25, 30, 50, 60),
+            listOf(null, 1, 2, 3, 4, 5, 10, 12, 15, 20, 24, 25, 30, 50, 60),
             ExportFrameRate.entries.map(ExportFrameRate::fps),
         )
         assertNull(ExportFrameRate.SOURCE.fps)
+    }
+
+    @Test fun `custom fps overrides preset without modifying source`() {
+        assertEquals(1, ExportSettings(customFps = 1).effectiveFps)
+        assertEquals(60, ExportSettings(customFps = 60).effectiveFps)
+        assertEquals(15, ExportSettings(frameRate = ExportFrameRate.FPS_15).effectiveFps)
+        assertNull(ExportSettings().effectiveFps)
+        assertEquals("10 i/s", ExportSettings(customFps = 10).fpsLabel)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `custom fps rejects value above 60`() {
+        ExportSettings(customFps = 61)
     }
 
     @Test

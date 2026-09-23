@@ -17,6 +17,7 @@ import androidx.media3.transformer.VideoEncoderSettings
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.ReturnCode
+import com.fabvidedit.app.FabVidDiagnostics
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.VisualMediaKind
 import java.io.File
@@ -35,6 +36,15 @@ enum class ExportVideoCodec(val label: String, val mimeType: String) {
 
 enum class ExportFrameRate(val label: String, val fps: Int?) {
     SOURCE("Source", null),
+    FPS_1("1 i/s", 1),
+    FPS_2("2 i/s", 2),
+    FPS_3("3 i/s", 3),
+    FPS_4("4 i/s", 4),
+    FPS_5("5 i/s", 5),
+    FPS_10("10 i/s", 10),
+    FPS_12("12 i/s", 12),
+    FPS_15("15 i/s", 15),
+    FPS_20("20 i/s", 20),
     FPS_24("24 fps", 24),
     FPS_25("25 fps", 25),
     FPS_30("30 fps", 30),
@@ -66,7 +76,12 @@ data class ExportSettings(
     val frameRate: ExportFrameRate = ExportFrameRate.SOURCE,
     val resolution: ExportResolution = ExportResolution.P1080,
     val bitrate: ExportBitrate = ExportBitrate.AUTO,
-)
+    val customFps: Int? = null,
+) {
+    init { require(customFps == null || customFps in 1..60) { "Cadence hors de 1..60 i/s" } }
+    val effectiveFps: Int? get() = customFps ?: frameRate.fps
+    val fpsLabel: String get() = customFps?.let { "$it i/s" } ?: frameRate.label
+}
 
 sealed interface ExportState {
     data object Idle : ExportState
@@ -102,6 +117,24 @@ class ExportManager(
 
     fun start(project: VideoProject, settings: ExportSettings) {
         cancel(resetState = false)
+        FabVidDiagnostics.traceExport(
+            "BEGIN mode=${project.timelineMode} durationMs=${project.durationMs} clips=${project.clips.size} " +
+                "codec=${settings.codec} fpsMax=${settings.fpsLabel} size=${settings.resolution.label}",
+        )
+        project.clips.forEachIndexed { index, clip ->
+            FabVidDiagnostics.traceExport(
+                "CLIP n=$index id=${clip.id.take(12)} lane=V${clip.timelineTrackIndex + 1} " +
+                    "start=${project.clipStartMs(index)} trim=${clip.trimStartMs}..${clip.trimEndMs} " +
+                    "speed=${clip.speed} dimensions=${clip.width}x${clip.height} " +
+                    "orientation=${clip.rotationDegrees} base=${clip.transform} kf=${clip.keyframes.size}",
+            )
+            clip.keyframes.sortedBy { it.timeMs }.take(40).forEachIndexed { n, key ->
+                FabVidDiagnostics.traceExport("KEY clip=${clip.id.take(12)} n=$n localMs=${key.timeMs} transform=${key.transform}")
+            }
+            if (clip.keyframes.size > 40) FabVidDiagnostics.traceExport(
+                "KEY_TRUNCATED clip=${clip.id.take(12)} omitted=${clip.keyframes.size - 40}",
+            )
+        }
         if (settings.codec == ExportVideoCodec.H265 && !VideoEncoderCapabilities.hasHardwareHevcEncoder()) {
             onState(ExportState.Error("H.265 indisponible : aucun encodeur matériel HEVC compatible détecté"))
             return
@@ -112,6 +145,7 @@ class ExportManager(
             val preparedProject = runCatching {
                 withContext(Dispatchers.IO) { prepareProjectForTransformer(project) }
             }.getOrElse { error ->
+                FabVidDiagnostics.logError("EXPORT_PREPARE", error)
                 cleanupPreparedAssets()
                 onState(
                     ExportState.Error(
@@ -171,6 +205,9 @@ class ExportManager(
         Log.i(
             TAG,
             "Export preflight clips=${project.clips.size} detachedVideoAudio=$detachedAudioCount tsProxies=$proxyCount sourceAudio=${project.sourceAudioTracks.size}",
+        )
+        FabVidDiagnostics.traceExport(
+            "PREFLIGHT detachedVideoAudio=$detachedAudioCount tsProxies=$proxyCount sources=${preparedClips.size}",
         )
         return project.copy(clips = preparedClips)
     }
@@ -263,15 +300,23 @@ class ExportManager(
         val listener = object : Transformer.Listener {
             override fun onCompleted(composition: Composition, exportResult: ExportResult) {
                 progressJob?.cancel()
+                FabVidDiagnostics.traceExport(
+                    "ENCODE_DONE frames=${exportResult.videoFrameCount} durationMs=${exportResult.approximateDurationMs} " +
+                        "size=${exportResult.width}x${exportResult.height} bytes=${exportResult.fileSizeBytes} " +
+                        "videoMime=${exportResult.videoMimeType} bitrate=${exportResult.averageVideoBitrate} " +
+                        "encoder=${exportResult.videoEncoderName}",
+                )
                 onState(ExportState.Running(100, "Enregistrement dans la galerie"))
                 scope.launch {
                     runCatching { publishToGallery(output, fileName) }
                         .onSuccess { uri ->
+                            FabVidDiagnostics.traceExport("GALLERY_OK output=$fileName")
                             cleanupAfterExport(output)
                             transformer = null
                             onState(ExportState.Success(uri, fileName))
                         }
                         .onFailure { error ->
+                            FabVidDiagnostics.logError("EXPORT_GALLERY", error)
                             cleanupAfterExport(output)
                             transformer = null
                             onState(
@@ -290,6 +335,7 @@ class ExportManager(
             ) {
                 progressJob?.cancel()
                 val message = transformerDiagnostic(exportException)
+                FabVidDiagnostics.logError("EXPORT_TRANSFORMER", exportException)
                 cleanupAfterExport(output)
                 transformer = null
                 onState(ExportState.Error(message))
@@ -316,7 +362,7 @@ class ExportManager(
         onState(
             ExportState.Running(
                 0,
-                "${settings.codec.label} • ${settings.frameRate.label} • ${settings.resolution.label}",
+                "${settings.codec.label} • ${settings.fpsLabel} • ${settings.resolution.label}",
             ),
         )
 
@@ -325,11 +371,13 @@ class ExportManager(
                 CompositionFactory.create(
                     project = project,
                     resolutionShortSide = settings.resolution.shortSide,
-                    frameRate = settings.frameRate.fps,
+                    frameRate = settings.effectiveFps,
+                    traceExport = true,
                 ),
                 output.absolutePath,
             )
         }.onFailure { error ->
+            FabVidDiagnostics.logError("EXPORT_START", error)
             cleanupAfterExport(output)
             transformer = null
             onState(ExportState.Error(diagnosticMessage(error, prefix = "Démarrage export impossible")))

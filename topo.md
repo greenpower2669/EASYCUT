@@ -44,3 +44,6 @@ Ouvrir **`ordres-de-mission.md` d'abord** pour connaître les commandes de Fab n
 
 ## v0.0.11 — mémo journal GET ERR
 Accueil + éditeur séquentiel + éditeur multipiste → même `DiagnosticJournalDialog` → `FabVidDiagnostics.getReport` ; affichage Compose `AnnotatedString` coloré et textuel ; **Copier seulement** → `DiagnosticJournalFormatter.forCopy` avec balises HTML littérales échappées ; Vider confirmé → `clearJournal` du seul `fabvid-errors.log`. Version/dernier arrêt/dernière erreur conservés. Contrôler CI et l'essai réel de Fab ; ni preview ni export n'ont été refondus. Missions de Fab en premier dans `ordres-de-mission.md`.
+
+## v0.0.12 — trace d'export seulement
+GET ERR : journal ExportManager→CompositionFactory→getMatrix/getOverlaySettings→ExportResult ; pas de nouvelles opérations du lecteur preview. ExportFrameRate presets et + Autres entier 1–60 sur les deux dialogues, ExportSettings.effectiveFps, Media3 setFrameRate maximum pour vidéo. Rendu MP4 non corrigé, aperçu validé préservé. Voir brainmap.md et debughistorical.md.

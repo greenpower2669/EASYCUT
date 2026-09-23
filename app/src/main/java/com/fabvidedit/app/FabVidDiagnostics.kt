@@ -63,6 +63,11 @@ object FabVidDiagnostics {
         append("PERF " + message.take(260))
     }
 
+    /** Bounded export-only trace, without changing the crash stage or uploading anything. */
+    fun traceExport(message: String) {
+        append("EXPORT_TRACE " + message.take(620))
+    }
+
     fun getLastStage(): String = currentStage
     fun getLastError(): String = lastError
 

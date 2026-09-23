@@ -1,6 +1,7 @@
 package com.fabvidedit.app.media
 
 import android.graphics.Matrix
+import com.fabvidedit.app.FabVidDiagnostics
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
@@ -49,7 +50,12 @@ import com.fabvidedit.app.model.VisualMediaKind
 import kotlin.math.min
 
 object CompositionFactory {
-    fun create(project: VideoProject, resolutionShortSide: Int? = null, frameRate: Int? = null): Composition {
+    fun create(
+        project: VideoProject,
+        resolutionShortSide: Int? = null,
+        frameRate: Int? = null,
+        traceExport: Boolean = false,
+    ): Composition {
         require(project.clips.isNotEmpty()) { "Le projet doit contenir au moins un clip" }
 
         // v0.6: every independent stream is normalized to one canvas with SCALE_TO_FIT before
@@ -57,8 +63,12 @@ object CompositionFactory {
         // instead of stretching it to the first stream's geometry.
         val canvasRatio = project.aspectRatio.ratio ?: project.clips.firstNotNullOfOrNull { it.displayAspectRatio() }
 
+        if (traceExport) FabVidDiagnostics.traceExport(
+            "COMPOSE mode=${project.timelineMode} ratio=$canvasRatio fpsMax=$frameRate " +
+                "shortSide=$resolutionShortSide lanes=${VideoLayerPolicy.frontToBack(project)}",
+        )
         val sequences = if (project.timelineMode == TimelineMode.MULTITRACK) {
-            multitrackSequences(project, canvasRatio, frameRate)
+            multitrackSequences(project, canvasRatio, frameRate, traceExport)
         } else {
             val videoItems = project.clips.map { clip ->
                 editedVideoItem(
@@ -67,6 +77,7 @@ object CompositionFactory {
                     outgoingTransition = project.transitions.firstOrNull { it.fromClipId == clip.id },
                     canvasRatio = canvasRatio,
                     frameRate = frameRate,
+                    traceExport = traceExport,
                 )
             }
             buildList {
@@ -83,15 +94,24 @@ object CompositionFactory {
             // rather than let an upper lane cover the media below it.
             val lanes = VideoLayerPolicy.frontToBack(project)
             builder.setVideoCompositorSettings(object : VideoCompositorSettings {
+                private val loggedSeconds = mutableMapOf<Int, Long>()
                 override fun getOutputSize(inputSizes: List<Size>): Size =
                     VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
 
                 override fun getOverlaySettings(inputId: Int, presentationTimeUs: Long): OverlaySettings {
                     val lane = lanes.getOrNull(inputId)
                         ?: return StaticOverlaySettings.Builder().build()
-                    return StaticOverlaySettings.Builder()
-                        .setAlphaScale(VideoLayerPolicy.opacityAt(project.clips, lane, presentationTimeUs / 1_000L))
-                        .build()
+                    val alpha = VideoLayerPolicy.opacityAt(project.clips, lane, presentationTimeUs / 1_000L)
+                    val second = presentationTimeUs / 1_000_000L
+                    if (traceExport && loggedSeconds[inputId] != second &&
+                        (second <= 15L || second % 5L == 0L)
+                    ) {
+                        loggedSeconds[inputId] = second
+                        FabVidDiagnostics.traceExport(
+                            "COMPOSITOR input=$inputId lane=V${lane + 1} media3Us=$presentationTimeUs alpha=$alpha",
+                        )
+                    }
+                    return StaticOverlaySettings.Builder().setAlphaScale(alpha).build()
                 }
             })
         }
@@ -99,6 +119,9 @@ object CompositionFactory {
             resolutionShortSide?.let { add(Presentation.createForShortSide(it)) }
             textOverlayEffect(project.textLayers)?.let(::add)
         }
+        if (traceExport) FabVidDiagnostics.traceExport(
+            "GLOBAL effects=${globalEffects.map { it.javaClass.simpleName }} sequences=${sequences.size}",
+        )
         if (globalEffects.isNotEmpty()) {
             builder.setEffects(Effects(emptyList(), globalEffects))
         }
@@ -109,6 +132,7 @@ object CompositionFactory {
         project: VideoProject,
         canvasRatio: Float?,
         frameRate: Int?,
+        traceExport: Boolean,
     ): List<EditedMediaItemSequence> = buildList {
         val groupedTracks = project.clips.groupBy(VideoClip::timelineTrackIndex)
         VideoLayerPolicy.frontToBack(project).forEach { lane ->
@@ -118,7 +142,13 @@ object CompositionFactory {
                 var cursorMs = 0L
                 track.forEach { clip ->
                     val gapMs = (clip.timelineStartMs - cursorMs).coerceAtLeast(0L)
-                    if (gapMs > 0L) builder.addGap(gapMs * 1_000L)
+                    if (gapMs > 0L) {
+                        if (traceExport) FabVidDiagnostics.traceExport("GAP lane=V${lane + 1} fromMs=$cursorMs durationMs=$gapMs")
+                        builder.addGap(gapMs * 1_000L)
+                    }
+                    if (traceExport) FabVidDiagnostics.traceExport(
+                        "ITEM lane=V${lane + 1} id=${clip.id.take(12)} startMs=${clip.timelineStartMs} durationMs=${clip.outputDurationMs}",
+                    )
                     builder.addItem(
                         editedVideoItem(
                             clip = clip,
@@ -126,12 +156,16 @@ object CompositionFactory {
                             outgoingTransition = project.transitions.firstOrNull { it.fromClipId == clip.id },
                             canvasRatio = canvasRatio,
                             frameRate = frameRate,
+                            traceExport = traceExport,
                         ),
                     )
                     cursorMs = maxOf(cursorMs, clip.timelineStartMs + clip.outputDurationMs)
                 }
                 val trailingGapMs = (project.durationMs - cursorMs).coerceAtLeast(0L)
-                if (trailingGapMs > 0L) builder.addGap(trailingGapMs * 1_000L)
+                if (trailingGapMs > 0L) {
+                    if (traceExport) FabVidDiagnostics.traceExport("GAP_END lane=V${lane + 1} fromMs=$cursorMs durationMs=$trailingGapMs")
+                    builder.addGap(trailingGapMs * 1_000L)
+                }
                 add(builder.build())
             }
 
@@ -218,6 +252,7 @@ object CompositionFactory {
         outgoingTransition: ClipTransition?,
         canvasRatio: Float?,
         frameRate: Int? = null,
+        traceExport: Boolean = false,
     ): EditedMediaItem {
         val mediaItem = if (clip.mediaKind == VisualMediaKind.IMAGE) {
             MediaItem.Builder()
@@ -274,7 +309,7 @@ object CompositionFactory {
                 incomingTransition?.type != null ||
                 outgoingTransition?.type != null
             ) {
-                add(AnimatedTransformEffect(clip, incomingTransition, outgoingTransition))
+                add(AnimatedTransformEffect(clip, incomingTransition, outgoingTransition, traceExport))
             }
             if (
                 clip.brightness != 1f ||
@@ -286,6 +321,9 @@ object CompositionFactory {
             }
         }
 
+        if (traceExport) FabVidDiagnostics.traceExport(
+            "EFFECTS id=${clip.id.take(12)} order=${videoEffects.map { it.javaClass.simpleName }} fpsMax=$frameRate canvas=$canvasRatio",
+        )
         val hasAudibleAudio = clip.volume > 0.001f || clip.keyframes.any { it.volume > 0.001f }
 
         val builder = EditedMediaItem.Builder(mediaItem)
@@ -366,14 +404,16 @@ object CompositionFactory {
         private val clip: VideoClip,
         private val incoming: ClipTransition?,
         private val outgoing: ClipTransition?,
+        private val traceExport: Boolean,
     ) : MatrixTransformation {
+        private var lastLoggedSecond = -1L
         override fun getMatrix(presentationTimeUs: Long): Matrix {
             val timeMs = (presentationTimeUs / 1_000).coerceIn(0, clip.sourceDurationMs)
             val transform = clip.transformAtSourceTime(timeMs)
             val motion = transitionMotion(clip, timeMs, incoming, outgoing)
             val scaleX = (transform.scaleX * motion.scale).coerceIn(0.05f, 6f)
             val scaleY = (transform.scaleY * motion.scale).coerceIn(0.05f, 6f)
-            return Matrix().apply {
+            val matrix = Matrix().apply {
                 postTranslate(-transform.pivotX, -transform.pivotY)
                 postScale(scaleX, scaleY)
                 postRotate(
@@ -386,6 +426,26 @@ object CompositionFactory {
                     transform.pivotY + transform.positionY,
                 )
             }
+            val second = presentationTimeUs / 1_000_000L
+            if (traceExport && second != lastLoggedSecond &&
+                (second <= 15L || second % 5L == 0L)
+            ) {
+                lastLoggedSecond = second
+                val before = clip.keyframes.filter { it.timeMs <= timeMs }.maxByOrNull { it.timeMs }
+                val after = clip.keyframes.filter { it.timeMs > timeMs }.minByOrNull { it.timeMs }
+                val values = FloatArray(9)
+                matrix.getValues(values)
+                FabVidDiagnostics.traceExport(
+                    "MATRIX id=${clip.id.take(12)} media3Us=$presentationTimeUs localMs=$timeMs " +
+                        "kfPrev=${before?.timeMs ?: "BASE"} kfNext=${after?.timeMs ?: "END"} " +
+                        "model=[x=${transform.positionX},y=${transform.positionY}," +
+                        "sx=${transform.scaleX},sy=${transform.scaleY},r=${transform.rotationDegrees}," +
+                        "px=${transform.pivotX},py=${transform.pivotY}] " +
+                        "transition=[s=${motion.scale},x=${motion.positionX},r=${motion.rotationDegrees}] " +
+                        "matrix=[${values.joinToString(",")}]",
+                )
+            }
+            return matrix
         }
     }
 

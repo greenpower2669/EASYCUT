@@ -1185,6 +1185,8 @@ private fun ExportOptionsDialog(
 ) {
     val hevcAvailable = remember { VideoEncoderCapabilities.hasHardwareHevcEncoder() }
     var settings by remember { mutableStateOf(ExportSettings()) }
+    var showCustomFps by remember { mutableStateOf(false) }
+    var customFpsInput by remember { mutableStateOf("") }
     val codecs = if (hevcAvailable) ExportVideoCodec.entries else listOf(ExportVideoCodec.H264)
 
     AlertDialog(
@@ -1204,9 +1206,15 @@ private fun ExportOptionsDialog(
                 ExportChoiceRow("Résolution", ExportResolution.entries, settings.resolution, { it.label }) {
                     settings = settings.copy(resolution = it)
                 }
-                ExportChoiceRow("Cadence", ExportFrameRate.entries, settings.frameRate, { it.label }) {
-                    settings = settings.copy(frameRate = it)
-                }
+                ExportChoiceRow(
+                    "Cadence (images/seconde)", ExportFrameRate.entries, settings.frameRate, { it.label },
+                    onOther = {
+                        customFpsInput = settings.customFps?.toString().orEmpty()
+                        showCustomFps = true
+                    },
+                    otherSelected = settings.customFps != null,
+                ) { settings = settings.copy(frameRate = it, customFps = null) }
+                Text("Cadence vidéo maximale ; vitesse et audio inchangés.")
                 ExportChoiceRow("Débit vidéo", ExportBitrate.entries, settings.bitrate, { it.label }) {
                     settings = settings.copy(bitrate = it)
                 }
@@ -1218,6 +1226,28 @@ private fun ExportOptionsDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },
     )
+    if (showCustomFps) {
+        AlertDialog(
+            onDismissRequest = { showCustomFps = false },
+            title = { Text("Autre cadence : 1 à 60 i/s") },
+            text = {
+                androidx.compose.material3.OutlinedTextField(
+                    value = customFpsInput,
+                    onValueChange = { customFpsInput = it.filter(Char::isDigit).take(2) },
+                    label = { Text("Images par seconde") },
+                    singleLine = true,
+                    isError = customFpsInput.toIntOrNull() !in 1..60,
+                )
+            },
+            confirmButton = {
+                Button(
+                    enabled = customFpsInput.toIntOrNull() in 1..60,
+                    onClick = { settings = settings.copy(customFps = customFpsInput.toInt()); showCustomFps = false },
+                ) { Text("Appliquer") }
+            },
+            dismissButton = { TextButton(onClick = { showCustomFps = false }) { Text("Annuler") } },
+        )
+    }
 }
 
 @Composable
@@ -1226,6 +1256,8 @@ private fun <T> ExportChoiceRow(
     choices: List<T>,
     selection: T,
     label: (T) -> String,
+    onOther: (() -> Unit)? = null,
+    otherSelected: Boolean = false,
     onSelect: (T) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -1236,10 +1268,13 @@ private fun <T> ExportChoiceRow(
         ) {
             choices.forEach { choice ->
                 FilterChip(
-                    selected = choice == selection,
+                    selected = choice == selection && !otherSelected,
                     onClick = { onSelect(choice) },
                     label = { Text(label(choice)) },
                 )
+            }
+            if (onOther != null) {
+                FilterChip(selected = otherSelected, onClick = onOther, label = { Text("+ Autres") })
             }
         }
     }

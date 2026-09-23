@@ -46,6 +46,14 @@ class DiagnosticJournalFormatterTest {
         assertEquals("[3] INFO name=<test>&\"demo\"", report)
     }
 
+    @Test fun exportTraceIsInfoAndDoesNotHideARealError() {
+        val log = "[1] EXPORT_TRACE MATRIX sx=1.27\n[2] ERROR export impossible"
+        val result = DiagnosticJournalFormatter.classify(log)
+        assertEquals(DiagnosticJournalFormatter.Status.INFO, result[0].status)
+        assertEquals(DiagnosticJournalFormatter.Status.ERROR, result[1].status)
+        assertTrue(DiagnosticJournalFormatter.forCopy(log).contains("EXPORT_TRACE MATRIX"))
+    }
+
     @Test fun recoveredScanIsNotARealError() {
         val lines = DiagnosticJournalFormatter.classify(
             "[1] STAGE SCAN_SKIPPED_NATIVE_UNVERIFIED\n[2] PERF frames=4"

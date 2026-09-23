@@ -14,7 +14,7 @@
 - **Origine :** Fab, 22–23/09/2026, demande de fonctionnalité d'export pour plus tard, explicitement rappelée le 23/09.
 - **Demande :** ajouter un bouton **« + Autres » directement sur la ligne « Images/seconde »** de l'export ; ouvrir une fenêtre lisible proposant la cadence **Source**, les présélections **1 à 5, 10 à 12, 15, 20, 24, 25, 30, 50 et 60 i/s**, et une valeur entière libre entre **1 et 60 i/s**. L'option de cadence ne change pas d'elle-même la vitesse, la longueur du montage ou le son : la vitesse/timelapse est un réglage différent.
 - **Résultat attendu :** choix disponibles, lisibles et opérationnels ; cadence obtenue dans le MP4 contrôlée sur des sources adaptées. Ne pas promettre une cadence fixe là où Media3 ne garantit qu'un plafond.
-- **Statut : À faire — commande conservée, pas encore codée.**
+- **Statut : Codé en v0.0.12 (1–5, 10, 12, 15, 20, 24, 25, 30, 50, 60 i/s et + Autres de 1 à 60). À valider par Fab sur Android et sur le MP4 produit.**
 
 ### FAB-EXPORT-RES-002 — Petites résolutions d'export
 - **Origine :** Fab, 22–23/09/2026.
@@ -51,6 +51,11 @@
 - **Demande :** l'affichage du journal GET ERR doit rester **coloré visuellement sans HTML affiché** ; le bouton **Copier** produit du texte contenant des **balises HTML littérales** `<span style="color:...">` pour les lignes rouges, vertes et grises, avec **ERREUR / OK / INFO** lisibles pour un humain et pour l'IA. Échapper les caractères des noms de fichiers et des traces pour ne pas confondre un `<` du journal avec une balise.
 - **Résultat attendu :** le texte copié comporte la couleur et le statut de chaque ligne, l'écran reste lisible sans balises ; aucun changement rétroactif du journal brut sur disque.
 - **Statut : Livré dans le code v0.0.11, à valider par Fab après copie/collage.**
+
+### FAB-EXPORT-TRACE-008 — Journal des opérations exécutées en sortie (23/09/2026)
+- **Ordre de Fab :** mettre à jour GET ERR maintenant pour identifier les opérations d'export réelles : clip/piste, images-clés, temps, matrices, composition et vidéo produite. Ne pas modifier l'aperçu ni corriger le zoom dans cette intervention ; conserver les incertitudes dans debughistorical.md.
+- **Comportement :** traces export locales et bornées ; matrices réellement fournies à Media3, étapes du compositeur et résumé de l'encodeur. Les pixels finaux ne peuvent pas être déduits d'une matrice seule.
+- **Statut : codé v0.0.12, à valider sur le téléphone.** Couleurs à l'écran, balises HTML uniquement au Copier, accès GET ERR depuis accueil et montage, vidage confirmé toujours conservés.
 
 ## Missions produites et validées — ne pas perdre les acquis
 

@@ -1254,6 +1254,9 @@ private fun V017ExportDialog(
     val hevcAvailable = remember { VideoEncoderCapabilities.hasHardwareHevcEncoder() }
     var codec by remember { mutableStateOf(ExportVideoCodec.H264) }
     var frameRate by remember { mutableStateOf(ExportFrameRate.SOURCE) }
+    var customFps by remember { mutableStateOf<Int?>(null) }
+    var showCustomFps by remember { mutableStateOf(false) }
+    var customFpsInput by remember { mutableStateOf("") }
     var resolution by remember { mutableStateOf(ExportResolution.P1080) }
     var bitrate by remember { mutableStateOf(ExportBitrate.AUTO) }
 
@@ -1278,9 +1281,16 @@ private fun V017ExportDialog(
                 V017ChoiceRow("Codec vidéo", ExportVideoCodec.entries.filter { it != ExportVideoCodec.H265 || hevcAvailable }.map { it.label }, codec.label) { label ->
                     codec = ExportVideoCodec.entries.first { it.label == label }
                 }
-                V017ChoiceRow("Images / seconde", ExportFrameRate.entries.map { it.label }, frameRate.label) { label ->
+                V017ChoiceRow(
+                    "Images / seconde",
+                    ExportFrameRate.entries.map { it.label },
+                    customFps?.let { "$it i/s" } ?: frameRate.label,
+                    onOther = { customFpsInput = customFps?.toString().orEmpty(); showCustomFps = true },
+                ) { label ->
                     frameRate = ExportFrameRate.entries.first { it.label == label }
+                    customFps = null
                 }
+                Text("Cadence vidéo maximale, sans changer la vitesse ni l'audio.", fontSize = 11.sp)
                 V017ChoiceRow("Résolution", ExportResolution.entries.map { it.label }, resolution.label) { label ->
                     resolution = ExportResolution.entries.first { it.label == label }
                 }
@@ -1295,12 +1305,34 @@ private fun V017ExportDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onExport(ExportSettings(codec, frameRate, resolution, bitrate)) }) {
+            Button(onClick = { onExport(ExportSettings(codec, frameRate, resolution, bitrate, customFps)) }) {
                 Text("Exporter")
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },
     )
+    if (showCustomFps) {
+        AlertDialog(
+            onDismissRequest = { showCustomFps = false },
+            title = { Text("Autre cadence : 1 à 60 i/s") },
+            text = {
+                OutlinedTextField(
+                    value = customFpsInput,
+                    onValueChange = { customFpsInput = it.filter(Char::isDigit).take(2) },
+                    label = { Text("Images par seconde") },
+                    singleLine = true,
+                    isError = customFpsInput.toIntOrNull() !in 1..60,
+                )
+            },
+            confirmButton = {
+                Button(
+                    enabled = customFpsInput.toIntOrNull() in 1..60,
+                    onClick = { customFps = customFpsInput.toInt(); showCustomFps = false },
+                ) { Text("Appliquer") }
+            },
+            dismissButton = { TextButton(onClick = { showCustomFps = false }) { Text("Annuler") } },
+        )
+    }
 }
 
 @Composable
@@ -1308,6 +1340,7 @@ private fun V017ChoiceRow(
     title: String,
     choices: List<String>,
     selected: String,
+    onOther: (() -> Unit)? = null,
     onSelect: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -1325,6 +1358,20 @@ private fun V017ChoiceRow(
                     color = if (choice == selected) FabPink else MaterialTheme.colorScheme.onSurface,
                     fontSize = 11.sp,
                     fontWeight = if (choice == selected) FontWeight.Bold else FontWeight.Normal,
+                )
+            }
+            if (onOther != null) {
+                Text(
+                    "+ Autres",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(9.dp))
+                        .background(if (selected !in choices) FabPink.copy(alpha = 0.22f) else FabSurfaceHigh)
+                        .border(1.dp, if (selected !in choices) FabPink else Color.Transparent, RoundedCornerShape(9.dp))
+                        .pointerInput(onOther) { detectTapGestures { onOther() } }
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    color = FabPink,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }

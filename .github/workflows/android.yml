@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.11-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.11-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.12-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.12-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.11-preview-${short_sha}"
+          tag="easycut-v0.0.12-preview-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.11-arm64-debug.apk \
-            EASYCUT-v0.0.11-arm64-debug.aab \
+            EASYCUT-v0.0.12-arm64-debug.apk \
+            EASYCUT-v0.0.12-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.11 — journal GET ERR ${short_sha}" \
-            --notes "Journal GET ERR commun accueil/montage : ERREUR rouge, OK/INFO vert, récupération grise ; copier avec balises HTML littérales, effacement confirmé des seules anciennes lignes. Aperçu v0.0.10 et export Media3 inchangés ; EASYCUT-EXPORT-MOVE-017 reste ouvert. Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."
+            --title "EASYCUT v0.0.12 — traces export et cadences ${short_sha}" \
+            --notes "GET ERR export-only : clips, keyframes, matrices, compositeur, encodeur ; presets 1-5/10/12/15/20/24/25/30/50/60 et +Autres 1..60. Aucun correctif du zoom export ; aperçu validé inchangé ; EASYCUT-EXPORT-MOVE-017 ouvert. Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."
