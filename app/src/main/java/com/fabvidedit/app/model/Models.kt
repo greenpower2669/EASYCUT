@@ -1,6 +1,7 @@
 package com.fabvidedit.app.model
 
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -99,6 +100,15 @@ data class ClipTransform(
             pivotY = lerp(pivotY, target.pivotY),
         ).normalized()
     }
+}
+
+/** One orientation-aware ratio for both the preview viewport and Media3 export. */
+fun VideoClip.displayAspectRatio(): Float? {
+    if (width <= 0 || height <= 0) return null
+    val sideways = abs(rotationDegrees) % 180 == 90
+    val displayedWidth = if (sideways) height else width
+    val displayedHeight = if (sideways) width else height
+    return displayedWidth.toFloat() / displayedHeight.toFloat()
 }
 
 data class TransformKeyframe(

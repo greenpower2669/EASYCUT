@@ -142,3 +142,16 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] **P0 cadrage export :** recueillir vidéo originale du premier clip ou export isolé de V1 et propriétés du projet (source W×H, rotation, base transform, keyframes, transition, ratio canevas) ; comparer source / aperçu / images MP4 vers 0,5/1/2/3s ; inspecter source gros fichier possiblement à résolution changeante, FFprobe scanner désactivé >256 Mio. Corriger seulement après cause démontrée.
 - [ ] Fab : tester → Suite V1, glissement réel V2→V1, audio lié « aimanté », durée maximale, undo, export après déplacement, sans transformer ce déplacement temporel en échange de profondeur Plan↑↓.
 - [ ] Priorités indépendantes héritées : validation MP4 V1/V2, récupération des projets JSON, annulation FFmpeg par session.
+
+
+## EASYCUT v0.0.5 — EASYCUT-WYSIWYG-011
+- [x] Rectifier l'hypothèse précédente : 321 % est voulu, l'export doit respecter ce souhait ; ne pas supprimer ni diminuer keyframes/échelles.
+- [x] Comparer code preview et export : preview déformait le média à la taille du canevas et zoomait le conteneur ; export utilise FIT du média puis matrice normalisée. Corriger le preview avec FIT avant zoom/rotation/translation appliqués à la TextureView, pas à l'AndroidView.
+- [x] Garder moteur export, scènes multipistes, données projets, réglages de zoom, audio et gestes inchangés ; reset preview natif lorsqu'on quitte fallback. Recalibrer à la création / redimensionnement surface.
+- [x] Tests JVM FIT portrait → carré à scale 3.21 ; portrait → portrait à scale 3.8 et pivot/translation paysage ; versionName 0.0.5/code 38, noms APK/AAB, quatre mémoires FAB Copilot au même commit.
+- [ ] Vérifier CI test/lint/assemble/bundle et Release avant de donner les liens.
+- [ ] Fab : comparer V1 au même instant (1–2 s) dans nouvelle preview et MP4 nouveau ; confirmer que 321 % du keyframe n'a pas changé, comparer le cadrage voulu au fichier et vérifier V3, gaps et opacité. Une correction de preview seule ne démontre PAS la correction d'un éventuel bug GPU export restant.
+- [ ] Si export diverge encore, obtenir fichier source de V1 (ou segment brut) et propriété sourceWidth/height/rotation, tester projection GL PreviewCanvasGeometry vs Media3 MatrixTransformation/Presentation, normalisation du canvas, double orientation, sortie 720×720, transitions et image à 1 s ; ajouter test instrumenté sur appareil.
+- [ ] Retester le drag Suite V1, lecteur après surface loss, clips source sans dimensions et image/vidéo à rotation 90°, et les problèmes P0 hérités de stockage/FFmpeg.
+
+- [x] Centraliser `displayAspectRatio` (orientation source comprise) entre l'aperçu et l'export, et ajouter test de source 720×1280 pivotée à 90° ; ne pas altérer `clip.rotationDegrees` ni les keyframes.

@@ -126,6 +126,7 @@ import com.fabvidedit.app.model.TransitionType
 import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoProject
+import com.fabvidedit.app.model.displayAspectRatio
 import com.fabvidedit.app.model.VisualMediaKind
 import com.fabvidedit.app.ui.theme.FabBackground
 import com.fabvidedit.app.ui.theme.FabMint
@@ -478,8 +479,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                 modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 160.dp).background(Color.Black),
                 contentAlignment = Alignment.Center,
             ) {
-                val sourceRatio = project.clips.firstOrNull { it.width > 0 && it.height > 0 }
-                    ?.let { it.width.toFloat() / it.height.toFloat() } ?: (16f / 9f)
+                val sourceRatio = project.clips.firstNotNullOfOrNull { it.displayAspectRatio() }
+                    ?: (16f / 9f)
                 val outputRatio = (project.aspectRatio.ratio ?: sourceRatio).coerceIn(0.25f, 4f)
                 val availableRatio = maxWidth.value / maxHeight.value.coerceAtLeast(1f)
                 val outputFrameWidth = if (availableRatio > outputRatio) {
@@ -534,6 +535,12 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                     stablePreview = true
                                 }
                                 texture.bind(if (stablePreview) fallbackPlayer else player)
+                                val rawAspectRatio = fallbackClip?.displayAspectRatio() ?: outputRatio
+                                texture.applyPreviewTransform(
+                                    if (stablePreview) fallbackVisual?.transform else null,
+                                    sourceAspectRatio = rawAspectRatio,
+                                    canvasAspectRatio = outputRatio,
+                                )
                             },
                             onRelease = { frame ->
                                 (frame.getChildAt(0) as? FabVidVideoTextureView)?.dispose()
@@ -544,16 +551,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                     if (stablePreview && fallbackVisual == null) {
                                         alpha = 0f // hide the stale Surface frame throughout an empty interval
                                     } else if (stablePreview && fallbackVisual != null) {
-                                        scaleX = fallbackVisual.transform.scaleX
-                                        scaleY = fallbackVisual.transform.scaleY
-                                        rotationZ = fallbackVisual.transform.rotationDegrees
-                                        translationX = fallbackVisual.transform.positionX * previewWidthPx * 0.5f
-                                        // Model +Y is up; Android +Y is down.
-                                        translationY = -fallbackVisual.transform.positionY * previewHeightPx * 0.5f
-                                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(
-                                            pivotFractionX = ((fallbackVisual.transform.pivotX + 1f) / 2f).coerceIn(0f, 1f),
-                                            pivotFractionY = ((1f - fallbackVisual.transform.pivotY) / 2f).coerceIn(0f, 1f),
-                                        )
+                                        // TextureView owns the video FIT + zoom + rotation + pan.
+                                        // Do NOT zoom AndroidView again: its outer transform was
+                                        // a different geometry from Media3's FIT export canvas.
                                         alpha = fallbackVisual.alpha * (fallbackClip?.opacity ?: 0f)
                                     }
                                 },

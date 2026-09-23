@@ -44,8 +44,8 @@ import com.fabvidedit.app.model.TransitionType
 import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoProject
+import com.fabvidedit.app.model.displayAspectRatio
 import com.fabvidedit.app.model.VisualMediaKind
-import kotlin.math.abs
 import kotlin.math.min
 
 object CompositionFactory {
@@ -304,14 +304,6 @@ object CompositionFactory {
             frameRate?.let(builder::setFrameRate)
         }
         return builder.build()
-    }
-
-    private fun VideoClip.displayAspectRatio(): Float? {
-        if (width <= 0 || height <= 0) return null
-        val quarterTurn = abs(rotationDegrees) % 180 == 90
-        val displayWidth = if (quarterTurn) height else width
-        val displayHeight = if (quarterTurn) width else height
-        return displayWidth.toFloat() / displayHeight.toFloat().coerceAtLeast(1f)
     }
 
     private fun volumeProcessors(volume: Float): List<AudioProcessor> {
