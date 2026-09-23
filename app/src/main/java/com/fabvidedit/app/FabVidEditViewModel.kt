@@ -34,6 +34,7 @@ import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.VisualMediaKind
+import com.fabvidedit.app.model.endOfVideoTrack
 import com.fabvidedit.app.model.moveClipOnTimeline
 import com.fabvidedit.app.model.rippleDeleteClip
 import java.text.SimpleDateFormat
@@ -428,6 +429,15 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         _selectedClipId.value = updated.clips.minByOrNull {
             kotlin.math.abs(it.timelineStartMs - removed.timelineStartMs)
         }?.id
+    }
+
+    /** Direct and accessible alternative to drag/drop; keeps linked A/V moving together. */
+    fun appendSelectedToMainTrack() {
+        val project = _activeProject.value ?: return
+        val id = _selectedClipId.value ?: return
+        val clip = project.clips.firstOrNull { it.id == id } ?: return
+        val endOfV1 = project.endOfVideoTrack(trackIndex = 0, excludedClipId = clip.id)
+        moveClip(id, targetTrackIndex = 0, targetStartMs = endOfV1)
     }
 
     fun moveClip(clipId: String, targetTrackIndex: Int, targetStartMs: Long) {

@@ -754,6 +754,11 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                         TextButton(onClick = { viewModel.changeSelectedLayer(-1) },
                             enabled = VideoLayerPolicy.frontToBack(project).lastOrNull() != clip.timelineTrackIndex
                         ) { Text("Plan ↓", fontSize = 11.sp) }
+                        TextButton(
+                            onClick = viewModel::appendSelectedToMainTrack,
+                            enabled = clip.timelineTrackIndex != 0 ||
+                                project.clips.any { it.id != clip.id && it.timelineTrackIndex == 0 },
+                        ) { Text("→ Suite V1", fontSize = 11.sp) }
                         TextButton(onClick = { viewModel.setClipSyncLocked(clip.id, !clip.syncLocked) }) {
                             Text(if (clip.syncLocked) "🔗 Aimanté" else "🔓 Libre", fontSize = 11.sp)
                         }
@@ -1512,12 +1517,15 @@ private fun V06VideoLane(
                     }
                     .pointerInput(clip.id, durationMs, trackIndex, maxTrackIndex) {
                         detectDragGesturesAfterLongPress(
-                            onDragStart = { onSelectClip(clip, clip.timelineStartMs) },
+                            // Selection triggers a seek and may recompose trim handles while
+                            // the pointer is down. Keep this gesture stable; select on drop.
+                            onDragStart = { dragX = 0f; dragY = 0f },
                             onDragEnd = {
                                 val deltaMs = (dragX / timelineWidthPx * durationMs.toFloat()).toLong()
                                 val deltaTrack = (-dragY / rowHeightPx).roundToInt()
                                 val targetTrack = (trackIndex + deltaTrack).coerceIn(0, maxTrackIndex)
                                 onMoveClip(clip.id, targetTrack, (clip.timelineStartMs + deltaMs).coerceAtLeast(0L))
+                                onSelectClip(clip, (clip.timelineStartMs + deltaMs).coerceAtLeast(0L))
                                 dragX = 0f; dragY = 0f
                             },
                             onDragCancel = { dragX = 0f; dragY = 0f },

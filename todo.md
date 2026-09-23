@@ -130,3 +130,15 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Rétablir le scan de changement de résolution de grands fichiers après tests du fork natif et comparaison ffprobe CLI vs FFprobeKit ; collecter la commande et code natif sans inventer sa cause.
 - [ ] Exporter le vrai montage Fab V3→V2, MP4 non noir sur V2, durée et audio conformes ; contrôler séparément `SingleInputVideoGraph` / erreur 1001 et vidéo+audio ; ne pas déclarer l'export corrigé sur seule réussite CI.
 - [ ] P0 historiques distincts : catalogue projets récupérable, annulation native FFmpeg et contrôle rendu smartphone.
+
+
+## EASYCUT v0.0.4 — EASYCUT-TIMELINE-010
+- [x] Analyser capture et MP4 d'export : première séquence anormalement agrandie/floue, sortie 720×720 HEVC ~10,2 s, V2 visuellement normale ; ne pas attribuer la cause à un réglage hérité sans source d'origine ni JSON du projet.
+- [x] Ajouter « → Suite V1 » pour clip sélectionné : déplacer l'existant exactement à la fin de V1, sans duplicate/ripple, via moveClip qui conserve le comportement des clips liés et du snapping.
+- [x] Réduire perturbation de l'appui long : ne plus lancer un seek/sélection qui change la composition au début du drag ; sélectionner à la fin. Le drag vers V1 lui-même nécessite encore un test tactile sur appareil.
+- [x] Ajouter tests unitaires : déplacer V2 4..10 sur V1 après V1 0..3 → nouveau début 3 s / durée 9 s, conservation premier clip, absence duplication et collision, fichier sélection inexistant intact.
+- [x] Version 0.0.4/code 37, APK/AAB nommés, brain/brainmap/debughistorical/todo synchronisés avec le code au même commit.
+- [ ] Vérifier CI test/lint/APK/AAB, release et liens avant annoncer disponibilité ; installation sur téléphone sans suppression des données utilisateur.
+- [ ] **P0 cadrage export :** recueillir vidéo originale du premier clip ou export isolé de V1 et propriétés du projet (source W×H, rotation, base transform, keyframes, transition, ratio canevas) ; comparer source / aperçu / images MP4 vers 0,5/1/2/3s ; inspecter source gros fichier possiblement à résolution changeante, FFprobe scanner désactivé >256 Mio. Corriger seulement après cause démontrée.
+- [ ] Fab : tester → Suite V1, glissement réel V2→V1, audio lié « aimanté », durée maximale, undo, export après déplacement, sans transformer ce déplacement temporel en échange de profondeur Plan↑↓.
+- [ ] Priorités indépendantes héritées : validation MP4 V1/V2, récupération des projets JSON, annulation FFmpeg par session.

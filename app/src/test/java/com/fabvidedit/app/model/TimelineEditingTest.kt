@@ -24,4 +24,34 @@ class TimelineEditingTest {
         val result=VideoProject(name="move",clips=listOf(base,moving),timelineMode=TimelineMode.MULTITRACK).moveClipOnTimeline("moving",2,3_500)
         val moved=result.clips.first{it.id=="moving"}; assertEquals(3_500L,moved.timelineStartMs); assertNotEquals(result.clips.first{it.id=="base"}.timelineTrackIndex,moved.timelineTrackIndex); assertEquals(9,result.projectFormatVersion)
     }
+    @Test fun appendToMainTrackAfterFirstVideoKeepsOtherClipsAndExtendsProjectWhenNeeded() {
+        val first = VideoClip(id="first", uri="file://one", name="one",
+            durationMs=3_000, timelineTrackIndex=0, timelineStartMs=0L)
+        val second = VideoClip(id="second", uri="file://two", name="two",
+            durationMs=6_000, timelineTrackIndex=1, timelineStartMs=4_000L)
+        val source = VideoProject(name="suite", clips=listOf(first, second),
+            timelineMode=TimelineMode.MULTITRACK)
+        val next = source.appendClipToVideoTrack("second", 0)
+        val moved = next.clips.single { it.id=="second" }
+        assertEquals(0, moved.timelineTrackIndex)
+        assertEquals(3_000L, moved.timelineStartMs)
+        assertEquals(9_000L, next.durationMs)
+        assertEquals(first, next.clips.single { it.id == "first" })
+        assertEquals(2, next.clips.size)
+        assertEquals(source, source.appendClipToVideoTrack("nonexistent", 0))
+    }
+
+    @Test fun draggingOntoV1AfterOccupiedClipNeverCreatesOverlapOrRenumbers() {
+        val first=VideoClip(id="first",uri="file://first",name="first",
+            durationMs=3_000,timelineTrackIndex=0)
+        val second=VideoClip(id="second",uri="file://second",name="second",
+            durationMs=6_000,timelineTrackIndex=1,timelineStartMs=4_000)
+        val before=VideoProject(name="drop",clips=listOf(first,second),
+            timelineMode=TimelineMode.MULTITRACK)
+        val after=before.moveClipOnTimeline("second",0,2_900L)
+        assertEquals(0,after.clips.first { it.id=="second" }.timelineTrackIndex)
+        assertEquals(3_000L,after.clips.first { it.id=="second" }.timelineStartMs)
+        assertEquals(9_000L,after.durationMs)
+    }
+
 }

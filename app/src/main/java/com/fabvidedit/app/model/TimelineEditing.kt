@@ -46,3 +46,15 @@ fun VideoProject.moveClipOnTimeline(clipId: String, targetTrackIndex: Int, targe
     // v0.11: preserve the requested target lane exactly; never renumber tracks behind the user.
     return copy(clips = moved, timelineMode = TimelineMode.MULTITRACK, projectFormatVersion = 9).withValidTransitions()
 }
+
+/** Main track is V1 (index zero). Appending moves the EXISTING clip; no copy or ripple. */
+fun VideoProject.endOfVideoTrack(trackIndex: Int, excludedClipId: String? = null): Long =
+    clips.asSequence()
+        .filter { it.timelineTrackIndex == trackIndex && it.id != excludedClipId }
+        .map { it.timelineStartMs + it.outputDurationMs }
+        .maxOrNull() ?: 0L
+
+fun VideoProject.appendClipToVideoTrack(clipId: String, trackIndex: Int): VideoProject {
+    if (clips.none { it.id == clipId }) return this
+    return moveClipOnTimeline(clipId, trackIndex, endOfVideoTrack(trackIndex, clipId))
+}
