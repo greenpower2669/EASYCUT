@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.13-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.13-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.14-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.14-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.13-preview-${short_sha}"
+          tag="easycut-v0.0.14-preview-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.13-arm64-debug.apk \
-            EASYCUT-v0.0.13-arm64-debug.aab \
+            EASYCUT-v0.0.14-arm64-debug.apk \
+            EASYCUT-v0.0.14-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.13 — images-clés V2 et cadence ${short_sha}" \
-            --notes "V2 : images-clés évaluées en temps source-local après décalage de piste ; plafond cadence après composition par FrameDropEffect pour l export seul ; avis de vidage GET ERR informatif. V1 : diagnostic geometrie et zoom toujours ouvert. Aperçu intact, validation MP4 sur telephone necessaire. Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."
+            --title "EASYCUT v0.0.14 — toile multipiste stable ${short_sha}" \
+            --notes "V2 : images-clés évaluées en temps source-local après décalage de piste ; plafond cadence après composition par FrameDropEffect pour l export seul ; avis de vidage GET ERR informatif. V1 : toile export fixée selon le cadre du projet pour ignorer le 16x16 d intervalle vide ; V2 et fps v0.0.13 préservés. GET ERR taille seulement en cas de changement ; aperçu intact, validation MP4 sur téléphone nécessaire. Compilation debug ARM64 : tests unitaires, lint, APK et AAB. Tests sur téléphone et conformité de l'aperçu non encore validés. Format de sortie MP4/AAC; prise en charge H.265 conditionnelle à l'encodeur matériel. Sources : ${GITHUB_SHA}."

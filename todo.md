@@ -311,3 +311,12 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Fab : comparer MP4 issu de 0.0.13 à l'aperçu pour V2, tester choix 12 i/s et transmettre GET ERR + vidéo ; valider sortie réelle.
 - [ ] Analyser séparément V1 cadrage excessif à partir des médias originaux / comparaison MP4 / dimensions de surface observées et corriger géométrie sans hypothèse hasardeuse. EXPORT-MOVE-017 non clos jusqu'à cela.
 - [ ] Maintenir les autres missions FPS/resolution/compression intactes.
+
+## v0.0.14 — Fab : anomalie géométrique V1 malgré V2 presque correcte
+- [x] Contrôler MP4 14026.mp4 et GET ERR : vidéo 720x720 / V1 aplat; compositor output=16x16 quand première piste V2 est gap 16x16 et V1 image 720x1280 ; renversement output après 6118ms.
+- [x] Fixer taille sortie compositing d'EXPORT sur ratio/résolution du projet, indépendamment des gaps et ordre des pistes ; preview utilisant DEFAULT préservé.
+- [x] Supprimer la répétition de COMPOSITOR_SIZE identique, journal CANVAS_FIXED + dimension réelle au changement.
+- [x] Ajouter tests pure Kotlin géométrie portrait, paysage, carré, résolution source et entrée gap 16x16.
+- [ ] Confirmer CI, APK/AAB et prerelease v0.0.14 (ne pas annoncer avant vérification).
+- [ ] Fab : exporter même montage à 12 i/s ; joindre MP4 et GET ERR succinct ; confirmer V1 ET V2 et format final, préserver preview.
+- [ ] Ancien crash Android reason=Crash Java/Kotlin sans dernière erreur à conserver en vigilance séparée ; repro + logs nouveaux nécessaires pour attribuer une cause.

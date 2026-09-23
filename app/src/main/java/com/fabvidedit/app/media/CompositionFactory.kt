@@ -63,6 +63,24 @@ object CompositionFactory {
         // sequences are mixed. This keeps a portrait 9:16 stream portrait inside a 16:9 project
         // instead of stretching it to the first stream's geometry.
         val canvasRatio = project.aspectRatio.ratio ?: project.clips.firstNotNullOfOrNull { it.displayAspectRatio() }
+        // A leading MULTITRACK addGap() supplies 16x16 synthetic frames. Fix the export canvas
+        // from the project, not from whichever input the compositor first sees.
+        // traceExport is only enabled by ExportManager; preview stays on its known-good path.
+        val exportCanvas = if (traceExport && VideoLayerPolicy.needsVideoCompositor(project)) {
+            ExportCanvasGeometry.resolve(
+                canvasRatio = canvasRatio,
+                requestedShortSide = resolutionShortSide,
+                sourceShortSide = project.clips
+                    .filter { it.width > 16 && it.height > 16 }
+                    .maxOfOrNull { minOf(it.width, it.height) },
+                fallbackWidth = project.clips.firstOrNull { it.width > 16 }?.width,
+                fallbackHeight = project.clips.firstOrNull { it.height > 16 }?.height,
+            )
+        } else null
+        if (traceExport && exportCanvas != null) FabVidDiagnostics.traceExport(
+            "CANVAS_FIXED width=${exportCanvas.width} height=${exportCanvas.height} " +
+                "ratio=$canvasRatio shortSide=$resolutionShortSide origin=project",
+        )
 
         if (traceExport) FabVidDiagnostics.traceExport(
             "COMPOSE mode=${project.timelineMode} ratio=$canvasRatio fpsMax=$frameRate " +
@@ -97,12 +115,18 @@ object CompositionFactory {
             val lanes = VideoLayerPolicy.frontToBack(project)
             builder.setVideoCompositorSettings(object : VideoCompositorSettings {
                 private val loggedSeconds = mutableMapOf<Int, Long>()
+                private var lastSizeTrace: String? = null
                 override fun getOutputSize(inputSizes: List<Size>): Size {
-                    val output = VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
-                    if (traceExport) FabVidDiagnostics.traceExport(
-                        "COMPOSITOR_SIZE input=${inputSizes.joinToString { "${it.width}x${it.height}" }} " +
-                            "output=${output.width}x${output.height} ratio=$canvasRatio",
-                    )
+                    val output = exportCanvas?.let { Size(it.width, it.height) }
+                        ?: VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
+                    if (traceExport) {
+                        val signature = "input=${inputSizes.joinToString { "${it.width}x${it.height}" }} " +
+                            "output=${output.width}x${output.height} ratio=$canvasRatio"
+                        if (signature != lastSizeTrace) {
+                            lastSizeTrace = signature
+                            FabVidDiagnostics.traceExport("COMPOSITOR_SIZE $signature")
+                        }
+                    }
                     return output
                 }
 

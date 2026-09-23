@@ -74,3 +74,8 @@
 - Fab autorise les corrections des problèmes MP4 après la trace et exige de préserver l'aperçu parfait.
 - Code v0.0.13 : origine source-locale des keyframes et luminosité V2 en multipiste, garde de cadence après la composition vidéo, avis Vider classé INFO, journal de taille réelle du compositeur. **Zoom excessif V1 non déclaré corrigé** : ses matrices sont identité au début, la source originale ou un MP4 comparatif est nécessaire pour corriger la géométrie sans régression.
 - Statut : code et tests publiables, validation du MP4 réel par Fab en attente. Ne pas fermer la mission sur la seule réussite CI.
+
+### EASYCUT-EXPORT-CANVAS-010 — V1 cadrage MP4 causé par intervalle vide (23/09/2026)
+- Fab : deuxième vidéo presque parfaite v0.0.13, première vidéo toujours agrandie/déformée en export. GET ERR montre input=16x16 (gap V2) + 720x1280 (V1), output=16x16 pendant V1, puis output=720x1280 pendant V2 ; fichier MP4 fourni. L'aperçu est PARFAIT, aucune intervention sur preview autorisée.
+- Intervention v0.0.14 : toile compositeur fixée selon ratio/résolution du projet uniquement sur chemin export ; dédoublonnage des lignes COMPOSITOR_SIZE, test de géométrie pure. Préserver images-clés V2 et plafond FPS.
+- Statut : code livré au dépôt, validation du MP4 v0.0.14 par Fab en attente. Signaler séparément l'ancien crash Android, sans l'attribuer à l'export à succès.

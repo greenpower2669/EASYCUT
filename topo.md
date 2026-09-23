@@ -50,3 +50,6 @@ GET ERR : journal ExportManager→CompositionFactory→getMatrix/getOverlaySetti
 
 ## v0.0.13 — sortie v2/fps, V1 toujours ouvert
 ExportClipTiming soustrait startMs de clip multipiste des timeUs effet avant keyframes transform/brightness, avec vitesse et limites. Jamais sur preview. FrameDropEffect plafonne sortie vidéo fusionnée uniquement quand traceExport=true. GET ERR note taille compositor, avis 'journal vidé' vert. Aucune conclusion de fix V1 sans fichiers image réels ; garder ordres et TODO vivants.
+
+## v0.0.14 — fix V1 au niveau toile d'export
+Gap V2 16x16 antérieur à sa vidéo → DEFAULT compositor retourne 16x16 et coupe V1 720x1280. ExportCanvasGeometry calcule canvas 9:16/720p→720x1280 fixe en EXPORT uniquement. GET ERR taille dédoublonnée ; V2 time fix et frame drop v0.0.13 conservés, aperçu parfait inchangé, crash historique non attribué.
