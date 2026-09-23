@@ -554,7 +554,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                             pivotFractionX = ((fallbackVisual.transform.pivotX + 1f) / 2f).coerceIn(0f, 1f),
                                             pivotFractionY = ((1f - fallbackVisual.transform.pivotY) / 2f).coerceIn(0f, 1f),
                                         )
-                                        alpha = fallbackVisual.alpha * fallbackClip!!.opacity
+                                        alpha = fallbackVisual.alpha * (fallbackClip?.opacity ?: 0f)
                                     }
                                 },
                         )

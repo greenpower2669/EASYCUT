@@ -14,8 +14,8 @@ android {
         applicationId = "com.fabvidedit.app.poc"
         minSdk = 29
         targetSdk = 36
-        versionCode = 35
-        versionName = "0.0.2"
+        versionCode = 36
+        versionName = "0.0.3"
 
         // POC Android build: keep only ARM64 native FFmpeg libraries so the APK stays
         // ARM64-only for the phone; APK/AAB are published in Releases, not committed to Git.

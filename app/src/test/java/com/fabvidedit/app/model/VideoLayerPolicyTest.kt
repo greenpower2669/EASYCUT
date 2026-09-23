@@ -26,6 +26,12 @@ class VideoLayerPolicyTest {
         sourceAudioTracks = listOf(audio), timelineMode = TimelineMode.MULTITRACK,
     )
 
+    @Test fun oneVideoWithExtraAudioDoesNotUseUnsupportedCustomCompositor() {
+        assertTrue(!VideoLayerPolicy.needsVideoCompositor(
+            project.copy(clips = listOf(upper))))
+        assertTrue(VideoLayerPolicy.needsVideoCompositor(project))
+    }
+
     @Test fun upperLaneGapIsTransparentUntilVideoStartsAndAfterItEnds() {
         assertEquals(listOf(2, 1), VideoLayerPolicy.frontToBack(project))
         assertEquals(1f, VideoLayerPolicy.opacityAt(project.clips, 2, 2_999L), 0f)

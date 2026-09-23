@@ -56,6 +56,15 @@ object ResolutionFrameScanner {
         val videos = inventory.videoStreams
         if (videos.isEmpty()) return emptyMap()
         require(temporaryDirectory.isDirectory) { "Dossier de travail du scan absent" }
+        // EASYCUT-CRASH-009: FFprobeKit 8.1.7 on the reported Android device
+        // produced malformed native -o parameters in the keyframe scan.
+        // Do not enter this optional scan for large or size-unknown files:
+        // the already-read stream inventory remains usable and the project opens.
+        // Restore keyframe inspection only after an instrumented on-device fix.
+        if (sourceBytes == null || sourceBytes >= LARGE_INPUT_BYTES) {
+            FabVidDiagnostics.mark("SCAN_SKIPPED_NATIVE_RISK")
+            return fallback(videos, inventory.durationMs)
+        }
         val metadata = File(temporaryDirectory, "resolution-frames-" + System.nanoTime() + ".txt")
         try {
             val args = mutableListOf(

@@ -117,3 +117,16 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Fab : réessayer le même import plusieurs fois avec nouveau média et ancien média, vérifier pistes détectées et absence de fichier temporaire/proxy non référencé après erreur, puis montage V3→V2 exporté.
 - [ ] Si FFprobe échoue encore : récupérer rapport sans effacer données projets, distinguer code de retour, fichier JSON vide, problème fork natif et accès concurrent. Prévoir instrumentations Android FFprobe réel et scénario grands médias.
 - [ ] Bugs P0 indépendants restant : sauvegarde projet récupérable, annulation native FFmpeg par session, contrôles de conformité MP4, contrôle de l'aperçu multipiste sur smartphone.
+
+
+## EASYCUT v0.0.3 — EASYCUT-CRASH-009
+- [x] Distinguer scan FFprobe échoué mais récupéré, exception surface récupérée, puis NPE non rattrapée comme crash final ; conserver la chronologie terrain.
+- [x] Comparer à AndroidX Media issue #3164 / API CompositionPlayer ; liaison `setVideoSurface(Surface,Size)` et rebind sur redimensionnement, ne pas confondre API ExoPlayer.
+- [x] Supprimer `fallbackClip!!` et utiliser opacité 0 lorsque le clip disparaît lors d'une recomposition Compose.
+- [x] Scanner des grands médias (>=256 Mio) et taille inconnue contourné avant lancement FFprobe natif ; utiliser fallback inventaire ; petit média garde scanner borné. Régression connue : segments à résolution variable des grands médias non détectés automatiquement.
+- [x] N'activer VideoCompositorSettings qu'avec >1 piste vidéo occupée, test JVM mono vidéo + pistes audio ajouté ; conserver le correctif multipiste 0.0.1 pour montage à plusieurs pistes.
+- [x] Version v0.0.3/versionCode 36, APK/AAB correctement nommés, quatre mémoires FAB Copilot synchronisées avec le code.
+- [ ] Vérifier CI/Release v0.0.3 et ne donner lien APK/AAB que s'ils existent réellement. Vérifier sur téléphone import ~1 Go, absence de nouveau crash Java et ouverture projet, miniatures, lecture, pause, surfaces lors rotation/redimensionnement.
+- [ ] Rétablir le scan de changement de résolution de grands fichiers après tests du fork natif et comparaison ffprobe CLI vs FFprobeKit ; collecter la commande et code natif sans inventer sa cause.
+- [ ] Exporter le vrai montage Fab V3→V2, MP4 non noir sur V2, durée et audio conformes ; contrôler séparément `SingleInputVideoGraph` / erreur 1001 et vidéo+audio ; ne pas déclarer l'export corrigé sur seule réussite CI.
+- [ ] P0 historiques distincts : catalogue projets récupérable, annulation native FFmpeg et contrôle rendu smartphone.

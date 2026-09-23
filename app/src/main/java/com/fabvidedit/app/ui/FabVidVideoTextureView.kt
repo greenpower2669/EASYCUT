@@ -5,18 +5,20 @@ import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
 import androidx.media3.common.Player
+import androidx.media3.common.util.Size
+import androidx.media3.transformer.CompositionPlayer
 import com.fabvidedit.app.FabVidDiagnostics
 
 /**
- * Media3 CompositionPlayer does NOT accept PlayerView.setPlayer(): that call forwards
- * a TextureView via setVideoTextureView and throws UnsupportedOperationException.
- * Bind a real Surface explicitly, and unbind BEFORE releasing it. ExoPlayer fallback
- * uses the same output when CompositionPlayer lacks setVideoSurface support.
+ * CompositionPlayer needs its specialized setVideoSurface(surface, outputSize) overload;
+ * SimpleBasePlayer.setVideoSurface(surface) throws at runtime in Media3 1.11.
+ * ExoPlayer can use ordinary Player.setVideoSurface; both must release BEFORE TextureView.
  */
 class FabVidVideoTextureView(context: Context) : TextureView(context), TextureView.SurfaceTextureListener {
     private var output: Surface? = null
     private var wanted: Player? = null
     private var attached: Player? = null
+    private var attachedSize: Size? = null
     var onBindFailure: ((Throwable) -> Unit)? = null
 
     init {
@@ -25,15 +27,21 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
 
     fun bind(player: Player?) {
         wanted = player
-        if (attached === player && output != null) return
+        val size = Size(width.coerceAtLeast(1), height.coerceAtLeast(1))
+        if (attached === player && output != null && attachedSize == size) return
         unbind()
         val ready = output ?: surfaceTexture?.let { texture ->
             Surface(texture).also { output = it }
         }
         if (ready != null && player != null) {
             try {
-                player.setVideoSurface(ready)
+                if (player is CompositionPlayer) {
+                    player.setVideoSurface(ready, size)
+                } else {
+                    player.setVideoSurface(ready)
+                }
                 attached = player
+                attachedSize = size
             } catch (error: RuntimeException) {
                 FabVidDiagnostics.logError("VIDEO_SURFACE_BIND", error)
                 // Do not let CompositionPlayer's unsupported output type kill the main thread.
@@ -45,6 +53,7 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
     private fun unbind() {
         val old = attached
         attached = null
+        attachedSize = null
         if (old != null) {
             runCatching { old.clearVideoSurface(output) }
                 .onFailure { FabVidDiagnostics.logError("VIDEO_SURFACE_CLEAR", it) }
@@ -66,7 +75,10 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         bind(wanted)
     }
 
-    override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) = Unit
+    override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+        // CompositionPlayer output size has to track the actual TextureView size.
+        bind(wanted)
+    }
 
     override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
         unbind()

@@ -4,6 +4,10 @@ package com.fabvidedit.app.model
  * V3 sits above V2; a gap must never become an opaque video frame.
  */
 object VideoLayerPolicy {
+    fun needsVideoCompositor(project: VideoProject): Boolean =
+        project.timelineMode == TimelineMode.MULTITRACK &&
+            project.clips.map(VideoClip::timelineTrackIndex).distinct().size > 1
+
     fun frontToBack(project: VideoProject): List<Int> =
         project.clips.map(VideoClip::timelineTrackIndex).distinct().sortedDescending()
 

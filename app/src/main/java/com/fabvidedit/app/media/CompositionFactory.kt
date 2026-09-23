@@ -76,7 +76,9 @@ object CompositionFactory {
         }
 
         val builder = Composition.Builder(sequences)
-        if (project.timelineMode == TimelineMode.MULTITRACK) {
+        if (VideoLayerPolicy.needsVideoCompositor(project)) {
+            // Custom compositor is only meaningful with multiple video inputs.
+            // SingleInputVideoGraph rejects it (1001) even with multiple audio tracks.
             // Media3 emits blank VIDEO frames for addGap(); hide each blank frame
             // rather than let an upper lane cover the media below it.
             val lanes = VideoLayerPolicy.frontToBack(project)
