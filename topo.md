@@ -53,3 +53,6 @@ ExportClipTiming soustrait startMs de clip multipiste des timeUs effet avant key
 
 ## v0.0.14 — fix V1 au niveau toile d'export
 Gap V2 16x16 antérieur à sa vidéo → DEFAULT compositor retourne 16x16 et coupe V1 720x1280. ExportCanvasGeometry calcule canvas 9:16/720p→720x1280 fixe en EXPORT uniquement. GET ERR taille dédoublonnée ; V2 time fix et frame drop v0.0.13 conservés, aperçu parfait inchangé, crash historique non attribué.
+
+## Clôture Fab v0.0.14 (23/09/2026)
+L'incident multipiste V1/V2 EASYCUT-EXPORT-MOVE-017, EASYCUT-EXPORT-REPAIR-009 et EASYCUT-EXPORT-CANVAS-010 est validé RÉSOLU par Fab. Ne plus l'afficher comme bug P0 ouvert : les anciens états du topo décrivent l'histoire. Preview parfait, keyframes et toile export stables. Autres missions et crash ancien ne sont pas couverts ; Fab poursuit ses tests.

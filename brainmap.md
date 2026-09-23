@@ -165,3 +165,6 @@ Dans la branche export seulement, CompositionFactory.globalEffects reçoit Frame
 
 ## v0.0.14 — géométrie export stable
 CompositionFactory.create → ratio projet + résolutionShortSide/sourceShortSide non factice → ExportCanvasGeometry.resolve (pure) → val exportCanvas pour traceExport=true et compositor actif → VideoCompositorSettings.getOutputSize retourne Size fixe (ex. 720x1280) quel que soit l'ordre inputSizes [16x16 gap,720x1280 vidéo] ou [720x1280,16x16]. Si preview traceExport=false : DEFAULT.getOutputSize conservé. getOverlaySettings/alpha, keyframes V2, ordre des pistes, vitesse et audio inchangés. Trace COMPOSITOR_SIZE uniquement à changement de signature et CANVAS_FIXED au démarrage ; signaux de crash anciens analysés à part.
+
+## Clôture Fab v0.0.14 — export multipiste V1/V2
+EASYCUT-EXPORT-MOVE-017 RÉSOLU/VALIDÉ PAR FAB : V2 reçoit local source time avant keyframes/brightness (ExportClipTiming) ; V1 utilise la toile fixe calculée du projet et non le gap 16×16 (ExportCanvasGeometry) ; journal dédoublonné. Garder preview indépendant et intact. Les anciennes alertes non résolues dans la cartographie correspondent aux étapes historiques précédant la confirmation utilisateur ; vieux crash Android et autres missions restent indépendants.

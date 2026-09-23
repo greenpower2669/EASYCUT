@@ -62,20 +62,23 @@
 ### FAB-PREVIEW-VALIDATED — Aperçu EASYCUT 0.0.10
 - **Origine :** Fab, 23/09/2026.
 - **Demande et constat :** restaurer l'aperçu fonctionnel de la 0.0.3 sans réintroduire son ancien double zoom **à l'export** ; préserver le montage. Fab confirme que la **prévisualisation 0.0.10 est « nickel »** et que **le premier export avant déplacement vertical de la deuxième vidéo est correct**.
-- **Statut : Validé par Fab pour ces scénarios ; ne pas confondre avec le bug distinct du MP4 après changement de piste** (`debughistorical.md`, `EASYCUT-EXPORT-MOVE-017`). Ne pas déclarer tous les exports validés.
+- **Statut : Validé par Fab pour ces scénarios. Le bug ultérieur `EASYCUT-EXPORT-MOVE-017` est désormais résolu et validé à son tour par Fab en v0.0.14 ; les autres scénarios et fonctionnalités non testés restent distincts.**
 
 ## Référence croisée
 
 - Le contrat détaillé export compact est dans `brain.md` → `EASYCUT-EXPORT-SMALL-013`.
-- Le bug d'export **après** déplacement de la vidéo karaté est dans `debughistorical.md` → `EASYCUT-EXPORT-MOVE-017`, et son plan de correction dans `todo.md` ; il ne remplace aucune mission de fonctionnalité.
+- Le bug d'export **après** déplacement de la vidéo karaté est **RÉSOLU, VALIDÉ PAR FAB EN v0.0.14** (`debughistorical.md` → `EASYCUT-EXPORT-MOVE-017`, plan clos dans `todo.md`) ; il ne remplace aucune mission de fonctionnalité.
 - `topo.md` est conservé comme pense-bête technique de l'agent, **utile mais facultatif** ; Fab n'a pas à le maintenir.
 
 ### EASYCUT-EXPORT-REPAIR-009 — suite du journal v0.0.12 (23/09/2026)
 - Fab autorise les corrections des problèmes MP4 après la trace et exige de préserver l'aperçu parfait.
 - Code v0.0.13 : origine source-locale des keyframes et luminosité V2 en multipiste, garde de cadence après la composition vidéo, avis Vider classé INFO, journal de taille réelle du compositeur. **Zoom excessif V1 non déclaré corrigé** : ses matrices sont identité au début, la source originale ou un MP4 comparatif est nécessaire pour corriger la géométrie sans régression.
-- Statut : code et tests publiables, validation du MP4 réel par Fab en attente. Ne pas fermer la mission sur la seule réussite CI.
+- Statut : **RÉSOLU ET VALIDÉ PAR FAB pour l'incident V1/V2 en v0.0.14** ; v0.0.13 était une étape, puis la correction de toile v0.0.14 a achevé le scénario. Ne pas assimiler cette validation à tous les cas de cadence ni au crash distinct.
 
 ### EASYCUT-EXPORT-CANVAS-010 — V1 cadrage MP4 causé par intervalle vide (23/09/2026)
 - Fab : deuxième vidéo presque parfaite v0.0.13, première vidéo toujours agrandie/déformée en export. GET ERR montre input=16x16 (gap V2) + 720x1280 (V1), output=16x16 pendant V1, puis output=720x1280 pendant V2 ; fichier MP4 fourni. L'aperçu est PARFAIT, aucune intervention sur preview autorisée.
 - Intervention v0.0.14 : toile compositeur fixée selon ratio/résolution du projet uniquement sur chemin export ; dédoublonnage des lignes COMPOSITOR_SIZE, test de géométrie pure. Préserver images-clés V2 et plafond FPS.
-- Statut : code livré au dépôt, validation du MP4 v0.0.14 par Fab en attente. Signaler séparément l'ancien crash Android, sans l'attribuer à l'export à succès.
+- Statut : **RÉSOLU ET VALIDÉ PAR FAB en v0.0.14** : première et deuxième vidéos conformes à ce stade, aperçu préservé. Fab poursuit ses autres tests. L'ancien crash Android reste un incident distinct, non clos par cette validation.
+
+## Validation terrain Fab — clôture de l'incident export V1/V2 (23/09/2026)
+Fab confirme explicitement : « tu peux cocher toute les cases liées à cet incident comme résolu, on est Parfait à ce stade, je poursuis le test et je reviens vers toi ». Pour le scénario multipiste observé, EASYCUT-EXPORT-MOVE-017, EASYCUT-EXPORT-REPAIR-009 et EASYCUT-EXPORT-CANVAS-010 sont clos à sa demande ; ne pas les réouvrir pour de simples notes historiques. Aucun code modifié par cette clôture. Restent indépendants : crash Android ancien, profils de compression/résolutions, validations spécifiques de cadence 10/12/15 i/s et tests futurs.

@@ -4,10 +4,10 @@
 
 **Les ordres de mission de Fab sont dans [`ordres-de-mission.md`](ordres-de-mission.md), registre canonique séparé et persistant.** Lire ce fichier AVANT de décider de quoi coder et AVANT de répondre « que reste-t-il ? ». Une demande utilisateur reste inchangée tant que non produite ; seul Fab peut l'annuler, la remplacer ou en changer la priorité. `todo.md` décrit MES actions techniques et les vérifications, pas le carnet des projets de Fab. `debughistorical.md` = récit de bugs ; `topo.md` = aide-mémoire technique facultatif de l'agent.
 
-### Export après changement de piste — [BUG] EASYCUT-EXPORT-MOVE-017
-- [ ] Fab : essayer v0.0.12 et partager GET ERR + MP4 multipiste ; la prévisualisation est parfaite, ne pas la modifier.
-- [ ] Reproduire seulement l'export MP4 avant/après déplacement vertical de la deuxième vidéo karaté, vérifier temps des deux clips, keyframes et superposition ; le récit et les hypothèses restent dans `debughistorical.md`.
-- [ ] Auditer et tester la construction de l'export multipiste et corriger localement après preuve ; **ne pas retoucher la prévisualisation EASYCUT 0.0.10 validée « nickel »**, ni le premier export validé par Fab.
+### Export après changement de piste — [RÉSOLU / VALIDÉ FAB v0.0.14] EASYCUT-EXPORT-MOVE-017
+- [x] Fab : transmettre GET ERR et MP4 multipiste, puis valider la résolution V1/V2 en v0.0.14 ; l'aperçu parfait n'a pas été modifié.
+- [x] Reproduire le défaut de l'export après déplacement vertical, distinguer les causes V2 (temps local des keyframes) et V1 (toile 16×16 du gap), tester et corriger le compositeur.
+- [x] Auditer et tester uniquement l'export multipiste ; préserver prévisualisation EASYCUT 0.0.10 et export stable. **Clôture explicitement demandée par Fab ; autres tests en cours, hors de cet incident.**
 
 ### Exécution des fonctionnalités — demandes intégrales dans le registre de Fab
 - [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-EXPORT-FPS-001` (« + Autres » cadence) en respectant chaque cadence et l'absence de changement de vitesse/son.
@@ -277,14 +277,14 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Validation Fab minimaliste : image visible, zoom/dézoom/pan intuitif et rotation volontaire, reprise lecture ; vérifier l'export MP4 = zoom UNE fois, pas deux. Ne pas transformer chiffres PERF en preuve de fluidité.
 - [ ] Reste ensuite et SÉPARÉ : FFprobe variation de résolution, colour journal rouge/vert/gris, entrée journal depuis éditeur et effacement confirmé. Ne pas mêler ces fonctions à ce patch P0.
 
-## P0 — EASYCUT-EXPORT-MOVE-017 — export après déplacement vertical du clip 2
+## [RÉSOLU / VALIDÉ FAB v0.0.14] EASYCUT-EXPORT-MOVE-017 — export après déplacement vertical du clip 2
 
 **Bug détaillé et preuves :** voir `debughistorical.md`, section `EASYCUT-EXPORT-MOVE-017`. Prévisualisation 0.0.10 et premier export avant déplacement **validés par Fab : ne pas les modifier**.
 
-- [ ] Reproduire l'export avant/après déplacement vertical du clip karaté sur une autre piste, mêmes keyframes et mêmes paramètres ; vérifier séparément vidéo 1, vidéo 2 et superposition.
-- [ ] Auditer déplacement séquentiel→multipiste, `timelineStartMs`, origine locale/source des keyframes, trims/vitesse, ordre des séquences et effet animé dans l'export ; distinguer bug réel et hypothèses.
-- [ ] Corriger seulement timeline/export multipiste, ajouter tests ciblés et protéger premier export + aperçu validés ; validation du second MP4 par Fab indispensable.
-- [ ] Actualiser les quatre mémoires et `topo.md` avec le code dans le même commit lorsqu'une correction sera demandée.
+- [x] Reproduire le scénario réel d'export après déplacement vertical du clip karaté ; Fab confirme la conformité V1/V2 en v0.0.14 à ce stade.
+- [x] Auditer séquentiel→multipiste, origine temporelle des images-clés V2 et géométrie de sortie V1 ; correctifs ciblés v0.0.13–0.0.14 et tests JVM.
+- [x] Corriger uniquement l'export multipiste, ajouter les tests ciblés et préserver le premier export + l'aperçu ; **validation terrain V1/V2 confirmée par Fab en v0.0.14**.
+- [x] Actualiser les mémoires vivantes et `topo.md` dans les commits correctifs v0.0.13–0.0.14 ; clôture documentaire enregistrée ensemble après validation Fab.
 
 ## Intervention ciblée v0.0.11 — GET ERR (missions FAB-JOURNAL-004 à 007)
 - [x] [AGENT] Unifier le dialogue GET ERR de l'accueil et des deux vues de montage ; ne pas toucher au lecteur ni à l'export.
@@ -293,23 +293,23 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] [AGENT] Ajouter tests JVM pour classification/timeout récupéré vs bloquant, continuation de pile et échappement HTML ; version 0.0.11/code44 et publication conditionnée à CI.
 - [ ] [AGENT] Vérifier réellement Actions tests/lint/APK/AAB et obtenir URL de release avant de déclarer la livraison installable.
 - [ ] [FAB] Valider sur téléphone : couleurs, COPIER puis coller avec balises, accès accueil et montage sans quitter le projet, annuler Vider puis confirmer Vider, persistance des indications dernière erreur/arrêt. Le résultat restera « Livré, à valider » jusqu'à confirmation.
-- [ ] [AGENT] Poursuivre séparément EASYCUT-EXPORT-MOVE-017 sans régression de l'aperçu 0.0.10.
+- [x] [AGENT] EASYCUT-EXPORT-MOVE-017 corrigé, aperçu 0.0.10 préservé, résolution confirmée par Fab en v0.0.14.
 
 ## v0.0.12 — demandes exécutées : journal sortie et cadences
 - [x] Export seulement : instrumentation du projet/paramètres/clips/keyframes, préflight, construction séquentielle/multipiste et gaps, effets, matrices Media3, compositeur et résultat encodeur/galerie. L'aperçu reste parfaitement intact, bug visuel MP4 non corrigé.
 - [x] Options Source/1–5/10/12/15/20/24/25/30/50/60 i/s et + Autres (1..60) dans les deux dialogues d'export.
 - [x] Tests JVM de cadence personnalisée et classification des traces dans GET ERR ajoutés.
-- [ ] Vérifier GitHub CI, compilation APK/AAB et release ; ne pas annoncer d'artefact sans confirmation.
-- [ ] Fab : tester une vidéo réelle à 10 puis 15 i/s ; exporter le projet multipiste défectueux, copier GET ERR après export et joindre le MP4 pour comparer. La prévisualisation ne fait pas partie du débogage.
-- [ ] EXPORT-MOVE-017 reste ouvert. Export compact autres résolutions / économies / AAC toujours à faire d'après ordres-de-mission.md.
+- [x] Vérifier GitHub CI, compilation APK/AAB et release de v0.0.12 : confirmé dans Actions et Release.
+- [x] Fab : fournir le scénario multipiste réel, GET ERR et MP4 ; clôture V1/V2 confirmée ultérieurement sur v0.0.14. **Ne vaut pas test spécifique des cadences 10/15 i/s.**
+- [x] EXPORT-MOVE-017 résolu et validé en v0.0.14. Export compact autres résolutions / économies / AAC reste à faire d'après ordres-de-mission.md.
 
 ## v0.0.13 — corrections fondées sur le journal Fab 0.0.12
 - [x] Source-local clock V2 sur pipeline EXPORT multipiste (temps projet - début piste ; vitesse ; clamp), transform/brightness ; tests temps 0/2104/3024 et non-régression V1.
 - [x] FPS : plafond global FrameDropEffect après fusion uniquement sur export ; ni preview ni audio modifiés.
 - [x] Avis « journal vidé » en INFO/vert, traces des dimensions effectives du compositeur ajoutées.
-- [ ] Confirmer GitHub CI, APK/AAB, GitHub Release de 0.0.13.
-- [ ] Fab : comparer MP4 issu de 0.0.13 à l'aperçu pour V2, tester choix 12 i/s et transmettre GET ERR + vidéo ; valider sortie réelle.
-- [ ] Analyser séparément V1 cadrage excessif à partir des médias originaux / comparaison MP4 / dimensions de surface observées et corriger géométrie sans hypothèse hasardeuse. EXPORT-MOVE-017 non clos jusqu'à cela.
+- [x] Confirmer GitHub CI, APK/AAB, GitHub Release de 0.0.13 : réussite constatée.
+- [x] Fab : comparer le MP4 v0.0.13 à l'aperçu pour V2 et transmettre GET ERR + vidéo ; V2 presque parfaite à cette étape, incident V1/V2 confirmé résolu sur v0.0.14. **Validation indépendante et exhaustive du choix 12 i/s non attestée : rester dans les missions FPS distinctes.**
+- [x] Analyser V1 à partir du MP4 et des tailles du compositeur (16×16 vs 720×1280), corriger la toile d'export v0.0.14 ; Fab confirme que l'incident est résolu.
 - [ ] Maintenir les autres missions FPS/resolution/compression intactes.
 
 ## v0.0.14 — Fab : anomalie géométrique V1 malgré V2 presque correcte
@@ -317,6 +317,11 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] Fixer taille sortie compositing d'EXPORT sur ratio/résolution du projet, indépendamment des gaps et ordre des pistes ; preview utilisant DEFAULT préservé.
 - [x] Supprimer la répétition de COMPOSITOR_SIZE identique, journal CANVAS_FIXED + dimension réelle au changement.
 - [x] Ajouter tests pure Kotlin géométrie portrait, paysage, carré, résolution source et entrée gap 16x16.
-- [ ] Confirmer CI, APK/AAB et prerelease v0.0.14 (ne pas annoncer avant vérification).
-- [ ] Fab : exporter même montage à 12 i/s ; joindre MP4 et GET ERR succinct ; confirmer V1 ET V2 et format final, préserver preview.
+- [x] Confirmer CI, APK/AAB et prerelease v0.0.14 : réussite Actions et actifs GitHub Release vérifiés.
+- [x] Fab : confirmer V1 ET V2 conformes au stade v0.0.14 et demander expressément de cocher l'incident résolu. **Cela ne certifie pas tous les formats/cadences futurs ; tests poursuivis séparément.**
 - [ ] Ancien crash Android reason=Crash Java/Kotlin sans dernière erreur à conserver en vigilance séparée ; repro + logs nouveaux nécessaires pour attribuer une cause.
+
+## Clôture demandée par Fab — incident EXPORT-MOVE-017 / REPAIR-009 / CANVAS-010
+- [x] Résolution V1 (toile multipiste) et V2 (temps des keyframes) explicitement validée par Fab en v0.0.14 ; aperçu préservé.
+- [x] Historique et contrats synchronisés ; ne pas recycler les anciennes cases de l'incident comme tâches encore ouvertes.
+- [ ] Hors périmètre de cette clôture : ancien crash Android, tests spécifiques FPS sur toutes sources, demandes petites résolutions/compression, autres validations à venir. Fab poursuit ses essais.
