@@ -29,20 +29,34 @@ object FfprobeMediaInspector {
         require(dir.isDirectory || dir.mkdirs()) { "Cache FFprobe indisponible" }
         val metadata = File.createTempFile("inventory-", ".json", dir)
         val root = try {
-            val session = FfprobeNativeGate.run {
+            val first = FfprobeNativeGate.run {
                 FFprobeKit.executeWithArguments(
                     FfprobeInventoryCommand.arguments(input, metadata.absolutePath),
                 )
             }
-            val detail = session.output.orEmpty().replace(Regex("\\s+"), " ").takeLast(600)
-            if (!ReturnCode.isSuccess(session.returnCode)) {
-                error("FFprobe n'a pas pu analyser le média (code=${session.returnCode}) : $detail")
+            val size = metadata.length()
+            val fileRoot = if (ReturnCode.isSuccess(first.returnCode) &&
+                metadata.isFile && size in 1L..MAX_INVENTORY_JSON_BYTES
+            ) {
+                runCatching { JSONObject(metadata.readText(Charsets.UTF_8)) }.getOrNull()
+            } else null
+            fileRoot ?: run {
+                // Retry a SHORT inventory only; never collect decoded frame scans in memory.
+                val retry = FfprobeNativeGate.run {
+                    FFprobeKit.executeWithArguments(
+                        FfprobeInventoryCommand.stdoutArguments(input),
+                    )
+                }
+                val json = retry.output.orEmpty()
+                require(ReturnCode.isSuccess(retry.returnCode) &&
+                    json.toByteArray(Charsets.UTF_8).size in 1..MAX_INVENTORY_JSON_BYTES.toInt()
+                ) {
+                    "FFprobe inventory: file code=" + first.returnCode +
+                        ", stdout code=" + retry.returnCode + " " +
+                        json.replace(Regex("\\s+"), " ").takeLast(450)
+                }
+                JSONObject(json)
             }
-            val length = metadata.length()
-            require(metadata.isFile && length in 1L..MAX_INVENTORY_JSON_BYTES) {
-                "Inventaire FFprobe vide ou trop volumineux ($length octets)."
-            }
-            JSONObject(metadata.readText(Charsets.UTF_8))
         } finally {
             if (metadata.exists() && !metadata.delete()) {
                 android.util.Log.w("EASYCUT_FFprobe", "Unable to remove disposable inventory")

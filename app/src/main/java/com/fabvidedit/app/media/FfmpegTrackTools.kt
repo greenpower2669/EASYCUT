@@ -36,8 +36,9 @@ object FfmpegTrackTools {
         )
         val input = FFmpegKitConfig.getSafParameterForRead(context, uri)
         val seconds = String.format(Locale.US, "%.3f", timeMs.coerceAtLeast(0L) / 1_000.0)
-        val session = FFmpegKit.executeWithArguments(
-            arrayOf(
+        val session = FfprobeNativeGate.run {
+            FFmpegKit.executeWithArguments(
+                arrayOf(
                 "-hide_banner",
                 "-loglevel", "error",
                 "-ss", seconds,
@@ -48,8 +49,9 @@ object FfmpegTrackTools {
                 "-q:v", "3",
                 "-y",
                 output.absolutePath,
-            ),
-        )
+                ),
+            )
+        }
         if (!ReturnCode.isSuccess(session.returnCode) || !output.exists()) {
             output.delete()
             return@withContext null

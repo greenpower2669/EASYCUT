@@ -2,6 +2,8 @@ package com.fabvidedit.app.ui
 
 import android.content.Context
 import android.graphics.Matrix
+import android.graphics.Bitmap
+import kotlin.math.max
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
@@ -103,6 +105,16 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         setTransform(matrix)
         appliedPreviewMatrixCount++
         appliedMatrixKey = key
+    }
+
+    /** One bounded copy on decoder hand-off, never per finger movement. */
+    fun captureFrame(maxEdge: Int): Bitmap? {
+        if (!isAvailable || renderedFrameCount <= 0L || width <= 0 || height <= 0) return null
+        val factor = (maxEdge.coerceAtLeast(1).toFloat() / max(width, height)).coerceAtMost(1f)
+        return runCatching {
+            getBitmap((width * factor).toInt().coerceAtLeast(1),
+                (height * factor).toInt().coerceAtLeast(1))
+        }.getOrNull()
     }
 
     private fun unbind() {

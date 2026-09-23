@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.ReturnCode
 import com.fabvidedit.app.model.MediaStreamInfo
 import com.fabvidedit.app.model.MediaStreamInventory
@@ -333,11 +332,12 @@ object StreamSourceMaterializer {
             "COPY TRY stream=${stream.index} codec=${stream.codecName ?: "?"} mux=${candidate.label} " +
                 "start=${startMs ?: 0L} duration=${durationMs ?: -1L}",
         )
-        val session = FFmpegKit.executeWithArguments(args.toTypedArray())
+        val session = FfprobeNativeGate.run {
+            FFmpegKit.executeWithArguments(args.toTypedArray())
+        }
         val diagnostic = session.output.orEmpty().replace(Regex("\\s+"), " ").takeLast(700)
         val hitSizeGuard = output.exists() && output.length() >= (maxOutputBytes - 1024L).coerceAtLeast(1L)
         val success = ReturnCode.isSuccess(session.returnCode) && output.exists() && output.length() > 0L && !hitSizeGuard
-        FFmpegKitConfig.clearSessions()
         if (!success) {
             Log.w(
                 TAG,
@@ -348,10 +348,19 @@ object StreamSourceMaterializer {
         return CopyResult(success, diagnostic)
     }
 
+    /** Testable container ordering; retain TS as a lossless fallback for odd bitstreams. */
+    internal fun candidateExtensions(codecName: String?): List<String> =
+        videoCandidates(codecName).map { it.extension }
+
     private fun videoCandidates(codecName: String?): List<MuxCandidate> = when (codecName?.lowercase(Locale.US)) {
-        // TS is intentionally first for AVC/HEVC: it tolerates changing SPS/PPS/VPS and odd timestamps
-        // much better than forcing the complete source through Matroska.
-        "h264", "hevc", "h265", "mpeg2video", "mpeg1video" -> listOf(
+        // MP4 normally seeks more reliably with ExoPlayer; TS stays a lossless fallback
+        // for changing parameter sets or streams which an MP4 muxer rejects.
+        "h264", "hevc", "h265" -> listOf(
+            MuxCandidate("mp4", "mp4", "MP4"),
+            MuxCandidate("ts", "mpegts", "MPEG-TS"),
+            MuxCandidate("mkv", "matroska", "MKV"),
+        )
+        "mpeg2video", "mpeg1video" -> listOf(
             MuxCandidate("ts", "mpegts", "MPEG-TS"),
             MuxCandidate("mp4", "mp4", "MP4"),
             MuxCandidate("mkv", "matroska", "MKV"),

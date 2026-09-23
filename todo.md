@@ -191,3 +191,17 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Backlog EASYCUT-EXPORT-SMALL-013 (cadences +Autres 1..60, 480p, débit, audio, taille estimée) demeure planifié après P0 ; ne pas le confondre avec la qualité du preview.
 
 - [x] Basculer immédiatement vers le lecteur simplifié au premier pinch depuis le mode multipiste, avant transformation native, plutôt que double-zoomer pendant le rebind différé ; revalidation téléphone encore requise.
+
+## LOT UNIQUE v0.0.7 — EASYCUT-RECOVERY-013 — zoom / médias difficiles / qualité adaptative
+- [x] Ajouter une frame de secours bornée, capturée UNE fois avant le passage multipiste→simple, transformée sous les doigts sans double zoom ; la retirer à la première frame du décodeur de remplacement.
+- [x] En l'absence de capture, tenter deux frames de récupération synchronisées à résolution progressive (360/480 si lowRam, 480/720 sinon) sans créer de proxy vidéo ni modifier les médias/export.
+- [x] Préférer MP4 avant TS pour les NOUVEAUX imports H.264/H.265 ; garder TS/MKV en repli sans réencoder, ne pas remuxer automatiquement les projets existants.
+- [x] Ajouter un second inventaire FFprobe stdout court plafonné à 4 Mio après échec JSON -o ; conserver les scans de frames uniquement sur disque et verrouiller probes/remux/miniatures FFmpegKit sans verrouiller Media3.
+- [x] Ajouter les tests JVM politiques de récupération, priorité conteneurs, arguments stdout ; versionName 0.0.7 / versionCode 40 et APK/AAB versionnés.
+- [x] Synchroniser brain.md, brainmap.md, debughistorical.md, todo.md et topo.md dans le même commit source.
+- [ ] Contrôler CI tests JVM, lint, APK et AAB. Ne pas annoncer de succès avant lecture du run réel.
+- [ ] Test réel sur téléphone : une vidéo fluide et une vidéo problématique, premier pinch, image retenue, pas de flash noir, rotation volontaire seuil, taille mémoire, surface rebind et retour à lecture.
+- [ ] Comparer les nouveaux MP4 et les anciens TS sur vrai fichier H.264/HEVC, source initiale intacte ; repérer formats atypiques et timestamp/durée/audio.
+- [ ] Vérifier plusieurs imports successifs, FFprobe -o puis stdout, remux et miniatures sous concurrence ; garder journal sans URI privées.
+- [ ] Vérifier export WYSIWYG, zoom 321%/380%, plusieurs pistes, pauses, audio et MP4 ; aucun test JVM ne prouve cela.
+- [ ] Réévaluer après essais la nécessité d'un proxy VIDEO 480p permanent. La récupération de deux frames ponctuelles ne remplace pas un proxy de lecture continue.

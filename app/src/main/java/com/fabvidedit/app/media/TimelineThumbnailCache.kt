@@ -7,7 +7,6 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
 import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.ReturnCode
 import com.fabvidedit.app.model.VideoClip
 import java.io.File
@@ -96,9 +95,10 @@ object TimelineThumbnailCache {
                     "-q:v", "6",
                     "-y", cacheFile.absolutePath,
                 )
-                val session = FFmpegKit.executeWithArguments(args)
+                val session = FfprobeNativeGate.run {
+                    FFmpegKit.executeWithArguments(args)
+                }
                 val ok = ReturnCode.isSuccess(session.returnCode) && cacheFile.isFile && cacheFile.length() > 0L
-                FFmpegKitConfig.clearSessions()
                 if (!ok) cacheFile.delete()
                 ok
             }

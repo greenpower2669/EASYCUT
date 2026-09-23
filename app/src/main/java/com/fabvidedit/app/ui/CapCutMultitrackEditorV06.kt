@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -106,6 +107,8 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import com.fabvidedit.app.FabVidEditViewModel
 import com.fabvidedit.app.FabVidDiagnostics
 import com.fabvidedit.app.media.CompositionFactory
+import com.fabvidedit.app.media.PreviewFrameRecovery
+import com.fabvidedit.app.media.PreviewRecoveryPolicy
 import com.fabvidedit.app.media.ExportState
 import com.fabvidedit.app.media.ExportSettings
 import com.fabvidedit.app.media.ExportVideoCodec
@@ -139,6 +142,9 @@ import com.fabvidedit.app.ui.theme.FabSurface
 import com.fabvidedit.app.ui.theme.FabSurfaceHigh
 import com.fabvidedit.app.util.formatDuration
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -154,6 +160,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     // Decoder/surface references intentionally are not Compose state: a pointer move
     // can update the last decoded texture without recomposing the entire editor.
     val previewTextureRef = remember(project.id) { arrayOfNulls<FabVidVideoTextureView>(1) }
+    val previewFreezeRef = remember(project.id) { arrayOfNulls<PreviewFreezeOverlayView>(1) }
+    val frameRecoveryScope = rememberCoroutineScope()
+    val frameRecoveryJob = remember(project.id) { arrayOfNulls<Job>(1) }
     val mediaIdentity = project.previewMediaIdentity()
     val selectedClipId by viewModel.selectedClipId.collectAsStateWithLifecycleCompat()
     val exportState by viewModel.exportState.collectAsStateWithLifecycleCompat()
@@ -344,9 +353,17 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
             override fun onPlayerError(error: PlaybackException) {
                 playbackError = "Aperçu piste impossible : ${error.localizedMessage ?: "format non décodable"}"
             }
+            override fun onRenderedFirstFrame() {
+                // Only the new decoder\'s first rendered frame retires the snapshot.
+                previewFreezeRef[0]?.clearFrame()
+                frameRecoveryJob[0]?.cancel()
+                frameRecoveryJob[0] = null
+            }
         }
         fallbackPlayer.addListener(listener)
         onDispose {
+            frameRecoveryJob[0]?.cancel()
+            previewFreezeRef[0]?.clearFrame()
             fallbackPlayer.removeListener(listener)
             fallbackPlayer.release()
         }
@@ -581,6 +598,12 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                                         ),
                                     )
+                                    val frozen = PreviewFreezeOverlayView(ctx)
+                                    addView(frozen, android.widget.FrameLayout.LayoutParams(
+                                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ))
+                                    previewFreezeRef[0] = frozen
                                     texture.bind(if (stablePreview) fallbackPlayer else player)
                                     previewTextureRef[0] = texture
                                 }
@@ -603,6 +626,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                             onRelease = { frame ->
                                 val texture = frame.getChildAt(0) as? FabVidVideoTextureView
                                 if (previewTextureRef[0] === texture) previewTextureRef[0] = null
+                                previewFreezeRef[0]?.clearFrame()
+                                previewFreezeRef[0] = null
                                 texture?.dispose()
                             },
                             modifier = Modifier
@@ -660,6 +685,33 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                                 // On the first pinch frame, switch the output
                                                                 // to the single clip BEFORE transforming it.
                                                                 // Never zoom the full composition a second time.
+                                                                // Keep a bounded copy of the presented image BEFORE
+                                                                // switching the decoder output surface.
+                                                                val overlay = previewFreezeRef[0]
+                                                                val snapshot = previewTextureRef[0]?.captureFrame(
+                                                                    PreviewRecoveryPolicy.captureEdge(previewShortSide == 480),
+                                                                )
+                                                                overlay?.beginWait(snapshot, working, outputRatio)
+                                                                frameRecoveryJob[0]?.cancel()
+                                                                if (PreviewRecoveryPolicy.shouldRecover(snapshot != null) && overlay != null) {
+                                                                    val front = previewClipFor(editPositionMs)
+                                                                    if (front != null && front.mediaKind == VisualMediaKind.VIDEO) {
+                                                                        val clipMs = (editPositionMs - front.timelineStartMs)
+                                                                            .coerceIn(0L, front.outputDurationMs)
+                                                                        val sourceMs = (front.trimStartMs + (clipMs * front.speed).toLong())
+                                                                            .coerceIn(front.trimStartMs, front.trimEndMs)
+                                                                        frameRecoveryJob[0] = frameRecoveryScope.launch {
+                                                                            for (edge in PreviewRecoveryPolicy.recoveryEdges(previewShortSide == 480)) {
+                                                                                val frame = PreviewFrameRecovery.load(
+                                                                                    context, Uri.parse(front.uri), sourceMs, edge,
+                                                                                )
+                                                                                if (frame != null) overlay.offerRecoveredFrame(
+                                                                                    frame, edge, front.displayAspectRatio() ?: outputRatio,
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
                                                                 syncFallback(editPositionMs, false)
                                                                 previewTextureRef[0]?.bind(fallbackPlayer)
                                                             }
@@ -687,6 +739,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             selectedClip?.displayAspectRatio() ?: outputRatio,
                                                             outputRatio,
                                                         )
+                                                        previewFreezeRef[0]?.updateTransform(working)
                                                         directPreviewTransform = working
                                                         changed = true
                                                         event.changes.forEach { it.consume() }

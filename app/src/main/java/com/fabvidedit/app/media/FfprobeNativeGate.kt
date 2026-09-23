@@ -2,8 +2,9 @@ package com.fabvidedit.app.media
 
 /**
  * FFprobe's native writer / FFmpegKit callbacks are shared within the process.
- * Serialize ONLY synchronous probe calls; no nested calls or coroutine suspension.
- * Keep FFmpeg encode/decode out of this gate, so long exports remain independent.
+ * Serialize synchronous inventory/probe and import/thumbnail remux calls that
+ * share FFmpegKit process state. Do not lock Media3 playback or long exports.
+ * No nested calls or coroutine suspension.
  */
 internal object FfprobeNativeGate {
     private val lock = Any()
