@@ -1,24 +1,24 @@
 # todo.md — FabVidEdit
 
-## TABLEAU DE BORD VIVANT — petits chantiers à retrouver en premier (23/09/2026)
+## PLAN D'EXÉCUTION DE L'ASSISTANT — FAB-MISSION-001 (23/09/2026)
 
-Ce tableau est l'**index du travail réellement en attente**, pas le journal des anciens builds. Les longues sections par version conservées ci-dessous sont l'historique de progression : leurs anciennes cases non cochées, parfois répétées ou dépassées, ne sont **pas** autant de projets nouveaux. Ne pas détruire cet historique lors d'un tri. Un bug détaillé appartient à `debughistorical.md` ; seule l'action corrective reste ici.
+**Les ordres de mission de Fab sont dans [`ordres-de-mission.md`](ordres-de-mission.md), registre canonique séparé et persistant.** Lire ce fichier AVANT de décider de quoi coder et AVANT de répondre « que reste-t-il ? ». Une demande utilisateur reste inchangée tant que non produite ; seul Fab peut l'annuler, la remplacer ou en changer la priorité. `todo.md` décrit MES actions techniques et les vérifications, pas le carnet des projets de Fab. `debughistorical.md` = récit de bugs ; `topo.md` = aide-mémoire technique facultatif de l'agent.
 
-### P0 — Ne pas régresser sur le montage validé
-- [x] Prévisualisation EASYCUT **0.0.10 validée « nickel » par Fab**, à conserver ; premier export **avant déplacement** validé. Ne pas rouvrir les vieux bugs de preview par simple comptage des cases historiques.
-- [ ] **EXPORT-MOVE-017 :** corriger l'export après glisser-déposer de la vidéo 2 (karaté) sur la piste au-dessus : zoom inattendu vidéo 1, transformations vidéo 2 non conformes. Détail et hypothèses dans `debughistorical.md`; actions et tests dans la section dédiée en fin de fichier. Pas de code demandé pendant ce rangement documentaire.
+### Export après changement de piste — [BUG] EASYCUT-EXPORT-MOVE-017
+- [ ] Reproduire seulement l'export MP4 avant/après déplacement vertical de la deuxième vidéo karaté, vérifier temps des deux clips, keyframes et superposition ; le récit et les hypothèses restent dans `debughistorical.md`.
+- [ ] Auditer et tester la construction de l'export multipiste et corriger localement après preuve ; **ne pas retoucher la prévisualisation EASYCUT 0.0.10 validée « nickel »**, ni le premier export validé par Fab.
 
-### P1 — Petites fonctionnalités d'interface demandées par Fab, non codées
-- [ ] **Journal GET ERR — classement visuel :** erreurs véritables en rouge ; réussites/informations normales en vert ; étapes ignorées/timeout **récupéré sans perte fonctionnelle** en gris. Un timeout qui empêche la fonction demandée est rouge. Ajouter libellés lisibles « ERREUR », « OK », « INFO » : couleur jamais seule.
-- [ ] **Journal GET ERR accessible à deux endroits :** accueil **et éditeur sans quitter le montage**, ouvrant un journal commun.
-- [ ] **Effacer le journal :** bouton avec confirmation ; ne supprimer ni projets, ni médias ; conserver identification de version et information de panne en cours, indiquer clairement que l'historique a été remis à zéro.
-- [ ] **Export compact / + Autres sur la cadence :** source et 1–60 i/s, présélections 1–5, 10–12, 15, 20, 24/25/30/50/60 ; sans accélérer le montage ni le son. Cahier précis : section `EASYCUT-EXPORT-SMALL-013` et `brain.md`.
-- [ ] **Petites résolutions et économie d'espace :** 240/360/480/540p, profils de débit/codec, choix AAC mono/stéréo/muet, estimation de taille, contrôles suffisamment grands pour être lisibles. Même section `EASYCUT-EXPORT-SMALL-013` ; aucune promesse de codec/bitrate non vérifiée.
+### Exécution des fonctionnalités — demandes intégrales dans le registre de Fab
+- [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-EXPORT-FPS-001` (« + Autres » cadence) en respectant chaque cadence et l'absence de changement de vitesse/son.
+- [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-EXPORT-RES-002` (240/360/480/540p) et `FAB-EXPORT-SIZE-003` (profils/codec/débits/AAC/taille estimée).
+- [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-JOURNAL-COLOR-004`, `FAB-JOURNAL-ACCESS-005` et `FAB-JOURNAL-CLEAR-006` : couleurs+libellés, accès éditeur et effacement avec confirmation.
+- [ ] [AGENT] Avant de coder ces fonctionnalités, respecter l'autorisation de Fab : une demande « code pas » demeure enregistrée, pas implémentée d'office. Actualiser les quatre mémoires et ce registre si une mission passe en cours / livrée / validée.
 
-### P2 — Robustesse séparée des demandes UI
-- [ ] Réparer le scan **intra-vidéo** des changements de résolution sans commande native FFprobe `-o` défectueuse ni collecte illimitée en RAM. Import courant OK ; `SCAN_SKIPPED_NATIVE_UNVERIFIED` reste un contournement, pas la résolution du bug.
-- [ ] Sauvegarde/catalogue des projets récupérables, annulation effective des traitements natifs FFmpeg/FFprobe, nettoyage protégé des temporaires et grands médias ; les engagements détaillés figurent dans les premières sections historiques.
-- [ ] Contrôles Android ciblés sur vrais projets multipistes, médias volumineux et export WYSIWYG uniquement en réponse à un scénario discriminant ; pas de batterie d'essais imposée sans raison à Fab.
+### Autres actions techniques séparées des missions ci-dessus
+- [ ] [AGENT] Réparer un jour le scan des changements de résolution FFprobe `-o` neutralisé, sans régression de l'import et sans flux non borné en mémoire.
+- [ ] [AGENT] Étudier sauvegardes récupérables, annulation native FFmpeg et nettoyage protégé, selon priorités confirmées de Fab.
+
+**Archive chronologique ci-dessous :** anciennes sections par version conservées pour la traçabilité. Leurs cases historiques et redondantes ne constituent ni un nouveau registre des missions de Fab ni une mesure fiable du travail restant. Aucun code Android modifié dans ce classement.
 
 ---
 

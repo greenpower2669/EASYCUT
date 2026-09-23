@@ -121,3 +121,5 @@ Hypothèse corrigée : rendre la transformation visuelle à graphicsLayer Compos
 
 **Travail restant :** voir `todo.md` → tableau de bord vivant et section `EASYCUT-EXPORT-MOVE-017`. Reproduction avant/après sur les mêmes deux clips, correction export/timeline isolée, tests de non-régression ; attendre confirmation sur MP4 réel.
 
+## FAB-MISSION-001 — rectification du classement et de la méthode (23/09/2026)
+Après récupération du TODO, Fab a précisé que les demandes cadence/résolution/compression et trois fonctions GET ERR constituaient ses **ordres de mission persistants**, pas les sous-tâches internes de l'agent. Fab a proposé un fichier dédié : `ordres-de-mission.md`. La proposition intermédiaire de simplement étiqueter des missions `[FAB]` à l'intérieur de `todo.md` était insuffisante. `todo.md` reste le plan de l'agent, `topo.md` une carte rapide utile à l'agent. Règle appliquée au dépôt FAB Copilot et à ce projet documentaire ; **aucune de ces fonctionnalités n'est codée**, aucune APK nouvelle, et le bug d'export de piste n'est pas supposé corrigé. Les missions conservées ne peuvent être annulées ou dépriorisées par l'assistant.
