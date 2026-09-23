@@ -123,6 +123,7 @@ import com.fabvidedit.app.model.ClipTransform
 import com.fabvidedit.app.model.PreviewGestureMath
 import com.fabvidedit.app.model.previewMediaIdentity
 import com.fabvidedit.app.model.PreviewRotationGate
+import com.fabvidedit.app.model.PreviewRoutingPolicy
 import com.fabvidedit.app.model.SourceAudioKeyframe
 import com.fabvidedit.app.model.SourceAudioTrack
 import com.fabvidedit.app.model.TextLayer
@@ -188,7 +189,13 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     var fallbackClipId by remember(project.id) { mutableStateOf<String?>(null) }
     val videoTracks = project.clips.groupBy(VideoClip::timelineTrackIndex)
     val unequalVideoSpans = videoTracks.size > 1 && videoTracks.values.map { track -> track.maxOfOrNull { it.timelineStartMs + it.outputDurationMs } ?: 0L }.distinct().size > 1
-    var stablePreview by remember(project.id) { mutableStateOf(unequalVideoSpans) }
+    // A simple video starts directly on ExoPlayer: no first-pinch decoder transfer.
+    // Composition remains available for overlays, filters, images and multiple visuals.
+    val singleVideoEligible = PreviewRoutingPolicy.singleVideoEligible(project)
+    var stablePreview by remember(project.id) {
+        mutableStateOf(PreviewRoutingPolicy.initialSimple(project, unequalVideoSpans))
+    }
+    var wasSingleVideoEligible by remember(project.id) { mutableStateOf(singleVideoEligible) }
     var editingText by remember { mutableStateOf<TextLayer?>(null) }
     var showTextDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
@@ -489,7 +496,17 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         }
     }
 
-    LaunchedEffect(unequalVideoSpans) { if (unequalVideoSpans) stablePreview = true }
+    LaunchedEffect(singleVideoEligible, unequalVideoSpans) {
+        // On a project edit, restore CompositionPlayer only when automatic
+        // single-video eligibility is actually lost, not on every recomposition.
+        stablePreview = PreviewRoutingPolicy.afterRoutingChange(
+            currentSimple = stablePreview,
+            wasSingleEligible = wasSingleVideoEligible,
+            isSingleEligible = singleVideoEligible,
+            unequalVideoSpans = unequalVideoSpans,
+        )
+        wasSingleVideoEligible = singleVideoEligible
+    }
 
     // Visual edits (321%/380% zoom, keyframe, brightness, etc.) never
     // re-prepare/re-seek video and audio or reset the project clock.
@@ -717,6 +734,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                                             isPlaying = false
                                                             fallbackTransportPlaying = false
                                                             if (!stablePreview) {
+                                                                // Multi input alone may still need the legacy
+                                                                // hand-off; single VIDEO started on ExoPlayer already.
                                                                 // Capture ONCE before CompositionPlayer → ExoPlayer.
                                                                 val snapshot = previewTextureRef[0]?.captureFrame(
                                                                     PreviewRecoveryPolicy.captureEdge(previewShortSide == 480),

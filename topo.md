@@ -23,3 +23,8 @@ Le journal v0.0.7 de Fab dit : erreur du SCAN_KEYFRAMES natif -o, mais import te
 2. Aperçu déjà simple : si aucune vraie frame sur la surface courante, secours ponctuel à qualité légère puis meilleure ; aucun seek/reprepare pour un simple pinch. Si frame disponible, la manipuler directement en pause sans générer de proxy ni freeze inutile.
 3. Diagnostics : vidéo frames, matrices, image figée redessinée, images de récupération, frame age, lecteur playing/state et surface binds ; pas de médias privés dans le journal.
 VersionCode 41/versionName 0.0.8. Contrat d'export/son/cadrage inchangé. CI JVM/lint/build ne prouve pas la fluidité GPU/codec sur Samsung. Voir brain.md, brainmap.md, debughistorical.md, todo.md.
+
+## v0.0.9 — solution concrète P0 « le zoom marchait avant »
+Sur le journal 0.0.8, un projet à 1 clip restait mode=multi et aucun snapshot de secours n'était actif. Le premier pinch sur cette route basculait CompositionPlayer→ExoPlayer avec prepare/seek/surface transfer, même si la source était déjà visible. L'ancienne 0.0.4 partait également sur CompositionPlayer ; l'amélioration est ciblée, pas une copie littérale.
+Correctif : 1 vidéo non filtrée, sans texte ni transition, démarrage DIRECT ExoPlayer ; pas de changement de lecteur/surface au premier pinch, l'image existante suit directement la matrice. L'ajout d'autres médias ou effets retourne à composition si possible ; l'ancienne protection de spans inégaux persiste. Aucun code d'export retouché.
+Version 0.0.9/code42. Tests JVM de routage + CI Android, puis seulement validation visible Fab. Ne pas affirmer la fluidité Samsung sans essai. Scanner FFprobe dynamique de v0.0.8 encore neutralisé/documenté séparément.
