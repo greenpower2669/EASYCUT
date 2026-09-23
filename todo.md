@@ -253,3 +253,23 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] CI : vérifier testDebugUnitTest, lintDebug, assembleDebug, bundleDebug et publication avant lien APK.
 - [ ] Validation Fab minimaliste : image visible, zoom/dézoom/pan intuitif et rotation volontaire, reprise lecture ; vérifier l'export MP4 = zoom UNE fois, pas deux. Ne pas transformer chiffres PERF en preuve de fluidité.
 - [ ] Reste ensuite et SÉPARÉ : FFprobe variation de résolution, colour journal rouge/vert/gris, entrée journal depuis éditeur et effacement confirmé. Ne pas mêler ces fonctions à ce patch P0.
+
+## P0 — EASYCUT 0.0.10 — export après déplacement de la vidéo 2 sur une autre piste
+
+**Retour sur téléphone de Fab : prévisualisation v0.0.10 validée « nickel » ; premier export, avant déplacement, validé. Préserver impérativement ces deux acquis et ne PAS reprendre le zoom de prévisu.**
+
+### Reproduction rapportée (données utilisateur, pas cause racine démontrée)
+- Fab exporte un montage vidéo 1 + séquence karaté vidéo 2 : premier export correct.
+- Fab glisse-dépose ensuite **la deuxième vidéo une piste au-dessus** (changement de ligne Vn sur la timeline) et relance l'export.
+- Résultat rapporté : **zoom indésirable sur la vidéo 1 dans le MP4**, alors que les **keyframes / transformations de karaté de la vidéo 2 ne sont pas appliquées comme prévu**. Le premier export et l'aperçu restent des références positives ; ne pas confondre défaut MP4 après déplacement avec ancien défaut de prévisualisation.
+- Hypothèse de travail, NON confirmée : déplacement `moveClipOnTimeline` → projet `TimelineMode.MULTITRACK` → export construit les `EditedMediaItemSequence` par piste ; vérifier si positions globales, trims, temps locaux des keyframes, ordre des effets/transformations et correspondance clip↔piste sont correctement conservés. **Ne pas affirmer que les keyframes ont été transférées sans preuve.**
+
+### Travail restant — audit ciblé AVANT de coder
+- [ ] Reproduire le scénario exact sur projet à **deux clips avec karaté/keyframes** : exporter avant déplacement, déplacer vidéo 2 verticalement d'une piste sans changer volontairement son temps, réexporter ; comparer visuellement vidéo 1, vidéo 2 et cadrage MP4, ainsi que les identifiants/temps/valeurs de leurs keyframes avant/après.
+- [ ] Auditer `VideoProject.moveClipOnTimeline`, `FabVidEditViewModel.moveClip`, `TimelineMode` et `CompositionFactory.multitrackSequences/editedVideoItem` ; distinguer conversion séquentiel→multipiste, éventuels changements réels de `timelineStartMs`, tri de pistes, temps source/trim/speed et origine temporelle d'`AnimatedTransformEffect` / keyframes pour chaque clip.
+- [ ] Distinguer le cas « transformation de la vidéo 2 perdue ou mal synchronisée » du cas « zoom de vidéo 1 réellement ajouté » et de toute **superposition de pistes** rendant une vidéo visible au-dessus d'une autre. Mesurer le rendu, ne pas diagnostiquer une cause sur la seule capture.
+- [ ] Proposer un patch **localisé à la timeline et/ou à l'export multipiste**, avec tests de non-régression export avant/après changement vertical de piste, deux clips aux keyframes distinctes, ordre de superposition, trim/vitesse, transitions et audio. Ne modifier ni le rendu de prévisualisation v0.0.10 validé ni le premier export validé.
+- [ ] Faire ensuite valider sur le téléphone le MP4 après déplacement, en conservant le premier export comme référence. Réussite CI seule insuffisante.
+- [ ] Reporter dans les cinq fichiers FAB Copilot (`brain.md`, `brainmap.md`, `debughistorical.md`, `todo.md`, `topo.md`) lors de **toute future modification de code**, dans le même cycle/commit.
+
+**Cette entrée est uniquement documentaire : aucune modification de code, aucune APK et aucune release demandées maintenant.**
