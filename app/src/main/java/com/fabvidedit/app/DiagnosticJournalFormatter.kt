@@ -37,7 +37,10 @@ internal object DiagnosticJournalFormatter {
             upper.contains("AUCUNE ERREUR CAPTUREE")
         val noPreviousExit = upper.contains("AUCUN ARRÊT ANDROID IDENTIFIÉ") ||
             upper.contains("AUCUN ARRET ANDROID IDENTIFIE")
-        if (noPreviousError || noPreviousExit) return Status.INFO
+        if (noPreviousError || noPreviousExit ||
+            upper.contains("ANCIENNES LIGNES DU JOURNAL VIDÉES SUR DEMANDE") ||
+            upper.contains("ANCIENNES LIGNES DU JOURNAL VIDEES SUR DEMANDE")
+        ) return Status.INFO
 
         // A recovered optional failure is not a fatal error, even if the old log said ERROR.
         val recovered = listOf(

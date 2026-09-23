@@ -302,3 +302,12 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [ ] Vérifier GitHub CI, compilation APK/AAB et release ; ne pas annoncer d'artefact sans confirmation.
 - [ ] Fab : tester une vidéo réelle à 10 puis 15 i/s ; exporter le projet multipiste défectueux, copier GET ERR après export et joindre le MP4 pour comparer. La prévisualisation ne fait pas partie du débogage.
 - [ ] EXPORT-MOVE-017 reste ouvert. Export compact autres résolutions / économies / AAC toujours à faire d'après ordres-de-mission.md.
+
+## v0.0.13 — corrections fondées sur le journal Fab 0.0.12
+- [x] Source-local clock V2 sur pipeline EXPORT multipiste (temps projet - début piste ; vitesse ; clamp), transform/brightness ; tests temps 0/2104/3024 et non-régression V1.
+- [x] FPS : plafond global FrameDropEffect après fusion uniquement sur export ; ni preview ni audio modifiés.
+- [x] Avis « journal vidé » en INFO/vert, traces des dimensions effectives du compositeur ajoutées.
+- [ ] Confirmer GitHub CI, APK/AAB, GitHub Release de 0.0.13.
+- [ ] Fab : comparer MP4 issu de 0.0.13 à l'aperçu pour V2, tester choix 12 i/s et transmettre GET ERR + vidéo ; valider sortie réelle.
+- [ ] Analyser séparément V1 cadrage excessif à partir des médias originaux / comparaison MP4 / dimensions de surface observées et corriger géométrie sans hypothèse hasardeuse. EXPORT-MOVE-017 non clos jusqu'à cela.
+- [ ] Maintenir les autres missions FPS/resolution/compression intactes.

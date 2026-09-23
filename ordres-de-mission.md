@@ -69,3 +69,8 @@
 - Le contrat détaillé export compact est dans `brain.md` → `EASYCUT-EXPORT-SMALL-013`.
 - Le bug d'export **après** déplacement de la vidéo karaté est dans `debughistorical.md` → `EASYCUT-EXPORT-MOVE-017`, et son plan de correction dans `todo.md` ; il ne remplace aucune mission de fonctionnalité.
 - `topo.md` est conservé comme pense-bête technique de l'agent, **utile mais facultatif** ; Fab n'a pas à le maintenir.
+
+### EASYCUT-EXPORT-REPAIR-009 — suite du journal v0.0.12 (23/09/2026)
+- Fab autorise les corrections des problèmes MP4 après la trace et exige de préserver l'aperçu parfait.
+- Code v0.0.13 : origine source-locale des keyframes et luminosité V2 en multipiste, garde de cadence après la composition vidéo, avis Vider classé INFO, journal de taille réelle du compositeur. **Zoom excessif V1 non déclaré corrigé** : ses matrices sont identité au début, la source originale ou un MP4 comparatif est nécessaire pour corriger la géométrie sans régression.
+- Statut : code et tests publiables, validation du MP4 réel par Fab en attente. Ne pas fermer la mission sur la seule réussite CI.

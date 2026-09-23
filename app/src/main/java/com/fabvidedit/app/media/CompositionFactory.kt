@@ -20,6 +20,7 @@ import androidx.media3.common.audio.ChannelMixingAudioProcessor
 import androidx.media3.common.audio.ChannelMixingMatrix
 import androidx.media3.common.audio.GainProcessor
 import androidx.media3.common.audio.SpeedProvider
+import androidx.media3.effect.FrameDropEffect
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.MatrixTransformation
 import androidx.media3.effect.Presentation
@@ -78,6 +79,7 @@ object CompositionFactory {
                     canvasRatio = canvasRatio,
                     frameRate = frameRate,
                     traceExport = traceExport,
+                    exportTimelineStartMs = 0L,
                 )
             }
             buildList {
@@ -95,8 +97,14 @@ object CompositionFactory {
             val lanes = VideoLayerPolicy.frontToBack(project)
             builder.setVideoCompositorSettings(object : VideoCompositorSettings {
                 private val loggedSeconds = mutableMapOf<Int, Long>()
-                override fun getOutputSize(inputSizes: List<Size>): Size =
-                    VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
+                override fun getOutputSize(inputSizes: List<Size>): Size {
+                    val output = VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
+                    if (traceExport) FabVidDiagnostics.traceExport(
+                        "COMPOSITOR_SIZE input=${inputSizes.joinToString { "${it.width}x${it.height}" }} " +
+                            "output=${output.width}x${output.height} ratio=$canvasRatio",
+                    )
+                    return output
+                }
 
                 override fun getOverlaySettings(inputId: Int, presentationTimeUs: Long): OverlaySettings {
                     val lane = lanes.getOrNull(inputId)
@@ -116,6 +124,10 @@ object CompositionFactory {
             })
         }
         val globalEffects = buildList<Effect> {
+            // Only post-composition EXPORT needs the additional FPS cap. Never change preview.
+            if (traceExport) frameRate?.let {
+                add(FrameDropEffect.createDefaultFrameDropEffect(it.toFloat()))
+            }
             resolutionShortSide?.let { add(Presentation.createForShortSide(it)) }
             textOverlayEffect(project.textLayers)?.let(::add)
         }
@@ -157,6 +169,7 @@ object CompositionFactory {
                             canvasRatio = canvasRatio,
                             frameRate = frameRate,
                             traceExport = traceExport,
+                            exportTimelineStartMs = if (traceExport) clip.timelineStartMs else 0L,
                         ),
                     )
                     cursorMs = maxOf(cursorMs, clip.timelineStartMs + clip.outputDurationMs)
@@ -253,6 +266,7 @@ object CompositionFactory {
         canvasRatio: Float?,
         frameRate: Int? = null,
         traceExport: Boolean = false,
+        exportTimelineStartMs: Long = 0L,
     ): EditedMediaItem {
         val mediaItem = if (clip.mediaKind == VisualMediaKind.IMAGE) {
             MediaItem.Builder()
@@ -309,7 +323,7 @@ object CompositionFactory {
                 incomingTransition?.type != null ||
                 outgoingTransition?.type != null
             ) {
-                add(AnimatedTransformEffect(clip, incomingTransition, outgoingTransition, traceExport))
+                add(AnimatedTransformEffect(clip, incomingTransition, outgoingTransition, traceExport, exportTimelineStartMs))
             }
             if (
                 clip.brightness != 1f ||
@@ -317,7 +331,7 @@ object CompositionFactory {
                 incomingTransition?.type == TransitionType.FADE ||
                 outgoingTransition?.type == TransitionType.FADE
             ) {
-                add(AnimatedBrightnessEffect(clip, incomingTransition, outgoingTransition))
+                add(AnimatedBrightnessEffect(clip, incomingTransition, outgoingTransition, exportTimelineStartMs))
             }
         }
 
@@ -405,10 +419,13 @@ object CompositionFactory {
         private val incoming: ClipTransition?,
         private val outgoing: ClipTransition?,
         private val traceExport: Boolean,
+        private val exportTimelineStartMs: Long,
     ) : MatrixTransformation {
         private var lastLoggedSecond = -1L
         override fun getMatrix(presentationTimeUs: Long): Matrix {
-            val timeMs = (presentationTimeUs / 1_000).coerceIn(0, clip.sourceDurationMs)
+            val timeMs = ExportClipTiming.sourceLocalMs(
+                presentationTimeUs, exportTimelineStartMs, clip.speed, clip.sourceDurationMs,
+            )
             val transform = clip.transformAtSourceTime(timeMs)
             val motion = transitionMotion(clip, timeMs, incoming, outgoing)
             val scaleX = (transform.scaleX * motion.scale).coerceIn(0.05f, 6f)
@@ -436,7 +453,8 @@ object CompositionFactory {
                 val values = FloatArray(9)
                 matrix.getValues(values)
                 FabVidDiagnostics.traceExport(
-                    "MATRIX id=${clip.id.take(12)} media3Us=$presentationTimeUs localMs=$timeMs " +
+                    "MATRIX id=${clip.id.take(12)} media3Us=$presentationTimeUs " +
+                        "clipStartMs=$exportTimelineStartMs sourceLocalMs=$timeMs localMs=$timeMs " +
                         "kfPrev=${before?.timeMs ?: "BASE"} kfNext=${after?.timeMs ?: "END"} " +
                         "model=[x=${transform.positionX},y=${transform.positionY}," +
                         "sx=${transform.scaleX},sy=${transform.scaleY},r=${transform.rotationDegrees}," +
@@ -453,9 +471,12 @@ object CompositionFactory {
         private val clip: VideoClip,
         private val incoming: ClipTransition?,
         private val outgoing: ClipTransition?,
+        private val exportTimelineStartMs: Long,
     ) : RgbMatrix {
         override fun getMatrix(presentationTimeUs: Long, useHdr: Boolean): FloatArray {
-            val timeMs = (presentationTimeUs / 1_000).coerceIn(0, clip.sourceDurationMs)
+            val timeMs = ExportClipTiming.sourceLocalMs(
+                presentationTimeUs, exportTimelineStartMs, clip.speed, clip.sourceDurationMs,
+            )
             val brightness = (
                 clip.brightnessAtSourceTime(timeMs) * transitionBrightness(clip, timeMs, incoming, outgoing)
                 ).coerceIn(0f, 2f)

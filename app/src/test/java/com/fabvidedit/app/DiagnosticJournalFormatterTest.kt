@@ -54,6 +54,11 @@ class DiagnosticJournalFormatterTest {
         assertTrue(DiagnosticJournalFormatter.forCopy(log).contains("EXPORT_TRACE MATRIX"))
     }
 
+    @Test fun clearedJournalNoticeIsGreenInformation() {
+        val notice = "Anciennes lignes du journal vidées sur demande (date ms=1790193184044). Le dernier arrêt et la dernière erreur restent conservés."
+        assertEquals(DiagnosticJournalFormatter.Status.INFO, DiagnosticJournalFormatter.classify(notice).single().status)
+    }
+
     @Test fun recoveredScanIsNotARealError() {
         val lines = DiagnosticJournalFormatter.classify(
             "[1] STAGE SCAN_SKIPPED_NATIVE_UNVERIFIED\n[2] PERF frames=4"

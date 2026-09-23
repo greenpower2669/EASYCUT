@@ -47,3 +47,6 @@ Accueil + éditeur séquentiel + éditeur multipiste → même `DiagnosticJourna
 
 ## v0.0.12 — trace d'export seulement
 GET ERR : journal ExportManager→CompositionFactory→getMatrix/getOverlaySettings→ExportResult ; pas de nouvelles opérations du lecteur preview. ExportFrameRate presets et + Autres entier 1–60 sur les deux dialogues, ExportSettings.effectiveFps, Media3 setFrameRate maximum pour vidéo. Rendu MP4 non corrigé, aperçu validé préservé. Voir brainmap.md et debughistorical.md.
+
+## v0.0.13 — sortie v2/fps, V1 toujours ouvert
+ExportClipTiming soustrait startMs de clip multipiste des timeUs effet avant keyframes transform/brightness, avec vitesse et limites. Jamais sur preview. FrameDropEffect plafonne sortie vidéo fusionnée uniquement quand traceExport=true. GET ERR note taille compositor, avis 'journal vidé' vert. Aucune conclusion de fix V1 sans fichiers image réels ; garder ordres et TODO vivants.
