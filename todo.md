@@ -23,8 +23,15 @@ Travaux propres à l'agent non soldés, sans priorité supplémentaire imposée 
 - [ ] **[AGENT / TECHNIQUE]** Résilience : sauvegardes de projets récupérables, annulation native FFmpeg/FFprobe par session et nettoyage temporaire protégé ; étudier dans un cycle dédié, sans régression.
 - [ ] **[AGENT / MINEUR]** Entretien éventuel du tracé GET ERR : lisibilité et limitation du bruit, seulement si de nouveaux symptômes le justifient. Le traçage actuel est VALIDÉ par Fab.
 
+### Priorité explicitement donnée par Fab — FAB-SOURCE-COMPAT-011 (24/09/2026)
+- [ ] **[ORDRE FAB / NE PAS CODER MAINTENANT]** Auditer et élargir la compatibilité des sources : FFprobe avec erreurs résiduelles, conteneurs/codecs/pistes, import/décodage, éventuels replis, sans perdre les projets ni dégrader les formats déjà reconnus.
+- [ ] **[ORDRE FAB]** Réexaminer le scanner de variations de résolution neutralisé (writer FFprobeKit `-o`) avec une stratégie Android fiable, résultats et consommation bornés ; distinguer erreur bloquante d'étape facultative récupérée.
+- [ ] **[ORDRE FAB]** Examiner SAR/DAR et rotation des flux à pixels non carrés : normalisation géométrique appliquée une seule fois, séparée du zoom/rotation/pivot/keyframes choisis par Fab. Préserver proportions aperçu ET MP4 ainsi que les vidéos à pixels carrés et l'export multipiste validé.
+- [ ] Établir des tests sur petits/grands médias, SAR 1:1 / SAR≠1 / métadonnées manquantes / rotation / changement de résolution, comparatifs lecteur de référence ; signaler limites matérielles et replis plutôt que promettre tous les formats.
+- [ ] **Ne pas** interpréter « il me semble qu'il y en a moins » comme un taux de panne mesuré ni attribuer toute erreur à FFprobe : causes à établir lors de l'audit autorisé.
+
 ### Autres actions techniques séparées des missions ci-dessus
-- [ ] [AGENT] Réparer un jour le scan des changements de résolution FFprobe `-o` neutralisé, sans régression de l'import et sans flux non borné en mémoire.
+- [ ] [AGENT / RATTACHÉ À L'ORDRE FAB-SOURCE-COMPAT-011] Réparer le scan de changements de résolution FFprobe `-o` neutralisé, sans régression import ni flux non borné en mémoire. Voir mission explicite en tête, ne pas lancer de code à ce stade.
 - [ ] [AGENT] Étudier sauvegardes récupérables, annulation native FFmpeg et nettoyage protégé, selon priorités confirmées de Fab.
 
 **Archive chronologique ci-dessous :** anciennes sections par version conservées pour la traçabilité. Leurs cases historiques et redondantes ne constituent ni un nouveau registre des missions de Fab ni une mesure fiable du travail restant. Aucun code Android modifié dans ce classement.
@@ -357,3 +364,6 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] Registre ordres-de-mission.md sans missions utilisateur ouvertes ; historique conservé. Ne pas retransformer les anciennes tâches chronologiques en bugs actifs.
 - [ ] Agent uniquement : FFprobe résolution variable ; ancien crash Android à surveiller sans supposer qu'il se reproduit ; résilience sauvegarde/annulation/nettoyage ; traces mineures éventuelles.
 Aucun code modifié pour cette validation.
+
+## 24/09/2026 — nouveau périmètre Fab, avant toute programmation
+FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation v0.0.15 : compatibilité de sources, erreurs FFprobe résiduelles, SAR/DAR/pixels non carrés et cohérence géométrie/matrice, scan dynamique. Pas de code autorisé dans ce tour. Les autres chantiers propres à l'agent (crash ancien, sauvegardes, annulation, traces mineures) restent distincts. Toutes les anciennes missions d'export validées restent closes.

@@ -68,3 +68,6 @@ Run GitHub 35995268578 : réussite tests/lint/APK/AAB/release. Tag easycut-v0.0.
 
 ## 24/09/2026 — Fab valide les deux dernières fonctionnalités v0.0.15
 RES-002 et SIZE-003 : TEST OK / VALIDÉES par Fab. Le carnet des missions utilisateur est entièrement validé à ce stade. Agent TODO seulement : scan FFprobe résolution variable, vigilance crash Java/Kotlin antérieur si reproduit, robustesse sauvegardes/annulation/nettoyage, entretien trace MINEUR si besoin. Aucun code touché pour le changement de statut.
+
+## 24/09/2026 — ordre de mission courant FAB-SOURCE-COMPAT-011 (CODE PAS)
+Après v0.0.15 validée, Fab signale des échecs d'import/FFprobe encore présents et demande l'élargissement des sources et la prise en compte éventuelle des pixels non carrés. SAR/DAR et dimensions encodées relèvent de la géométrie source ; séparer leur éventuelle correction unique du zoom/rotation/pivot/keyframes, contrôler aperçu et MP4. Reprendre le scan FFprobe `-o` neutralisé dans ce périmètre, sans activation aveugle ni tampon illimité. Anciennes missions d'export closes, crash historique/robustesse/traces mineures indépendants. Aucun code ou APK à ce stade.
