@@ -85,6 +85,9 @@ class ProjectStore(context: Context) {
         put("durationMs", durationMs)
         put("width", width)
         put("height", height)
+        put("sampleAspectRatio", sampleAspectRatio.toDouble())
+        put("displayAspectRatio", displayAspectRatio.toDouble())
+        put("aspectVaries", aspectVaries)
         put("trimStartMs", trimStartMs)
         put("trimEndMs", trimEndMs)
         put("speed", speed.toDouble())
@@ -139,6 +142,8 @@ class ProjectStore(context: Context) {
         put("timeMs", timeMs)
         put("easing", easing.name)
         put("transform", transform.toJson())
+        sarOverride?.let { put("sarOverride", it.toDouble()) }
+        darOverride?.let { put("darOverride", it.toDouble()) }
         put("brightness", brightness.toDouble())
         put("volume", volume.toDouble())
     }
@@ -255,6 +260,11 @@ class ProjectStore(context: Context) {
             durationMs = duration,
             width = json.optInt("width"),
             height = json.optInt("height"),
+            sampleAspectRatio = json.optDouble("sampleAspectRatio", 1.0).toFloat()
+                .takeIf { it.isFinite() && it in 0.1f..10f } ?: 1f,
+            displayAspectRatio = json.optDouble("displayAspectRatio", 0.0).toFloat()
+                .takeIf { it.isFinite() && it in 0.1f..10f } ?: 0f,
+            aspectVaries = json.optBoolean("aspectVaries", false),
             trimStartMs = json.optLong("trimStartMs", 0).coerceIn(0, duration - 1),
             trimEndMs = json.optLong("trimEndMs", duration).coerceIn(1, duration),
             speed = json.optDouble("speed", 1.0).toFloat().coerceIn(0.25f, 4f),
@@ -340,6 +350,10 @@ class ProjectStore(context: Context) {
                 .toFloat()
                 .coerceIn(0f, 1f),
             easing = enumValue(json.optString("easing"), MotionEasing.EASE_IN_OUT),
+            sarOverride = json.optDouble("sarOverride", Double.NaN).toFloat()
+                .takeIf { it.isFinite() && it in 0.1f..10f },
+            darOverride = json.optDouble("darOverride", Double.NaN).toFloat()
+                .takeIf { it.isFinite() && it in 0.1f..10f },
         )
     }
 

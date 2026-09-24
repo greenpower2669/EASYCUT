@@ -467,6 +467,14 @@ object CompositionFactory {
                     transform.pivotY + transform.positionY,
                 )
             }
+            // Apply SAR to the keyframe matrix's coordinate system, NEVER to
+            // the raw decoder/player image. Identity continues to be identity.
+            val pixelShape = SarKeyframeGeometry.pixelWidthRatio(clip, timeMs)
+            if (pixelShape != 1f) {
+                val beforeSar = FloatArray(9)
+                matrix.getValues(beforeSar)
+                matrix.setValues(SarKeyframeGeometry.adjustMatrix(beforeSar, pixelShape))
+            }
             val second = presentationTimeUs / 1_000_000L
             if (traceExport && second != lastLoggedSecond &&
                 (second <= 15L || second % 5L == 0L)
@@ -479,6 +487,7 @@ object CompositionFactory {
                 FabVidDiagnostics.traceExport(
                     "MATRIX id=${clip.id.take(12)} media3Us=$presentationTimeUs " +
                         "clipStartMs=$exportTimelineStartMs sourceLocalMs=$timeMs localMs=$timeMs " +
+                        "sar=$pixelShape " +
                         "kfPrev=${before?.timeMs ?: "BASE"} kfNext=${after?.timeMs ?: "END"} " +
                         "model=[x=${transform.positionX},y=${transform.positionY}," +
                         "sx=${transform.scaleX},sy=${transform.scaleY},r=${transform.rotationDegrees}," +

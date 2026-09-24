@@ -218,6 +218,9 @@ internal fun TransformInspector(
     volume: Float,
     keyframeAtPlayhead: Boolean,
     selectedEasing: MotionEasing?,
+    selectedAspectKeyframe: com.fabvidedit.app.model.TransformKeyframe?,
+    onAspectOverride: (Float?, Float?) -> Unit,
+    onCreateWorkingCopy: () -> Unit,
     onTransform: (ClipTransform) -> Unit,
     onBrightness: (Float) -> Unit,
     onVolume: (Float) -> Unit,
@@ -371,6 +374,12 @@ internal fun TransformInspector(
                 }
             }
         }
+        SarDarKeyframeControls(
+            clip = clip,
+            selected = selectedAspectKeyframe,
+            onOverride = onAspectOverride,
+            onCreateWorkingCopy = onCreateWorkingCopy,
+        )
         TextButton(onClick = onReset) { Text("Réinitialiser matrice, luminosité et losanges") }
     }
 }

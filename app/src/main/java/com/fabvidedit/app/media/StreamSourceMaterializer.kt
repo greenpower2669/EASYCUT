@@ -39,6 +39,9 @@ data class ImportedVideoSource(
     val rotationDegrees: Int,
     val codecName: String?,
     val frameRate: Float?,
+    val sampleAspectRatio: Float = 1f,
+    val displayAspectRatio: Float = 0f,
+    val aspectVaries: Boolean = false,
 )
 
 data class ImportedAudioSource(
@@ -105,6 +108,9 @@ object StreamSourceMaterializer {
             // Crucial order: inspect the untouched clone BEFORE asking any muxer to rewrite it.
             onProgress("Vérification des résolutions en flux (images clés)…")
             val resolutionSegments = ResolutionFrameScanner.scanInput(input, inventory, directory, sourceBytes)
+            // Optional and bounded: sampling may be unavailable on this native FFprobeKit.
+            // Never reject an import or assume a constant SAR when it could not run.
+            val aspectSamples = AspectTimelineSampler.sample(input, inventory, sourceBytes)
             onProgress("Préparation des pistes sans réencodage…")
 
             val videoSources = inventory.videoStreams.flatMap { stream ->
@@ -156,6 +162,9 @@ object StreamSourceMaterializer {
                         rotationDegrees = stream.rotationDegrees,
                         codecName = stream.codecName,
                         frameRate = stream.frameRate,
+                        sampleAspectRatio = stream.sampleAspectRatio,
+                        displayAspectRatio = stream.displayAspectRatio,
+                        aspectVaries = stream.index in aspectSamples.changingStreams,
                     )
                     Log.i(
                         TAG,
@@ -377,6 +386,12 @@ object StreamSourceMaterializer {
         "mpeg4", "h263", "mjpeg", "prores" -> listOf(
             MuxCandidate("mp4", "mp4", "MP4"),
             MuxCandidate("mkv", "matroska", "MKV"),
+        )
+        // Older embedded-camera / archival codecs: never assume MP4 supports them.
+        "vc1", "wmv3", "wmv2", "ffv1", "huffyuv", "rawvideo", "theora",
+        "dnxhd", "cinepak", "msmpeg4v3", "vp6f", "vp6", "snow" -> listOf(
+            MuxCandidate("mkv", "matroska", "MKV"),
+            MuxCandidate("avi", "avi", "AVI"),
         )
         else -> listOf(
             MuxCandidate("mkv", "matroska", "MKV"),

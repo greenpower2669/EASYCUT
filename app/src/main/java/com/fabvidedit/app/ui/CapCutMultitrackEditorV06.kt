@@ -1040,6 +1040,11 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                         volume = selectedVolume,
                         keyframeAtPlayhead = selectedKeyframe != null,
                         selectedEasing = selectedKeyframe?.easing,
+                        selectedAspectKeyframe = selectedKeyframe,
+                        onAspectOverride = { sar, dar ->
+                            viewModel.setSelectedKeyframeAspect(currentPositionMs, sar, dar)
+                        },
+                        onCreateWorkingCopy = viewModel::createSelectedNormalizedWorkingCopy,
                         onTransform = { viewModel.setSelectedTransform(currentPositionMs, it) },
                         onBrightness = { viewModel.setSelectedBrightness(currentPositionMs, it) },
                         onVolume = { viewModel.setSelectedVolume(currentPositionMs, it) },

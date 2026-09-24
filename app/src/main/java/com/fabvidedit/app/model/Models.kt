@@ -108,7 +108,10 @@ fun VideoClip.displayAspectRatio(): Float? {
     val sideways = abs(rotationDegrees) % 180 == 90
     val displayedWidth = if (sideways) height else width
     val displayedHeight = if (sideways) width else height
-    return displayedWidth.toFloat() / displayedHeight.toFloat()
+    val sample = sampleAspectRatio.takeIf { it.isFinite() && it in 0.1f..10f } ?: 1f
+    val declared = displayAspectRatio.takeIf { it.isFinite() && it in 0.1f..10f }
+    val unswapped = declared ?: width.toFloat() * sample / height.toFloat()
+    return if (sideways) 1f / unswapped else unswapped
 }
 
 data class TransformKeyframe(
@@ -120,6 +123,9 @@ data class TransformKeyframe(
     val brightness: Float = 1f,
     val volume: Float = 1f,
     val easing: MotionEasing = MotionEasing.EASE_IN_OUT,
+    /** Manual SAR / DAR tests. null means Auto from this clip's source metadata. */
+    val sarOverride: Float? = null,
+    val darOverride: Float? = null,
 )
 
 data class ClipTransition(
@@ -149,6 +155,11 @@ data class VideoClip(
     val durationMs: Long,
     val width: Int = 0,
     val height: Int = 0,
+    /** FFprobe SAR/DAR: metadata only; no correction is applied to the untransformed player. */
+    val sampleAspectRatio: Float = 1f,
+    val displayAspectRatio: Float = 0f,
+    /** Set only when bounded sampled keyframes actually show SAR/DAR variation. */
+    val aspectVaries: Boolean = false,
     val trimStartMs: Long = 0,
     val trimEndMs: Long = durationMs,
     val speed: Float = 1f,
@@ -166,6 +177,14 @@ data class VideoClip(
 
     val outputDurationMs: Long
         get() = max(1, (sourceDurationMs / speed.coerceAtLeast(0.1f)).toLong())
+
+    /** Explicit overrides are held until the next diamond, not interpolated frame by frame. */
+    fun aspectAtSourceTime(timeMs: Long): Pair<Float, Float> {
+        val selected = keyframes.filter { it.timeMs <= timeMs }.maxByOrNull { it.timeMs }
+        val sar = selected?.sarOverride ?: sampleAspectRatio
+        val dar = selected?.darOverride ?: displayAspectRatio
+        return sar to dar
+    }
 
     fun transformAtSourceTime(timeMs: Long): ClipTransform {
         val ordered = keyframes.sortedBy(TransformKeyframe::timeMs)

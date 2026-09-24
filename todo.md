@@ -376,3 +376,16 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [ ] Cibler le défaut de proportions **uniquement lorsque la matrice de keyframes est appliquée**, pas la vidéo décodée seule, qui paraît correcte à Fab.
 - [ ] Comparer image sans transformation, aux keyframes et pendant interpolation, puis MP4 ; vérifier SAR/DAR et origine des coordonnées sans toucher d'emblée au lecteur.
 - [ ] Protéger le chemin de lecture non transformé, le montage et l'export validé. La partie FFprobe/source reste liée au même ordre FAB-SOURCE-COMPAT-011 ; aucune programmation lancée.
+
+## v0.0.16 — FAB-SOURCE-COMPAT-011 : première livraison expérimentale, audit web
+- [x] Rechercher documentation officielle Media3/FFmpeg/FFmpegKit sur rapport des pixels, matrices, conteneurs/codec, normalisation et licence encodeur.
+- [x] FFprobe troisième repli d'inventaire à analyse plus profonde **sans scan complet des frames**, limites JSON 4 Mio conservées ; MKV/AVI pour codecs d'archives non MP4.
+- [x] SAR/DAR FFprobe transmis dans clips et JSON non destructif, image source correctement proportionnée en ratio de toile ; sauvegarde des overrides par losange.
+- [x] SAR/DAR manuel ou Auto dans éditeur de losange des deux vues, et hypothèse de compensation dans matrice Media3. Ne pas transformer les pixels du lecteur brut.
+- [x] Sondage facultatif et borné sur keyframes (≤256 Mio) signalant certaines variations SAR/DAR ; inconnu n'est pas constant.
+- [x] Action facultative avec confirmation de copie MP4 à pixels carrés sur nouvelle piste ; conserver source, projet, keyframes créatives, possibilité échec transcodage et manque de place.
+- [x] Tests JVM de géométrie, entrée de rapport et chemins de repli ; fichiers vivants synchronisés au cycle de code.
+- [ ] Contrôler GitHub Actions tests/lint/APK/AAB, publier v0.0.16 si réussi ; corriger bugs CI plutôt que prétendre prêt.
+- [ ] Fab : vérifier sources qui échouaient FFprobe, qualité des imports MKV/AVI, rendu keyframes SAR≠1 en preview simple / multi et export MP4, détecteur de changement SAR et copie normalisée, son/durée/rotation/qualité.
+- [ ] Restaurer par mission séparée le scanner natif de variation de résolution (-o actuellement neutralisé) seulement avec preuve Android et mémoire bornée ; davantage de décodage logiciel/coûts et formats restent limitations explicites.
+- [ ] Ne pas clore FAB-SOURCE-COMPAT-011 sans test réel Fab. Autres anciennes missions validées inchangées.

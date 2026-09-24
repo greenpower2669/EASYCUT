@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.15-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.15-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.16-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.16-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.15-preview-${short_sha}"
+          tag="easycut-v0.0.16-preview-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.15-arm64-debug.apk \
-            EASYCUT-v0.0.15-arm64-debug.aab \
+            EASYCUT-v0.0.16-arm64-debug.apk \
+            EASYCUT-v0.0.16-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.15 — résolutions et export économique ${short_sha}" \
-            --notes "Fab missions RES-002 / SIZE-003 : 240p/360p/480p/540p, profils taille et débits fins, estimation indicative, audio sans son / AAC bitrate / mono choisi. Codec HEVC toujours soumis aux capacités matérielles ; vidéo stream-copy pendant une conversion audio. Prévisualisation et export V1/V2 validés non modifiés ; tests réels sur téléphone à confirmer."
+            --title "EASYCUT v0.0.16 — sources et keyframes SAR/DAR ${short_sha}" \
+            --notes "FAB-SOURCE-COMPAT-011 : FFprobe inventaire étendu en repli, codecs archives vers MKV/AVI, SAR/DAR sauvegardés, commandes expérimentales par losange (Auto), sondage borné des variations de pixels et copie volontaire à pixels carrés. Scanner natif complet de résolution reste désactivé ; limites decodeurs/encodeurs appareil, tests Android nécessaires. Base v0.0.15 préservée."

@@ -11,6 +11,13 @@ class StreamContainerSelectionTest {
         }
     }
 
+    @Test fun olderArchiveCodecsPreferMatroskaAndAvi() {
+        for (codec in listOf("vc1", "wmv3", "ffv1", "huffyuv", "rawvideo", "theora")) {
+            assertEquals(listOf("mkv", "avi"),
+                StreamSourceMaterializer.candidateExtensions(codec))
+        }
+    }
+
     @Test fun mpeg2RetainsTransportStreamFirst() {
         assertEquals(listOf("ts", "mp4", "mkv"),
             StreamSourceMaterializer.candidateExtensions("mpeg2video"))

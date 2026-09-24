@@ -16,6 +16,7 @@ import com.fabvidedit.app.media.ExportState
 import com.fabvidedit.app.media.ImportedMediaContainer
 import com.fabvidedit.app.media.MediaImportPipeline
 import com.fabvidedit.app.media.MediaInspector
+import com.fabvidedit.app.media.NormalizedWorkingCopy
 import com.fabvidedit.app.media.ProjectStorageManager
 import com.fabvidedit.app.model.AspectRatioPreset
 import com.fabvidedit.app.model.AudioKeyframe
@@ -773,6 +774,83 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         )
     }
 
+    /** Apply a tested SAR/DAR hypothesis only to the diamond selected at playhead.
+     * Null means Auto; saved creative transform/brightness/volume are untouched.
+     */
+    /** Opt-in, never replaces the original media or its saved timeline.
+     * The normalized derivative is added on a new visual lane for A/B comparison.
+     */
+    fun createSelectedNormalizedWorkingCopy() {
+        val project = _activeProject.value ?: return
+        val clip = project.clips.firstOrNull { it.id == _selectedClipId.value } ?: return
+        viewModelScope.launch {
+            _busyMessage.value = "Création d’une copie vidéo à pixels carrés…"
+            var created: NormalizedWorkingCopy.Created? = null
+            try {
+                created = NormalizedWorkingCopy.create(getApplication(), clip)
+                val current = _activeProject.value
+                require(current?.id == project.id) { "Projet fermé pendant la conversion" }
+                val sourceCopyId = UUID.randomUUID().toString()
+                val copy = clip.copy(
+                    id = UUID.randomUUID().toString(),
+                    sourceId = sourceCopyId,
+                    containerUri = null,
+                    sourceStreamIndex = null,
+                    syncGroupId = null,
+                    syncLocked = false,
+                    timelineTrackIndex = (current.clips.maxOfOrNull(VideoClip::timelineTrackIndex) ?: -1) + 1,
+                    uri = created.uri.toString(),
+                    name = "${clip.name} • COPIE PIXELS CARRÉS",
+                    width = created.width,
+                    height = created.height,
+                    sampleAspectRatio = 1f,
+                    displayAspectRatio = created.width.toFloat() / created.height,
+                    aspectVaries = false,
+                    keyframes = clip.keyframes.map {
+                        it.copy(id = UUID.randomUUID().toString(), sarOverride = null, darOverride = null)
+                    },
+                )
+                updateProject(current.asMultitrack().copy(
+                    clips = current.asMultitrack().clips + copy,
+                ))
+                _selectedClipId.value = copy.id
+                _userMessage.value = "Copie à pixels carrés ajoutée sur une nouvelle piste. Original préservé."
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                created?.uri?.path?.let { java.io.File(it).delete() }
+                FabVidDiagnostics.logError("NORMALIZED_WORKING_COPY", error)
+                _userMessage.value = error.localizedMessage ?: "Copie normalisée indisponible sur cet appareil"
+            } finally {
+                _busyMessage.value = null
+            }
+        }
+    }
+
+    fun setSelectedKeyframeAspect(
+        projectPositionMs: Long,
+        sar: Float?,
+        dar: Float?,
+    ) {
+        val project = _activeProject.value ?: return
+        val index = project.clips.indexOfFirst { it.id == _selectedClipId.value }
+        if (index < 0) return
+        val clip = project.clips[index]
+        val sourceTime = project.sourceTimeForProjectPosition(index, projectPositionMs)
+        val nearest = nearestKeyframe(clip, sourceTime)
+        if (nearest == null) {
+            _userMessage.value = "Sélectionne un losange pour modifier ses SAR/DAR"
+            return
+        }
+        fun valid(value: Float?): Float? =
+            value?.takeIf { it.isFinite() && it in 0.2f..5f }
+        replaceClip(project, index, clip.copy(keyframes = clip.keyframes.map {
+            if (it.id == nearest.id) it.copy(
+                sarOverride = valid(sar), darOverride = valid(dar),
+            ) else it
+        }))
+    }
+
     fun resetSelectedTransform() = updateSelectedClip {
         it.copy(transform = ClipTransform(), brightness = 1f, keyframes = emptyList())
     }
@@ -1190,6 +1268,9 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
                     durationMs = source.durationMs,
                     width = source.width,
                     height = source.height,
+                    sampleAspectRatio = source.sampleAspectRatio,
+                    displayAspectRatio = source.displayAspectRatio,
+                    aspectVaries = source.aspectVaries,
                     rotationDegrees = source.rotationDegrees,
                     volume = 0f,
                 )

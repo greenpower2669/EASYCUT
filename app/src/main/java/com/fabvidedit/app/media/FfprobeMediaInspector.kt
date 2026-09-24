@@ -48,14 +48,30 @@ object FfprobeMediaInspector {
                     )
                 }
                 val json = retry.output.orEmpty()
-                require(ReturnCode.isSuccess(retry.returnCode) &&
+                val standard = if (ReturnCode.isSuccess(retry.returnCode) &&
                     json.toByteArray(Charsets.UTF_8).size in 1..MAX_INVENTORY_JSON_BYTES.toInt()
-                ) {
-                    "FFprobe inventory: file code=" + first.returnCode +
-                        ", stdout code=" + retry.returnCode + " " +
-                        json.replace(Regex("\\s+"), " ").takeLast(450)
+                ) runCatching { JSONObject(json) }.getOrNull() else null
+                standard ?: run {
+                    // Some embedded formats need more header data to identify the streams.
+                    // This does NOT decode every frame or re-enable native -o frame scanning.
+                    val expanded = FfprobeNativeGate.run {
+                        FFprobeKit.executeWithArguments(
+                            FfprobeInventoryCommand.expandedStdoutArguments(input),
+                        )
+                    }
+                    val extraJson = expanded.output.orEmpty()
+                    val parsed = if (ReturnCode.isSuccess(expanded.returnCode) &&
+                        extraJson.toByteArray(Charsets.UTF_8).size in 1..MAX_INVENTORY_JSON_BYTES.toInt()
+                    ) runCatching { JSONObject(extraJson) }.getOrNull() else null
+                    require(parsed != null) {
+                        "FFprobe : source non inventoriable même après analyse étendue. " +
+                            "Codes fichier=${first.returnCode}, standard=${retry.returnCode}, " +
+                            "étendu=${expanded.returnCode} ; détail=" +
+                            extraJson.replace(Regex("\\s+"), " ").takeLast(350)
+                    }
+                    com.fabvidedit.app.FabVidDiagnostics.mark("FFPROBE_EXPANDED_INVENTORY_OK")
+                    parsed
                 }
-                JSONObject(json)
             }
         } finally {
             if (metadata.exists() && !metadata.delete()) {
