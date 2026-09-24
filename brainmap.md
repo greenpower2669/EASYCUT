@@ -168,3 +168,6 @@ CompositionFactory.create → ratio projet + résolutionShortSide/sourceShortSid
 
 ## Clôture Fab v0.0.14 — export multipiste V1/V2
 EASYCUT-EXPORT-MOVE-017 RÉSOLU/VALIDÉ PAR FAB : V2 reçoit local source time avant keyframes/brightness (ExportClipTiming) ; V1 utilise la toile fixe calculée du projet et non le gap 16×16 (ExportCanvasGeometry) ; journal dédoublonné. Garder preview indépendant et intact. Les anciennes alertes non résolues dans la cartographie correspondent aux étapes historiques précédant la confirmation utilisateur ; vieux crash Android et autres missions restent indépendants.
+
+## 24/09/2026 — état validé FPS / GET ERR / TRACE
+Fab confirme cadences, couleurs, second accès GET ERR, Vider et Copier HTML. Les EXPORT_TRACE copiées depuis le journal ont servi de preuve au correctif V1/V2, TRACE-008 est validé. Chemin technique inchangé : ExportManager→FabVidDiagnostics→DiagnosticJournalDialog→copie HTML. Seul l'entretien éventuel du traçage (bruit/volume) reste AGENT/MINEUR. Missions encore à produire : RES-002 / SIZE-003.

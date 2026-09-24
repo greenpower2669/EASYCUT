@@ -56,3 +56,6 @@ Gap V2 16x16 antérieur à sa vidéo → DEFAULT compositor retourne 16x16 et co
 
 ## Clôture Fab v0.0.14 (23/09/2026)
 L'incident multipiste V1/V2 EASYCUT-EXPORT-MOVE-017, EASYCUT-EXPORT-REPAIR-009 et EASYCUT-EXPORT-CANVAS-010 est validé RÉSOLU par Fab. Ne plus l'afficher comme bug P0 ouvert : les anciens états du topo décrivent l'histoire. Preview parfait, keyframes et toile export stables. Autres missions et crash ancien ne sont pas couverts ; Fab poursuit ses tests.
+
+## 24/09/2026 — état actuel
+FPS +Autres et GET ERR couleurs/éditeur/Vider/HTML VALIDÉS par Fab. TRACE export VALIDÉE par les HTML transmis et exploités ; entretien éventuel uniquement AGENT/MINEUR dans todo.md. Ordres Fab à produire : RES-002 et SIZE-003. Incident V1/V2 clos, aperçu intact ; crash Android et FFprobe indépendants. Les anciens résumés « à faire/à valider » sont historiques.

@@ -167,3 +167,6 @@ GET ERR logue CANVAS_FIXED une fois et COMPOSITOR_SIZE seulement quand tuple ent
 
 ## Validation Fab v0.0.14 — périmètre de clôture
 Fab a explicitement validé comme résolu l'incident export multipiste EASYCUT-EXPORT-MOVE-017 : V1 mal cadrée (gap 16×16 → toile fixe) et V2 images-clés décalées (temps local). Maintenir les deux correctifs et l'aperçu parfait comme référence stable. Ce constat utilisateur clôt l'incident V1/V2 à ce stade, pas l'ensemble du moteur ni les validations spécifiques FPS/compression ni l'ancien crash Android. Toute mention « en attente de validation Fab » dans les sections v0.0.12–0.0.14 reflète l'état historique AVANT sa confirmation.
+
+## 24/09/2026 — confirmation Fab, statut courant
+Fab valide cadences, GET ERR, couleurs, second accès, Vider, Copier HTML et les traces. Les journaux HTML transmis ont déjà permis le diagnostic et la correction de V1/V2 : TRACE-008 n'est PAS en attente de validation. Statut VALIDÉ : FPS-001, JOURNAL-004/005/006/007, TRACE-008. Les mentions « à valider » plus anciennes sont historiques. Seul un perfectionnement éventuel du tracé reste AGENT/MINEUR dans todo.md. Restent à produire RES-002 et SIZE-003. Préserver aperçu et export V1/V2 validés.

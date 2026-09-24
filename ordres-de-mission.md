@@ -8,13 +8,7 @@
 - Une livraison reste « Livrée, à valider » si Fab doit encore confirmer le résultat sur Android ; les missions produites passent dans un historique visible avec preuve et éventuelle décision explicite de Fab, jamais supprimées.
 - Le détail des erreurs, de leurs causes supposées et des régressions se trouve dans `debughistorical.md` ; un bug ne remplace ni ne supprime une fonctionnalité demandée ici. Les étapes d'implémentation restent dans `todo.md`.
 
-## Missions ouvertes — fonctionnalités demandées par Fab, NON encore produites
-
-### FAB-EXPORT-FPS-001 — Cadence : « + Autres »
-- **Origine :** Fab, 22–23/09/2026, demande de fonctionnalité d'export pour plus tard, explicitement rappelée le 23/09.
-- **Demande :** ajouter un bouton **« + Autres » directement sur la ligne « Images/seconde »** de l'export ; ouvrir une fenêtre lisible proposant la cadence **Source**, les présélections **1 à 5, 10 à 12, 15, 20, 24, 25, 30, 50 et 60 i/s**, et une valeur entière libre entre **1 et 60 i/s**. L'option de cadence ne change pas d'elle-même la vitesse, la longueur du montage ou le son : la vitesse/timelapse est un réglage différent.
-- **Résultat attendu :** choix disponibles, lisibles et opérationnels ; cadence obtenue dans le MP4 contrôlée sur des sources adaptées. Ne pas promettre une cadence fixe là où Media3 ne garantit qu'un plafond.
-- **Statut : Codé en v0.0.12 (1–5, 10, 12, 15, 20, 24, 25, 30, 50, 60 i/s et + Autres de 1 à 60). À valider par Fab sur Android et sur le MP4 produit.**
+## Missions ouvertes — fonctionnalités demandées par Fab, à produire
 
 ### FAB-EXPORT-RES-002 — Petites résolutions d'export
 - **Origine :** Fab, 22–23/09/2026.
@@ -28,36 +22,42 @@
 - **Résultat attendu :** options explicites et lisibles, taille estimée annoncée comme estimation, paramètres réellement utilisés vérifiables après export ; ne promettre ni taille ni débit impossibles.
 - **Statut : À faire — commande conservée, pas encore codée.**
 
+## Missions produites et validées — ne pas perdre les acquis
+
+### FAB-EXPORT-FPS-001 — Cadence : « + Autres »
+- **Origine :** Fab, 22–23/09/2026, demande de fonctionnalité d'export pour plus tard, explicitement rappelée le 23/09.
+- **Demande :** ajouter un bouton **« + Autres » directement sur la ligne « Images/seconde »** de l'export ; ouvrir une fenêtre lisible proposant la cadence **Source**, les présélections **1 à 5, 10 à 12, 15, 20, 24, 25, 30, 50 et 60 i/s**, et une valeur entière libre entre **1 et 60 i/s**. L'option de cadence ne change pas d'elle-même la vitesse, la longueur du montage ou le son : la vitesse/timelapse est un réglage différent.
+- **Résultat attendu :** choix disponibles, lisibles et opérationnels ; cadence obtenue dans le MP4 contrôlée sur des sources adaptées. Ne pas promettre une cadence fixe là où Media3 ne garantit qu'un plafond.
+- **Statut : VALIDÉ PAR FAB le 24/09/2026.** Sélecteur Source, 1–5/10/12/15/20/24/25/30/50/60 et « + Autres » 1–60 codé v0.0.12 ; Fab confirme « Cadense ok ».
+
 ### FAB-JOURNAL-COLOR-004 — Journal GET ERR lisible par statut
 - **Origine :** Fab, 23/09/2026.
 - **Demande :** **vraies erreurs en rouge**, **informations normales et réussites en vert**, **timeout récupéré / étape facultative ignorée / échec sans conséquence sur l'action demandée en gris**. Un timeout empêchant la fonction demandée reste une vraie erreur rouge. Conserver aussi des mots lisibles (**ERREUR / OK / INFO**) pour que la couleur ne soit jamais le seul signal.
 - **Résultat attendu :** affichage cohérent, contrasté et lisible dans le journal.
-- **Statut : Livré dans le code v0.0.11, à valider par Fab sur Android.**
+- **Statut : VALIDÉ PAR FAB le 24/09/2026.** Couleurs et libellés confirmés.
 
 ### FAB-JOURNAL-ACCESS-005 — Journal accessible dans l'éditeur aussi
 - **Origine :** Fab, 23/09/2026.
 - **Demande :** ajouter dans **la vue de montage / l'éditeur** un accès au **même journal GET ERR** que depuis l'accueil, sans quitter ni perdre le montage.
 - **Résultat attendu :** les deux accès ouvrent le journal partagé ; la navigation ne ferme ni n'efface le projet.
-- **Statut : Livré dans le code v0.0.11, à valider par Fab sur Android.**
+- **Statut : VALIDÉ PAR FAB le 24/09/2026.** Second bouton GET ERR dans l'éditeur confirmé.
 
 ### FAB-JOURNAL-CLEAR-006 — Bouton pour vider le journal
 - **Origine :** Fab, 23/09/2026.
 - **Demande :** ajouter au journal un bouton **« Vider / Effacer le journal »** avec confirmation pour éviter une suppression accidentelle ; vider les anciennes lignes sans toucher aux projets et vidéos.
 - **Résultat attendu :** remise à zéro visible et confirmée ; conserver la version et l'information de panne encore pertinente, sans fausse déclaration « aucune erreur n'a jamais existé ».
-- **Statut : Livré dans le code v0.0.11, à valider par Fab sur Android.**
+- **Statut : VALIDÉ PAR FAB le 24/09/2026.** Bouton Vider confirmé.
 
 ### FAB-JOURNAL-COPY-007 — Balises HTML uniquement dans le texte copié
 - **Origine :** Fab, 23/09/2026, clarification explicite avant autorisation de coder.
 - **Demande :** l'affichage du journal GET ERR doit rester **coloré visuellement sans HTML affiché** ; le bouton **Copier** produit du texte contenant des **balises HTML littérales** `<span style="color:...">` pour les lignes rouges, vertes et grises, avec **ERREUR / OK / INFO** lisibles pour un humain et pour l'IA. Échapper les caractères des noms de fichiers et des traces pour ne pas confondre un `<` du journal avec une balise.
 - **Résultat attendu :** le texte copié comporte la couleur et le statut de chaque ligne, l'écran reste lisible sans balises ; aucun changement rétroactif du journal brut sur disque.
-- **Statut : Livré dans le code v0.0.11, à valider par Fab après copie/collage.**
+- **Statut : VALIDÉ PAR FAB le 24/09/2026.** Plusieurs journaux HTML copiés-collés et exploités.
 
 ### FAB-EXPORT-TRACE-008 — Journal des opérations exécutées en sortie (23/09/2026)
 - **Ordre de Fab :** mettre à jour GET ERR maintenant pour identifier les opérations d'export réelles : clip/piste, images-clés, temps, matrices, composition et vidéo produite. Ne pas modifier l'aperçu ni corriger le zoom dans cette intervention ; conserver les incertitudes dans debughistorical.md.
 - **Comportement :** traces export locales et bornées ; matrices réellement fournies à Media3, étapes du compositeur et résumé de l'encodeur. Les pixels finaux ne peuvent pas être déduits d'une matrice seule.
-- **Statut : codé v0.0.12, à valider sur le téléphone.** Couleurs à l'écran, balises HTML uniquement au Copier, accès GET ERR depuis accueil et montage, vidage confirmé toujours conservés.
-
-## Missions produites et validées — ne pas perdre les acquis
+- **Statut : VALIDÉ PAR PREUVES RÉELLES le 24/09/2026.** Les journaux HTML copiés-collés par Fab ont permis le débogage V1/V2. Seule une éventuelle maintenance du traçage relève désormais du TODO technique AGENT/MINEUR ; aucun ordre Fab en attente.
 
 ### FAB-PREVIEW-VALIDATED — Aperçu EASYCUT 0.0.10
 - **Origine :** Fab, 23/09/2026.
@@ -82,3 +82,6 @@
 
 ## Validation terrain Fab — clôture de l'incident export V1/V2 (23/09/2026)
 Fab confirme explicitement : « tu peux cocher toute les cases liées à cet incident comme résolu, on est Parfait à ce stade, je poursuis le test et je reviens vers toi ». Pour le scénario multipiste observé, EASYCUT-EXPORT-MOVE-017, EASYCUT-EXPORT-REPAIR-009 et EASYCUT-EXPORT-CANVAS-010 sont clos à sa demande ; ne pas les réouvrir pour de simples notes historiques. Aucun code modifié par cette clôture. Restent indépendants : crash Android ancien, profils de compression/résolutions, validations spécifiques de cadence 10/12/15 i/s et tests futurs.
+
+## Confirmation Fab — 24/09/2026
+Fab confirme « Cadense ok. Get ok. Couleur et deuxième bouton ok vider ok html ok » et rappelle que les journaux HTML déjà transmis prouvent aussi le traceur. FPS-001, JOURNAL-004/005/006/007 et TRACE-008 sont VALIDÉS. Seul un entretien éventuel des traces est AGENT/MINEUR dans todo.md. Ordres de fonctionnalité à produire : RES-002 et SIZE-003 ; crash Android et FFprobe distincts. Aucun code d'application modifié.

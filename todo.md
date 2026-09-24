@@ -10,9 +10,9 @@
 - [x] Auditer et tester uniquement l'export multipiste ; préserver prévisualisation EASYCUT 0.0.10 et export stable. **Clôture explicitement demandée par Fab ; autres tests en cours, hors de cet incident.**
 
 ### Exécution des fonctionnalités — demandes intégrales dans le registre de Fab
-- [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-EXPORT-FPS-001` (« + Autres » cadence) en respectant chaque cadence et l'absence de changement de vitesse/son.
+- [x] [AGENT] FAB-EXPORT-FPS-001 : sélecteur livré et validé par Fab le 24/09/2026.
 - [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-EXPORT-RES-002` (240/360/480/540p) et `FAB-EXPORT-SIZE-003` (profils/codec/débits/AAC/taille estimée).
-- [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-JOURNAL-COLOR-004`, `FAB-JOURNAL-ACCESS-005` et `FAB-JOURNAL-CLEAR-006` : couleurs+libellés, accès éditeur et effacement avec confirmation.
+- [x] [AGENT] FAB-JOURNAL-004/005/006/007 validés par Fab ; TRACE-008 validé par les vrais journaux HTML fournis.
 - [ ] [AGENT] Avant de coder ces fonctionnalités, respecter l'autorisation de Fab : une demande « code pas » demeure enregistrée, pas implémentée d'office. Actualiser les quatre mémoires et ce registre si une mission passe en cours / livrée / validée.
 
 ### Autres actions techniques séparées des missions ci-dessus
@@ -292,7 +292,7 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] [AGENT] Ajouter Vider avec confirmation, tronquer les seules anciennes lignes et garder la dernière information de panne, version et projets.
 - [x] [AGENT] Ajouter tests JVM pour classification/timeout récupéré vs bloquant, continuation de pile et échappement HTML ; version 0.0.11/code44 et publication conditionnée à CI.
 - [ ] [AGENT] Vérifier réellement Actions tests/lint/APK/AAB et obtenir URL de release avant de déclarer la livraison installable.
-- [ ] [FAB] Valider sur téléphone : couleurs, COPIER puis coller avec balises, accès accueil et montage sans quitter le projet, annuler Vider puis confirmer Vider, persistance des indications dernière erreur/arrêt. Le résultat restera « Livré, à valider » jusqu'à confirmation.
+- [x] [FAB] Couleurs, Copier HTML, GET ERR dans l'éditeur et Vider validés explicitement le 24/09/2026.
 - [x] [AGENT] EASYCUT-EXPORT-MOVE-017 corrigé, aperçu 0.0.10 préservé, résolution confirmée par Fab en v0.0.14.
 
 ## v0.0.12 — demandes exécutées : journal sortie et cadences
@@ -325,3 +325,10 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] Résolution V1 (toile multipiste) et V2 (temps des keyframes) explicitement validée par Fab en v0.0.14 ; aperçu préservé.
 - [x] Historique et contrats synchronisés ; ne pas recycler les anciennes cases de l'incident comme tâches encore ouvertes.
 - [ ] Hors périmètre de cette clôture : ancien crash Android, tests spécifiques FPS sur toutes sources, demandes petites résolutions/compression, autres validations à venir. Fab poursuit ses essais.
+
+## 24/09/2026 — confirmations Fab et suivi technique MINEUR
+- [x] Cadences FAB-EXPORT-FPS-001 : validées par Fab.
+- [x] GET ERR couleurs, second bouton, Vider, Copier HTML : validés par Fab (JOURNAL-004 à 007).
+- [x] FAB-EXPORT-TRACE-008 : validé par les journaux HTML réels copiés-collés et utilisés pour corriger V1/V2.
+- [ ] **[AGENT / MINEUR]** Entretenir le tracé d'export si de nouveaux symptômes le justifient : lisibilité, volume de logs, événements pertinents. Ne pas réclamer une nouvelle validation générale de Fab ni coder sans autorisation.
+- [ ] À produire sur ordre : petites résolutions FAB-EXPORT-RES-002 et économie de place FAB-EXPORT-SIZE-003 ; crash Android et scan FFprobe suivis séparément.
