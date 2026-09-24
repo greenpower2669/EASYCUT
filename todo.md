@@ -11,9 +11,17 @@
 
 ### Exécution des fonctionnalités — demandes intégrales dans le registre de Fab
 - [x] [AGENT] FAB-EXPORT-FPS-001 : sélecteur livré et validé par Fab le 24/09/2026.
-- [ ] [AGENT] Préparer l'implémentation et les tests de `FAB-EXPORT-RES-002` (240/360/480/540p) et `FAB-EXPORT-SIZE-003` (profils/codec/débits/AAC/taille estimée).
+- [x] [AGENT] FAB-EXPORT-RES-002 et FAB-EXPORT-SIZE-003 : codées et livrées en v0.0.15, **validées par Fab le 24/09/2026 (« Test ok »)**.
 - [x] [AGENT] FAB-JOURNAL-004/005/006/007 validés par Fab ; TRACE-008 validé par les vrais journaux HTML fournis.
-- [ ] [AGENT] Avant de coder ces fonctionnalités, respecter l'autorisation de Fab : une demande « code pas » demeure enregistrée, pas implémentée d'office. Actualiser les quatre mémoires et ce registre si une mission passe en cours / livrée / validée.
+- [x] [AGENT] Autorisation « Lance les deux rouges restant » respectée ; code et fichiers vivants synchronisés ; Fab valide le 24/09/2026. Règle générale « code pas » conservée pour les futurs travaux.
+
+### État courant après validation Fab de v0.0.15 (24/09/2026)
+Toutes les missions utilisateur répertoriées dans ordres-de-mission.md sont **VALIDÉES**, notamment les deux dernières RES-002 / SIZE-003. Aucune fonctionnalité à coder sur ces ordres ; les anciennes lignes « à tester / à produire » dans l'archive chronologique ci-dessous sont des photographies de leur époque.
+Travaux propres à l'agent non soldés, sans priorité supplémentaire imposée par Fab :
+- [ ] **[AGENT / TECHNIQUE]** Scan de résolution variable FFprobe / images-clés, neutralisé pour éviter le défaut natif `-o` ; audit et restauration progressive avec sortie bornée, sans casser les imports validés.
+- [ ] **[AGENT / VIGILANCE]** Ancien motif « Crash Java/Kotlin » (dernière étape Préparation audio 1/1, aucune erreur capturée) : conserver l'historique, n'en déduire ni crash actuel ni cause ; agir si de nouveaux indices ou une reproduction le justifient.
+- [ ] **[AGENT / TECHNIQUE]** Résilience : sauvegardes de projets récupérables, annulation native FFmpeg/FFprobe par session et nettoyage temporaire protégé ; étudier dans un cycle dédié, sans régression.
+- [ ] **[AGENT / MINEUR]** Entretien éventuel du tracé GET ERR : lisibilité et limitation du bruit, seulement si de nouveaux symptômes le justifient. Le traçage actuel est VALIDÉ par Fab.
 
 ### Autres actions techniques séparées des missions ci-dessus
 - [ ] [AGENT] Réparer un jour le scan des changements de résolution FFprobe `-o` neutralisé, sans régression de l'import et sans flux non borné en mémoire.
@@ -331,7 +339,7 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] GET ERR couleurs, second bouton, Vider, Copier HTML : validés par Fab (JOURNAL-004 à 007).
 - [x] FAB-EXPORT-TRACE-008 : validé par les journaux HTML réels copiés-collés et utilisés pour corriger V1/V2.
 - [ ] **[AGENT / MINEUR]** Entretenir le tracé d'export si de nouveaux symptômes le justifient : lisibilité, volume de logs, événements pertinents. Ne pas réclamer une nouvelle validation générale de Fab ni coder sans autorisation.
-- [ ] À produire sur ordre : petites résolutions FAB-EXPORT-RES-002 et économie de place FAB-EXPORT-SIZE-003 ; crash Android et scan FFprobe suivis séparément.
+- [x] FAB-EXPORT-RES-002 et FAB-EXPORT-SIZE-003 livrées v0.0.15 puis validées par Fab ; crash Android et scan FFprobe suivis séparément.
 
 ## v0.0.15 — missions RES-002 et SIZE-003 lancées par Fab
 - [x] Résolutions 240/360/480/540p dans les deux fenêtres, conserver les autres et le ratio projet.
@@ -340,5 +348,12 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] Finalisation audio choisie par FFmpegKit en recopiant le flux vidéo, avertissement visible si dimensions réelles de sortie différentes de celles demandées.
 - [x] Tests JVM de profils, résolutions, audio et taille estimée ajoutés ; fichiers FAB Copilot synchronisés dans le même commit.
 - [x] CI GitHub : tests JVM, lint, compilation, APK/AAB et prérelease v0.0.15 réussis ; release easycut-v0.0.15-preview-93c0dab et fichiers exacts vérifiés.
-- [ ] Fab : vérifier les MP4 240–540p, différents profils, AAC, mono et muet, sans toucher à l'aperçu validé.
-- [ ] Autres missions et ancien crash/FFprobe distincts, traces AGENT/MINEUR.
+- [x] Fab : valide la version v0.0.15 par « Test ok » pour les deux missions de fonctionnalité ; ne pas prétendre pour autant qu'un banc de tests exhaustif de tous les codecs/appareils a été effectué. Aperçu validé inchangé.
+- [x] Séparer les missions désormais validées des dossiers techniques ancien crash/FFprobe et traces AGENT/MINEUR (ceux-ci restent ouverts).
+
+## 24/09/2026 — clôture des deux dernières missions sur confirmation utilisateur
+- [x] FAB-EXPORT-RES-002 (petites résolutions) : v0.0.15, validée par Fab, « Test ok ».
+- [x] FAB-EXPORT-SIZE-003 (profils économie / débit / taille indicative / son) : v0.0.15, validée par Fab, « Test ok ».
+- [x] Registre ordres-de-mission.md sans missions utilisateur ouvertes ; historique conservé. Ne pas retransformer les anciennes tâches chronologiques en bugs actifs.
+- [ ] Agent uniquement : FFprobe résolution variable ; ancien crash Android à surveiller sans supposer qu'il se reproduit ; résilience sauvegarde/annulation/nettoyage ; traces mineures éventuelles.
+Aucun code modifié pour cette validation.

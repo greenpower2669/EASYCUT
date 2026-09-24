@@ -8,21 +8,24 @@
 - Une livraison reste « Livrée, à valider » si Fab doit encore confirmer le résultat sur Android ; les missions produites passent dans un historique visible avec preuve et éventuelle décision explicite de Fab, jamais supprimées.
 - Le détail des erreurs, de leurs causes supposées et des régressions se trouve dans `debughistorical.md` ; un bug ne remplace ni ne supprime une fonctionnalité demandée ici. Les étapes d'implémentation restent dans `todo.md`.
 
-## Missions en cours — codées, à valider par Fab
+## Missions ouvertes demandées par Fab
+
+**Aucune mission de fonctionnalité actuellement ouverte après validation de la v0.0.15.** Les travaux techniques indépendants de l'agent sont dans `todo.md` ; ils ne deviennent pas des ordres de Fab.
+
+## Missions produites et validées — ne pas perdre les acquis
 
 ### FAB-EXPORT-RES-002 — Petites résolutions d'export
 - **Origine :** Fab, 22–23/09/2026.
 - **Demande :** ajouter **240p, 360p, 480p et 540p**, en conservant les résolutions existantes (notamment 720p, 1080p, 1440p et 4K si prises en charge). Préserver le ratio et le cadrage du montage ; distinguer résolution d'export et qualité de l'aperçu.
 - **Résultat attendu :** la taille choisie est effective dans les MP4 compatibles, avec repli explicite si l'encodeur ne la supporte pas.
-- **Statut : LIVRÉ v0.0.15 / GitHub CI VALIDÉE / À VALIDER sur Android par Fab.** Résolutions 240/360/480/540p ajoutées aux deux éditeurs, repli de taille signalé. Contrôle du MP4 réel en attente.
+- **Statut : VALIDÉ PAR FAB en v0.0.15, le 24/09/2026.** Petites résolutions livrées ; Fab confirme « Test ok » et clôt cette mission.
 
 ### FAB-EXPORT-SIZE-003 — Gagner de la place sans sacrifier le contrôle
 - **Origine :** Fab, demande d'idées et d'options concrètes pour gagner de la place hors résolution, 22–23/09/2026.
 - **Demande :** profils **fichier minimal / équilibré / haute qualité / personnalisé**, réglage pertinent du débit vidéo et du codec H.264/H.265 selon les capacités réelles, **estimation indicative de la taille** avant export ; conserver un choix conscient de la qualité. AAC : pouvoir couper le son volontairement, choisir le débit compatible et le mono/stéréo sans convertir la musique stéréo en mono à l'insu de Fab.
 - **Résultat attendu :** options explicites et lisibles, taille estimée annoncée comme estimation, paramètres réellement utilisés vérifiables après export ; ne promettre ni taille ni débit impossibles.
-- **Statut : LIVRÉ v0.0.15 / GitHub CI VALIDÉE / À VALIDER sur Android par Fab.** Profils qualité/taille, débit personnalisé, estimation indicative, codec HEVC conditionnel, audio muet explicite, AAC 64–256 kbit/s et canaux origine/mono/stéréo choisis. Débit Auto et son d'origine conservés par défaut.
+- **Statut : VALIDÉ PAR FAB en v0.0.15, le 24/09/2026.** Export économique livré ; Fab confirme « Test ok » et clôt cette mission. Les réglages Auto et les canaux d'origine restent les valeurs par défaut.
 
-## Missions produites et validées — ne pas perdre les acquis
 
 ### FAB-EXPORT-FPS-001 — Cadence : « + Autres »
 - **Origine :** Fab, 22–23/09/2026, demande de fonctionnalité d'export pour plus tard, explicitement rappelée le 23/09.
@@ -88,3 +91,6 @@ Fab confirme « Cadense ok. Get ok. Couleur et deuxième bouton ok vider ok html
 
 ## Autorisation Fab du 24/09/2026
 Fab ordonne « Lance les deux rouges restant » : FAB-EXPORT-RES-002 et FAB-EXPORT-SIZE-003. Implémentation v0.0.15 sur la base validée v0.0.14 ; validation des MP4 et du son sur téléphone à venir. Aucune modification volontaire de l'aperçu ni du rendu V1/V2, aucune réouverture des missions validées.
+
+## Clôture Fab du 24/09/2026 — EASYCUT v0.0.15
+Fab confirme « Test ok, il te reste quoi à toi maintenant ma louloute ? ». Les deux dernières missions FAB-EXPORT-RES-002 (240/360/480/540p) et FAB-EXPORT-SIZE-003 (économie de place, profils, débits, estimation, audio) passent de « livrées, à valider » à **VALIDÉES PAR FAB**. L'ancien paragraphe « autorisation » reste historique ; le statut actuel est le présent paragraphe. Toutes les fonctionnalités demandées dans ce registre sont désormais validées. Le scan FFprobe de résolution variable, le crash Android ancien, la résilience des sauvegardes/annulation/native et la maintenance mineure du tracé sont des suivis techniques distincts dans todo.md. Aucune modification de code lors de cette clôture.

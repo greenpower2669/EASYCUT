@@ -65,3 +65,6 @@ RES-002 et SIZE-003 autorisées par Fab : options ExportEconomyOptions communes 
 
 ## CI v0.0.15
 Run GitHub 35995268578 : réussite tests/lint/APK/AAB/release. Tag easycut-v0.0.15-preview-93c0dab. Fab doit encore tester les deux missions sur Android.
+
+## 24/09/2026 — Fab valide les deux dernières fonctionnalités v0.0.15
+RES-002 et SIZE-003 : TEST OK / VALIDÉES par Fab. Le carnet des missions utilisateur est entièrement validé à ce stade. Agent TODO seulement : scan FFprobe résolution variable, vigilance crash Java/Kotlin antérieur si reproduit, robustesse sauvegardes/annulation/nettoyage, entretien trace MINEUR si besoin. Aucun code touché pour le changement de statut.

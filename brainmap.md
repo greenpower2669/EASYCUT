@@ -178,3 +178,6 @@ Chemin audio PAR DÉFAUT inchangé Media3→MediaStore. Si option audio express�
 
 ## Distribution v0.0.15
 GitHub Actions run 35995268578 (tests+lint+APK+AAB+publication réussis) → release easycut-v0.0.15-preview-93c0dab. Installation ARM64 par APK ; AAB séparé. Essai réel RES-002/SIZE-003 par Fab requis avant mission VALIDÉE.
+
+## 24/09/2026 — état accepté de l'architecture v0.0.15
+Fab valide RES-002 et SIZE-003 (« Test ok »). Toute la chaîne optionnelle résolutions/profils/audio passe à état fonctionnel accepté pour l'usage testé par Fab, en plus de l'aperçu et V1/V2 déjà acceptés. Les mentions historiques « Fab doit tester » sont supplantées par cette confirmation. Ne pas modifier les chemins stables sans incident prouvé ; les travaux FFprobe, résilience et crash ancien sont distincts. GET ERR/trace MINEUR seulement si besoin.

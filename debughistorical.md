@@ -152,3 +152,6 @@ Fab lance les deux missions rouges après validation V1/V2/FPS/GET ERR. Risques 
 
 ## CI v0.0.15
 Compilation, tests, lint et publication GitHub Release v0.0.15 confirmés par run 35995268578 ; aucun échec de build constaté. Les risques MP4/son/encodeur listés précédemment restent des cas à tester sur appareil, pas des incidents prouvés.
+
+## 24/09/2026 — retour terrain Fab sur EASYCUT v0.0.15
+Fab confirme « Test ok » après lancement de RES-002 (petites résolutions) et SIZE-003 (export économique). Les deux missions sont **VALIDÉES PAR FAB** ; les avertissements techniques antérieurs restent des risques théoriques / tâches de robustesse, pas des bugs signalés par ce test. Aucun nouvel incident rapporté ici. Crash Android ancien et FFprobe natif neutralisé conservent leur historique séparé, sans rouvrir V1/V2, aperçu, cadence ou GET ERR. Aucune modification de code.

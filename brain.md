@@ -178,3 +178,6 @@ Audio : par défaut chemin Media3 v0.0.14 inchangé et stéréo conservée. Si s
 
 ## CI v0.0.15 confirmée
 GitHub Actions run 35995268578 : tests JVM, lint, APK/AAB, publication GitHub Release terminés avec succès. Artefacts v0.0.15 ARM64 sur tag easycut-v0.0.15-preview-93c0dab. Validation MP4/audio sur Android appartient toujours à Fab ; CI ne prouve ni qualité visuelle ni compatibilité de toutes les cadences/encodeurs.
+
+## 24/09/2026 — validation Fab de v0.0.15, RES-002 et SIZE-003
+Fab confirme « Test ok ». Les résolutions 240/360/480/540p et l'export économique (profils/débit/estimation/audio explicite) passent à VALIDÉES par Fab, en complément de l'aperçu, du rendu V1/V2, des cadences et du journal GET ERR déjà validés. Le statut « à confirmer » du contrat v0.0.15 décrit la période antérieure à ce retour, pas un défaut en cours. Ne pas inventer des tests exhaustifs non documentés de tout matériel. Plus aucune mission utilisateur de fonctionnalité ouverte dans ordres-de-mission.md. Travaux propres à l'agent dans todo.md : résolution variable FFprobe, ancien crash à surveiller sans cause attribuée, récupération/annulation/nettoyage et maintenance trace MINEURE. Cette mise à jour est uniquement documentaire.
