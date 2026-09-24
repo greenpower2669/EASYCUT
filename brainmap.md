@@ -171,3 +171,7 @@ EASYCUT-EXPORT-MOVE-017 RÉSOLU/VALIDÉ PAR FAB : V2 reçoit local source time a
 
 ## 24/09/2026 — état validé FPS / GET ERR / TRACE
 Fab confirme cadences, couleurs, second accès GET ERR, Vider et Copier HTML. Les EXPORT_TRACE copiées depuis le journal ont servi de preuve au correctif V1/V2, TRACE-008 est validé. Chemin technique inchangé : ExportManager→FabVidDiagnostics→DiagnosticJournalDialog→copie HTML. Seul l'entretien éventuel du traçage (bruit/volume) reste AGENT/MINEUR. Missions encore à produire : RES-002 / SIZE-003.
+
+## v0.0.15 — parcours options économie
+Les deux dialogues export → ExportEconomyOptions partagé → ExportSettings(profile/bitrate/audioMode/audioBitrate/audioChannels/resolution) → ExportEconomy.videoBitrate/estimatedSizeLabel → ExportManager → Media3 DefaultEncoderFactory bitrate effectif + CompositionFactory format et FPS existants → ExportResult (dimensions/débit/bytes/encodeur). Si format différent de demande : warning UI + GET ERR.
+Chemin audio PAR DÉFAUT inchangé Media3→MediaStore. Si option audio expressément demandée : FFmpegKit sur thread IO, -map 0:v:0 -c:v copy et -an ou -map 0:a? -c:a aac [-b:a][-ac], fichier temporaire remux → MediaStore, suppression temporaires. Aucune conversion audio en mono par défaut. ExportEconomyTest vérifie résolutions, ordre des profils, débits manuels, audio et estimation, sans modifier preview.

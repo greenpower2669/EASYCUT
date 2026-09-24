@@ -477,6 +477,7 @@ fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
 
     if (showExportDialog) {
         ExportOptionsDialog(
+            durationMs = project.durationMs,
             onDismiss = { showExportDialog = false },
             onExport = { settings ->
                 showExportDialog = false
@@ -1180,6 +1181,7 @@ private fun RenameProjectDialog(
 
 @Composable
 private fun ExportOptionsDialog(
+    durationMs: Long,
     onDismiss: () -> Unit,
     onExport: (ExportSettings) -> Unit,
 ) {
@@ -1215,9 +1217,11 @@ private fun ExportOptionsDialog(
                     otherSelected = settings.customFps != null,
                 ) { settings = settings.copy(frameRate = it, customFps = null) }
                 Text("Cadence vidéo maximale ; vitesse et audio inchangés.")
-                ExportChoiceRow("Débit vidéo", ExportBitrate.entries, settings.bitrate, { it.label }) {
-                    settings = settings.copy(bitrate = it)
-                }
+                ExportEconomyOptions(
+                    settings = settings,
+                    durationMs = durationMs,
+                    onChange = { settings = it },
+                )
                 Text("L'aperçu léger n'affecte pas la qualité choisie pour l'export.")
             }
         },
@@ -1320,7 +1324,7 @@ private fun ExportSuccessDialog(
         icon = { Icon(Icons.Rounded.Movie, contentDescription = null, tint = FabMint) },
         title = { Text("Vidéo terminée !") },
         text = {
-            Text("${state.fileName}\n\nEnregistrée dans Films/FabVidEdit.")
+            Text("${state.fileName}\n\nEnregistrée dans Films/FabVidEdit." + (state.warning?.let { "\n\n⚠ $it" } ?: ""))
         },
         confirmButton = { Button(onClick = onShare) { Text("Partager") } },
         dismissButton = {

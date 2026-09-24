@@ -19,6 +19,7 @@ import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.ReturnCode
 import com.fabvidedit.app.FabVidDiagnostics
 import com.fabvidedit.app.model.VideoProject
+import com.fabvidedit.app.model.displayAspectRatio
 import com.fabvidedit.app.model.VisualMediaKind
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +55,10 @@ enum class ExportFrameRate(val label: String, val fps: Int?) {
 
 enum class ExportResolution(val label: String, val shortSide: Int?) {
     SOURCE("Source", null),
+    P240("240p", 240),
+    P360("360p", 360),
+    P480("480p", 480),
+    P540("540p", 540),
     P720("720p", 720),
     P1080("1080p", 1080),
     P1440("1440p", 1440),
@@ -62,6 +67,11 @@ enum class ExportResolution(val label: String, val shortSide: Int?) {
 
 enum class ExportBitrate(val label: String, val bitsPerSecond: Int?) {
     AUTO("Auto", null),
+    KBPS_300("300 kbit/s", 300_000),
+    KBPS_500("500 kbit/s", 500_000),
+    KBPS_750("750 kbit/s", 750_000),
+    MBPS_1("1 Mb/s", 1_000_000),
+    MBPS_1_5("1,5 Mb/s", 1_500_000),
     MBPS_2("2 Mb/s", 2_000_000),
     MBPS_4("4 Mb/s", 4_000_000),
     MBPS_8("8 Mb/s", 8_000_000),
@@ -77,16 +87,37 @@ data class ExportSettings(
     val resolution: ExportResolution = ExportResolution.P1080,
     val bitrate: ExportBitrate = ExportBitrate.AUTO,
     val customFps: Int? = null,
+    val profile: ExportQualityProfile = ExportQualityProfile.CUSTOM,
+    val audioMode: ExportAudioMode = ExportAudioMode.KEEP,
+    val audioBitrate: ExportAacBitrate = ExportAacBitrate.AUTO,
+    val audioChannels: ExportAudioChannels = ExportAudioChannels.KEEP,
 ) {
     init { require(customFps == null || customFps in 1..60) { "Cadence hors de 1..60 i/s" } }
     val effectiveFps: Int? get() = customFps ?: frameRate.fps
     val fpsLabel: String get() = customFps?.let { "$it i/s" } ?: frameRate.label
+    val effectiveVideoBitrate: Int? get() = ExportEconomy.videoBitrate(
+        profile, bitrate.bitsPerSecond, resolution.shortSide, effectiveFps,
+        codec == ExportVideoCodec.H265,
+    )
+    val needsAudioRemux: Boolean get() = audioMode == ExportAudioMode.MUTE ||
+        audioBitrate != ExportAacBitrate.AUTO || audioChannels != ExportAudioChannels.KEEP
+    fun estimatedSizeMb(durationMs: Long): Double? = ExportEconomy.estimatedMegabytes(
+        durationMs,
+        effectiveVideoBitrate ?: ExportEconomy.videoBitrate(
+            ExportQualityProfile.BALANCED, null, resolution.shortSide, effectiveFps,
+            codec == ExportVideoCodec.H265,
+        ),
+        ExportEconomy.audioBitrate(audioMode, audioBitrate),
+    )
+    fun estimatedSizeLabel(durationMs: Long): String =
+        ExportEconomy.formatEstimate(estimatedSizeMb(durationMs)) +
+            if (effectiveVideoBitrate == null) " • débit auto supposé" else ""
 }
 
 sealed interface ExportState {
     data object Idle : ExportState
     data class Running(val progress: Int, val message: String = "Export en cours") : ExportState
-    data class Success(val uri: Uri, val fileName: String) : ExportState
+    data class Success(val uri: Uri, val fileName: String, val warning: String? = null) : ExportState
     data class Error(val message: String) : ExportState
 }
 
@@ -119,7 +150,10 @@ class ExportManager(
         cancel(resetState = false)
         FabVidDiagnostics.traceExport(
             "BEGIN mode=${project.timelineMode} durationMs=${project.durationMs} clips=${project.clips.size} " +
-                "codec=${settings.codec} fpsMax=${settings.fpsLabel} size=${settings.resolution.label}",
+                "codec=${settings.codec} fpsMax=${settings.fpsLabel} size=${settings.resolution.label} " +
+                "profile=${settings.profile} videoBps=${settings.effectiveVideoBitrate ?: "auto"} " +
+                "audio=${settings.audioMode}/${settings.audioBitrate}/${settings.audioChannels} " +
+                "estimated=${settings.estimatedSizeLabel(project.durationMs)}",
         )
         project.clips.forEachIndexed { index, clip ->
             FabVidDiagnostics.traceExport(
@@ -306,25 +340,53 @@ class ExportManager(
                         "videoMime=${exportResult.videoMimeType} bitrate=${exportResult.averageVideoBitrate} " +
                         "encoder=${exportResult.videoEncoderName}",
                 )
+                val requestedCanvas = settings.resolution.shortSide?.let { shortSide ->
+                    ExportCanvasGeometry.resolve(
+                        canvasRatio = project.aspectRatio.ratio
+                            ?: project.clips.firstNotNullOfOrNull { it.displayAspectRatio() },
+                        requestedShortSide = shortSide,
+                        sourceShortSide = null,
+                        fallbackWidth = project.clips.firstOrNull()?.width,
+                        fallbackHeight = project.clips.firstOrNull()?.height,
+                    )
+                }
+                val warning = if (requestedCanvas != null && exportResult.width > 0 &&
+                    exportResult.height > 0 &&
+                    (requestedCanvas.width != exportResult.width ||
+                        requestedCanvas.height != exportResult.height)
+                ) {
+                    "Résolution demandée : ${requestedCanvas.width}×${requestedCanvas.height}. " +
+                        "Obtenue : ${exportResult.width}×${exportResult.height} (repli encodeur)."
+                } else null
+                if (warning != null) FabVidDiagnostics.traceExport("ENCODER_FALLBACK $warning")
                 onState(ExportState.Running(100, "Enregistrement dans la galerie"))
                 scope.launch {
-                    runCatching { publishToGallery(output, fileName) }
-                        .onSuccess { uri ->
-                            FabVidDiagnostics.traceExport("GALLERY_OK output=$fileName")
-                            cleanupAfterExport(output)
-                            transformer = null
-                            onState(ExportState.Success(uri, fileName))
-                        }
-                        .onFailure { error ->
-                            FabVidDiagnostics.logError("EXPORT_GALLERY", error)
-                            cleanupAfterExport(output)
-                            transformer = null
-                            onState(
-                                ExportState.Error(
-                                    diagnosticMessage(error, prefix = "Export terminé mais enregistrement impossible"),
-                                ),
+                    // Never touch the validated video pixels: optional AAC remux stream-copies video.
+                    val processed = File(output.parentFile, "${output.nameWithoutExtension}-audio.mp4")
+                    try {
+                        val galleryUri = runCatching {
+                            val file = if (settings.needsAudioRemux) {
+                                withContext(Dispatchers.IO) { applyAudioOptions(output, processed, settings) }
+                            } else output
+                            FabVidDiagnostics.traceExport(
+                                "FINAL_OUTPUT bytes=${file.length()} videoCopied=${settings.needsAudioRemux} " +
+                                    "audioMode=${settings.audioMode} channels=${settings.audioChannels} " +
+                                    "aacBps=${settings.audioBitrate.bitsPerSecond ?: "source"}",
                             )
-                        }
+                            publishToGallery(file, fileName)
+                        }.getOrThrow()
+                        FabVidDiagnostics.traceExport("GALLERY_OK output=$fileName")
+                        onState(ExportState.Success(galleryUri, fileName, warning))
+                    } catch (error: Throwable) {
+                        FabVidDiagnostics.logError("EXPORT_AUDIO_OR_GALLERY", error)
+                        onState(ExportState.Error(diagnosticMessage(
+                            error, prefix = "Finalisation audio ou enregistrement impossible",
+                        )))
+                    } finally {
+                        processed.delete()
+                        cleanupAfterExport(output)
+                        transformer = null
+                    }
                 }
             }
 
@@ -344,7 +406,7 @@ class ExportManager(
 
         val encoderBuilder = DefaultEncoderFactory.Builder(context)
             .setEnableFallback(true)
-        settings.bitrate.bitsPerSecond?.let { bitrate ->
+        settings.effectiveVideoBitrate?.let { bitrate ->
             encoderBuilder.setRequestedVideoEncoderSettings(
                 VideoEncoderSettings.Builder()
                     .setBitrate(bitrate)
@@ -434,6 +496,40 @@ class ExportManager(
             }
             .distinct()
             .toList()
+
+    /** Optional, explicitly requested audio changes. MP4 video is always stream-copied. */
+    private fun applyAudioOptions(
+        video: File,
+        processed: File,
+        settings: ExportSettings,
+    ): File {
+        val args = mutableListOf(
+            "-hide_banner", "-loglevel", "error", "-y", "-i", video.absolutePath,
+            "-map", "0:v:0", "-c:v", "copy",
+        )
+        if (settings.audioMode == ExportAudioMode.MUTE) {
+            args += listOf("-an")
+        } else {
+            args += listOf("-map", "0:a?", "-c:a", "aac")
+            settings.audioBitrate.bitsPerSecond?.let { args += listOf("-b:a", it.toString()) }
+            settings.audioChannels.ffmpegCount?.let { args += listOf("-ac", it.toString()) }
+        }
+        args += listOf("-movflags", "+faststart", processed.absolutePath)
+        FabVidDiagnostics.traceExport(
+            "AUDIO_FINALIZE mode=${settings.audioMode} aac=${settings.audioBitrate} " +
+                "channels=${settings.audioChannels} video=copy",
+        )
+        val session = FFmpegKit.executeWithArguments(args.toTypedArray())
+        val success = ReturnCode.isSuccess(session.returnCode) && processed.isFile &&
+            processed.length() > 0L
+        val detail = session.output.orEmpty().replace(Regex("\\s+"), " ").takeLast(500)
+        FFmpegKitConfig.clearSessions()
+        if (!success) {
+            processed.delete()
+            error("Finalisation audio impossible : ${detail.ifBlank { "FFmpeg a échoué" }}")
+        }
+        return processed
+    }
 
     private fun cleanupAfterExport(output: File) {
         output.delete()

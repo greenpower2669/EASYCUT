@@ -146,3 +146,6 @@ Après installation et vérification de v0.0.14, Fab déclare : « Parfait ma do
 
 ## 24/09/2026 — rectification des validations déjà apportées par Fab
 L'agent avait classé cadences et GET ERR « à valider », y compris TRACE-008, alors que Fab avait déjà copié-collé des journaux HTML utilisés pour déboguer l'export. Fab précise : « Cadense ok. Get ok. Couleur et deuxième bouton ok vider ok html ok » ; le tracé doit seulement rester dans la liste AGENT en mineur pour son éventuel entretien. FPS-001, JOURNAL-004/005/006/007 et TRACE-008 sont donc VALIDÉS ; anciennes mentions « à valider » historiques. Aucun code touché.
+
+## 24/09/2026 — mise en œuvre RES-002 et SIZE-003
+Fab lance les deux missions rouges après validation V1/V2/FPS/GET ERR. Risques restants à tester sur smartphone : format 240–540p et repli encodeur HEVC, débit demandé parfois différent de réel, taille indicative et non promise, perte audio si remux échoue (erreur visible, pas de galerie mensongère). Aucun réglage ne doit convertir la musique stéréo en mono à l'insu de Fab ; canaux originaux par défaut, conversion uniquement explicite. Remux audio optionnel -c:v copy pour préserver vidéo et keyframes validées. Incident crash Android et scan FFprobe restent distincts. Tests MP4 et validation Fab en attente.

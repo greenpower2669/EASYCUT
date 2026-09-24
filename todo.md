@@ -332,3 +332,13 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] FAB-EXPORT-TRACE-008 : validé par les journaux HTML réels copiés-collés et utilisés pour corriger V1/V2.
 - [ ] **[AGENT / MINEUR]** Entretenir le tracé d'export si de nouveaux symptômes le justifient : lisibilité, volume de logs, événements pertinents. Ne pas réclamer une nouvelle validation générale de Fab ni coder sans autorisation.
 - [ ] À produire sur ordre : petites résolutions FAB-EXPORT-RES-002 et économie de place FAB-EXPORT-SIZE-003 ; crash Android et scan FFprobe suivis séparément.
+
+## v0.0.15 — missions RES-002 et SIZE-003 lancées par Fab
+- [x] Résolutions 240/360/480/540p dans les deux fenêtres, conserver les autres et le ratio projet.
+- [x] Profils minimal/équilibré/haute qualité/personnalisé, débits 300k à 50 Mb/s, estimation indicative par durée/résolution/cadence/audio.
+- [x] AAC Auto/64/96/128/192/256 kbit/s, son coupé explicitement et canaux origine/mono/stéréo. Par défaut aucun remux audio ni conversion mono.
+- [x] Finalisation audio choisie par FFmpegKit en recopiant le flux vidéo, avertissement visible si dimensions réelles de sortie différentes de celles demandées.
+- [x] Tests JVM de profils, résolutions, audio et taille estimée ajoutés ; fichiers FAB Copilot synchronisés dans le même commit.
+- [ ] Vérifier CI, APK/AAB, Release et corriger uniquement si nécessaire.
+- [ ] Fab : vérifier les MP4 240–540p, différents profils, AAC, mono et muet, sans toucher à l'aperçu validé.
+- [ ] Autres missions et ancien crash/FFprobe distincts, traces AGENT/MINEUR.

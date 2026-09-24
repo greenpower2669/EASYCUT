@@ -8,19 +8,19 @@
 - Une livraison reste « Livrée, à valider » si Fab doit encore confirmer le résultat sur Android ; les missions produites passent dans un historique visible avec preuve et éventuelle décision explicite de Fab, jamais supprimées.
 - Le détail des erreurs, de leurs causes supposées et des régressions se trouve dans `debughistorical.md` ; un bug ne remplace ni ne supprime une fonctionnalité demandée ici. Les étapes d'implémentation restent dans `todo.md`.
 
-## Missions ouvertes — fonctionnalités demandées par Fab, à produire
+## Missions en cours — codées, à valider par Fab
 
 ### FAB-EXPORT-RES-002 — Petites résolutions d'export
 - **Origine :** Fab, 22–23/09/2026.
 - **Demande :** ajouter **240p, 360p, 480p et 540p**, en conservant les résolutions existantes (notamment 720p, 1080p, 1440p et 4K si prises en charge). Préserver le ratio et le cadrage du montage ; distinguer résolution d'export et qualité de l'aperçu.
 - **Résultat attendu :** la taille choisie est effective dans les MP4 compatibles, avec repli explicite si l'encodeur ne la supporte pas.
-- **Statut : À faire — commande conservée, pas encore codée.**
+- **Statut : CODE v0.0.15 / À VALIDER sur Android par Fab.** Résolutions 240/360/480/540p ajoutées aux deux éditeurs, repli de taille signalé. Contrôle du MP4 réel en attente.
 
 ### FAB-EXPORT-SIZE-003 — Gagner de la place sans sacrifier le contrôle
 - **Origine :** Fab, demande d'idées et d'options concrètes pour gagner de la place hors résolution, 22–23/09/2026.
 - **Demande :** profils **fichier minimal / équilibré / haute qualité / personnalisé**, réglage pertinent du débit vidéo et du codec H.264/H.265 selon les capacités réelles, **estimation indicative de la taille** avant export ; conserver un choix conscient de la qualité. AAC : pouvoir couper le son volontairement, choisir le débit compatible et le mono/stéréo sans convertir la musique stéréo en mono à l'insu de Fab.
 - **Résultat attendu :** options explicites et lisibles, taille estimée annoncée comme estimation, paramètres réellement utilisés vérifiables après export ; ne promettre ni taille ni débit impossibles.
-- **Statut : À faire — commande conservée, pas encore codée.**
+- **Statut : CODE v0.0.15 / À VALIDER sur Android par Fab.** Profils qualité/taille, débit personnalisé, estimation indicative, codec HEVC conditionnel, audio muet explicite, AAC 64–256 kbit/s et canaux origine/mono/stéréo choisis. Débit Auto et son d'origine conservés par défaut.
 
 ## Missions produites et validées — ne pas perdre les acquis
 
@@ -85,3 +85,6 @@ Fab confirme explicitement : « tu peux cocher toute les cases liées à cet inc
 
 ## Confirmation Fab — 24/09/2026
 Fab confirme « Cadense ok. Get ok. Couleur et deuxième bouton ok vider ok html ok » et rappelle que les journaux HTML déjà transmis prouvent aussi le traceur. FPS-001, JOURNAL-004/005/006/007 et TRACE-008 sont VALIDÉS. Seul un entretien éventuel des traces est AGENT/MINEUR dans todo.md. Ordres de fonctionnalité à produire : RES-002 et SIZE-003 ; crash Android et FFprobe distincts. Aucun code d'application modifié.
+
+## Autorisation Fab du 24/09/2026
+Fab ordonne « Lance les deux rouges restant » : FAB-EXPORT-RES-002 et FAB-EXPORT-SIZE-003. Implémentation v0.0.15 sur la base validée v0.0.14 ; validation des MP4 et du son sur téléphone à venir. Aucune modification volontaire de l'aperçu ni du rendu V1/V2, aucune réouverture des missions validées.

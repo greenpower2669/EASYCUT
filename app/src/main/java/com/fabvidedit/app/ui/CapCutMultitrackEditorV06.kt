@@ -1108,6 +1108,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
 
     if (showExportDialog) {
         V017ExportDialog(
+            durationMs = project.durationMs,
             currentAspectRatio = project.aspectRatio,
             onAspectRatio = viewModel::setAspectRatio,
             onDismiss = { showExportDialog = false },
@@ -1147,7 +1148,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         is ExportState.Success -> AlertDialog(
             onDismissRequest = viewModel::clearExportResult,
             title = { Text("Export terminé") },
-            text = { Text("${state.fileName}\nEnregistré dans Films/EASYCUT.") },
+            text = { Text("${state.fileName}\nEnregistré dans Films/EASYCUT." + (state.warning?.let { "\n\n⚠ $it" } ?: "")) },
             confirmButton = {
                 Button(onClick = {
                     val intent = Intent(Intent.ACTION_SEND).apply {
@@ -1245,6 +1246,7 @@ private fun v020FallbackVisual(
 
 @Composable
 private fun V017ExportDialog(
+    durationMs: Long,
     currentAspectRatio: AspectRatioPreset,
     onAspectRatio: (AspectRatioPreset) -> Unit,
     onDismiss: () -> Unit,
@@ -1258,7 +1260,7 @@ private fun V017ExportDialog(
     var showCustomFps by remember { mutableStateOf(false) }
     var customFpsInput by remember { mutableStateOf("") }
     var resolution by remember { mutableStateOf(ExportResolution.P1080) }
-    var bitrate by remember { mutableStateOf(ExportBitrate.AUTO) }
+    var economy by remember { mutableStateOf(ExportSettings()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1294,9 +1296,14 @@ private fun V017ExportDialog(
                 V017ChoiceRow("Résolution", ExportResolution.entries.map { it.label }, resolution.label) { label ->
                     resolution = ExportResolution.entries.first { it.label == label }
                 }
-                V017ChoiceRow("Débit vidéo", ExportBitrate.entries.map { it.label }, bitrate.label) { label ->
-                    bitrate = ExportBitrate.entries.first { it.label == label }
-                }
+                ExportEconomyOptions(
+                    settings = economy.copy(
+                        codec = codec, frameRate = frameRate, resolution = resolution,
+                        customFps = customFps,
+                    ),
+                    durationMs = durationMs,
+                    onChange = { economy = it },
+                )
                 Text(
                     if (hevcAvailable) "MP4 • AAC. H.265 disponible selon les capacités du téléphone." else "MP4 • AAC. H.265 indisponible : encodeur matériel HEVC absent.",
                     fontSize = 11.sp,
@@ -1305,7 +1312,9 @@ private fun V017ExportDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onExport(ExportSettings(codec, frameRate, resolution, bitrate, customFps)) }) {
+            Button(onClick = { onExport(economy.copy(
+                codec = codec, frameRate = frameRate, resolution = resolution, customFps = customFps,
+            )) }) {
                 Text("Exporter")
             }
         },

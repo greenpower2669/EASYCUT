@@ -59,3 +59,6 @@ L'incident multipiste V1/V2 EASYCUT-EXPORT-MOVE-017, EASYCUT-EXPORT-REPAIR-009 e
 
 ## 24/09/2026 — état actuel
 FPS +Autres et GET ERR couleurs/éditeur/Vider/HTML VALIDÉS par Fab. TRACE export VALIDÉE par les HTML transmis et exploités ; entretien éventuel uniquement AGENT/MINEUR dans todo.md. Ordres Fab à produire : RES-002 et SIZE-003. Incident V1/V2 clos, aperçu intact ; crash Android et FFprobe indépendants. Les anciens résumés « à faire/à valider » sont historiques.
+
+## v0.0.15 — économie / petites résolutions
+RES-002 et SIZE-003 autorisées par Fab : options ExportEconomyOptions communes aux deux fenêtres, résolutions 240/360/480/540 + existantes, profils débit, estimation indicative, audio AAC/muet/mono explicitement choisis. Auto historique et stéréo d'origine gardés par défaut. ExportManager applique bitrate Media3, affiche repli dimensions, traite audio uniquement si demandé via FFmpeg -c:v copy. Prévisualisation et corrections V1/V2 non modifiées ; CI et tests appareil à confirmer.
