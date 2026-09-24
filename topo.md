@@ -71,3 +71,6 @@ RES-002 et SIZE-003 : TEST OK / VALIDÉES par Fab. Le carnet des missions utilis
 
 ## 24/09/2026 — ordre de mission courant FAB-SOURCE-COMPAT-011 (CODE PAS)
 Après v0.0.15 validée, Fab signale des échecs d'import/FFprobe encore présents et demande l'élargissement des sources et la prise en compte éventuelle des pixels non carrés. SAR/DAR et dimensions encodées relèvent de la géométrie source ; séparer leur éventuelle correction unique du zoom/rotation/pivot/keyframes, contrôler aperçu et MP4. Reprendre le scan FFprobe `-o` neutralisé dans ce périmètre, sans activation aveugle ni tampon illimité. Anciennes missions d'export closes, crash historique/robustesse/traces mineures indépendants. Aucun code ou APK à ce stade.
+
+## 24/09/2026 — précision SAR : matrices keyframes, pas lecteur brut
+Fab : lecteur sans animation semble correct ; cibler la géométrie des matrices de transformations par keyframes pour SAR≠1. Auditer zoom/rotation/pivot/déplacement/interpolation et correspondance aperçu animé/MP4 ; ne pas ajouter une normalisation dans le lecteur déjà correct. FFprobe et formats restent l'autre volet de FAB-SOURCE-COMPAT-011. Toujours CODE PAS.

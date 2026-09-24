@@ -26,7 +26,7 @@ Travaux propres à l'agent non soldés, sans priorité supplémentaire imposée 
 ### Priorité explicitement donnée par Fab — FAB-SOURCE-COMPAT-011 (24/09/2026)
 - [ ] **[ORDRE FAB / NE PAS CODER MAINTENANT]** Auditer et élargir la compatibilité des sources : FFprobe avec erreurs résiduelles, conteneurs/codecs/pistes, import/décodage, éventuels replis, sans perdre les projets ni dégrader les formats déjà reconnus.
 - [ ] **[ORDRE FAB]** Réexaminer le scanner de variations de résolution neutralisé (writer FFprobeKit `-o`) avec une stratégie Android fiable, résultats et consommation bornés ; distinguer erreur bloquante d'étape facultative récupérée.
-- [ ] **[ORDRE FAB]** Examiner SAR/DAR et rotation des flux à pixels non carrés : normalisation géométrique appliquée une seule fois, séparée du zoom/rotation/pivot/keyframes choisis par Fab. Préserver proportions aperçu ET MP4 ainsi que les vidéos à pixels carrés et l'export multipiste validé.
+- [ ] **[ORDRE FAB — PRÉCISÉ]** Le lecteur non transformé semble correct : examiner **la matrice animée par keyframes** sur flux SAR≠1 (espace de coordonnées, zoom X/Y, rotation, pivot, déplacement et interpolation), et l'alignement de son résultat aperçu/MP4. Si correction nécessaire, intervenir dans le repère/calcul de la transformation, ne pas renormaliser le flux brut ni appliquer deux fois le SAR. Préserver pixels carrés et multipiste validé.
 - [ ] Établir des tests sur petits/grands médias, SAR 1:1 / SAR≠1 / métadonnées manquantes / rotation / changement de résolution, comparatifs lecteur de référence ; signaler limites matérielles et replis plutôt que promettre tous les formats.
 - [ ] **Ne pas** interpréter « il me semble qu'il y en a moins » comme un taux de panne mesuré ni attribuer toute erreur à FFprobe : causes à établir lors de l'audit autorisé.
 
@@ -367,3 +367,8 @@ Aucun code modifié pour cette validation.
 
 ## 24/09/2026 — nouveau périmètre Fab, avant toute programmation
 FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation v0.0.15 : compatibilité de sources, erreurs FFprobe résiduelles, SAR/DAR/pixels non carrés et cohérence géométrie/matrice, scan dynamique. Pas de code autorisé dans ce tour. Les autres chantiers propres à l'agent (crash ancien, sauvegardes, annulation, traces mineures) restent distincts. Toutes les anciennes missions d'export validées restent closes.
+
+## 24/09/2026 — précision Fab sur SAR et images-clés, PAS DE CODE
+- [ ] Cibler le défaut de proportions **uniquement lorsque la matrice de keyframes est appliquée**, pas la vidéo décodée seule, qui paraît correcte à Fab.
+- [ ] Comparer image sans transformation, aux keyframes et pendant interpolation, puis MP4 ; vérifier SAR/DAR et origine des coordonnées sans toucher d'emblée au lecteur.
+- [ ] Protéger le chemin de lecture non transformé, le montage et l'export validé. La partie FFprobe/source reste liée au même ordre FAB-SOURCE-COMPAT-011 ; aucune programmation lancée.
