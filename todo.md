@@ -385,7 +385,7 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [x] Sondage facultatif et borné sur keyframes (≤256 Mio) signalant certaines variations SAR/DAR ; inconnu n'est pas constant.
 - [x] Action facultative avec confirmation de copie MP4 à pixels carrés sur nouvelle piste ; conserver source, projet, keyframes créatives, possibilité échec transcodage et manque de place.
 - [x] Tests JVM de géométrie, entrée de rapport et chemins de repli ; fichiers vivants synchronisés au cycle de code.
-- [ ] Contrôler GitHub Actions tests/lint/APK/AAB, publier v0.0.16 si réussi ; corriger bugs CI plutôt que prétendre prêt.
+- [x] GitHub Actions v0.0.16 : tests, lint, APK/AAB et prérelease réussis (run 36047232738, commit 18728f5). Validation des médias réels sur téléphone reste à faire.
 - [ ] Fab : vérifier sources qui échouaient FFprobe, qualité des imports MKV/AVI, rendu keyframes SAR≠1 en preview simple / multi et export MP4, détecteur de changement SAR et copie normalisée, son/durée/rotation/qualité.
 - [ ] Restaurer par mission séparée le scanner natif de variation de résolution (-o actuellement neutralisé) seulement avec preuve Android et mémoire bornée ; davantage de décodage logiciel/coûts et formats restent limitations explicites.
 - [ ] Ne pas clore FAB-SOURCE-COMPAT-011 sans test réel Fab. Autres anciennes missions validées inchangées.
