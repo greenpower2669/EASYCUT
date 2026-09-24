@@ -339,6 +339,6 @@ Prochain geste : vérifier le premier build de la branche v0.25.2 et sa prerelea
 - [x] AAC Auto/64/96/128/192/256 kbit/s, son coupé explicitement et canaux origine/mono/stéréo. Par défaut aucun remux audio ni conversion mono.
 - [x] Finalisation audio choisie par FFmpegKit en recopiant le flux vidéo, avertissement visible si dimensions réelles de sortie différentes de celles demandées.
 - [x] Tests JVM de profils, résolutions, audio et taille estimée ajoutés ; fichiers FAB Copilot synchronisés dans le même commit.
-- [ ] Vérifier CI, APK/AAB, Release et corriger uniquement si nécessaire.
+- [x] CI GitHub : tests JVM, lint, compilation, APK/AAB et prérelease v0.0.15 réussis ; release easycut-v0.0.15-preview-93c0dab et fichiers exacts vérifiés.
 - [ ] Fab : vérifier les MP4 240–540p, différents profils, AAC, mono et muet, sans toucher à l'aperçu validé.
 - [ ] Autres missions et ancien crash/FFprobe distincts, traces AGENT/MINEUR.

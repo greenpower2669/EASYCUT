@@ -62,3 +62,6 @@ FPS +Autres et GET ERR couleurs/éditeur/Vider/HTML VALIDÉS par Fab. TRACE expo
 
 ## v0.0.15 — économie / petites résolutions
 RES-002 et SIZE-003 autorisées par Fab : options ExportEconomyOptions communes aux deux fenêtres, résolutions 240/360/480/540 + existantes, profils débit, estimation indicative, audio AAC/muet/mono explicitement choisis. Auto historique et stéréo d'origine gardés par défaut. ExportManager applique bitrate Media3, affiche repli dimensions, traite audio uniquement si demandé via FFmpeg -c:v copy. Prévisualisation et corrections V1/V2 non modifiées ; CI et tests appareil à confirmer.
+
+## CI v0.0.15
+Run GitHub 35995268578 : réussite tests/lint/APK/AAB/release. Tag easycut-v0.0.15-preview-93c0dab. Fab doit encore tester les deux missions sur Android.

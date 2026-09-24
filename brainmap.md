@@ -175,3 +175,6 @@ Fab confirme cadences, couleurs, second accès GET ERR, Vider et Copier HTML. Le
 ## v0.0.15 — parcours options économie
 Les deux dialogues export → ExportEconomyOptions partagé → ExportSettings(profile/bitrate/audioMode/audioBitrate/audioChannels/resolution) → ExportEconomy.videoBitrate/estimatedSizeLabel → ExportManager → Media3 DefaultEncoderFactory bitrate effectif + CompositionFactory format et FPS existants → ExportResult (dimensions/débit/bytes/encodeur). Si format différent de demande : warning UI + GET ERR.
 Chemin audio PAR DÉFAUT inchangé Media3→MediaStore. Si option audio expressément demandée : FFmpegKit sur thread IO, -map 0:v:0 -c:v copy et -an ou -map 0:a? -c:a aac [-b:a][-ac], fichier temporaire remux → MediaStore, suppression temporaires. Aucune conversion audio en mono par défaut. ExportEconomyTest vérifie résolutions, ordre des profils, débits manuels, audio et estimation, sans modifier preview.
+
+## Distribution v0.0.15
+GitHub Actions run 35995268578 (tests+lint+APK+AAB+publication réussis) → release easycut-v0.0.15-preview-93c0dab. Installation ARM64 par APK ; AAB séparé. Essai réel RES-002/SIZE-003 par Fab requis avant mission VALIDÉE.

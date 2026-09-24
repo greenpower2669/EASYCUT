@@ -149,3 +149,6 @@ L'agent avait classé cadences et GET ERR « à valider », y compris TRACE-008,
 
 ## 24/09/2026 — mise en œuvre RES-002 et SIZE-003
 Fab lance les deux missions rouges après validation V1/V2/FPS/GET ERR. Risques restants à tester sur smartphone : format 240–540p et repli encodeur HEVC, débit demandé parfois différent de réel, taille indicative et non promise, perte audio si remux échoue (erreur visible, pas de galerie mensongère). Aucun réglage ne doit convertir la musique stéréo en mono à l'insu de Fab ; canaux originaux par défaut, conversion uniquement explicite. Remux audio optionnel -c:v copy pour préserver vidéo et keyframes validées. Incident crash Android et scan FFprobe restent distincts. Tests MP4 et validation Fab en attente.
+
+## CI v0.0.15
+Compilation, tests, lint et publication GitHub Release v0.0.15 confirmés par run 35995268578 ; aucun échec de build constaté. Les risques MP4/son/encodeur listés précédemment restent des cas à tester sur appareil, pas des incidents prouvés.
