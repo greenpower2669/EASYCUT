@@ -80,3 +80,7 @@ Fab ajoute à SOURCE-COMPAT-011 : Auto-détection des proportions et sélecteurs
 
 ## v0.0.16 — code de l'ordre FAB-SOURCE-COMPAT-011
 Inventaire FFprobe repli étendu, codecs archives candidats MKV/AVI, SAR/DAR répercutés et persistés, sondage limité des changements géométriques, boutons Auto/préréglages/manuels aux losanges, compensation expérimentale C*M*C^-1 uniquement aux matrices Media3, sans retoucher lecture brute. Copie saine par bouton avec confirmation : FFmpeg H264_MediaCodec→MPEG4 + scale/setsar=1, nouvelle piste, original intact ; limites encodeur/disque/qualité expliquées. Scanner complet FFprobe -o non réactivé, preview simple graphicsLayer pas encore équivalent confirmé ; tests Android incontournables. Mission partiellement implémentée, aucun bug historique validé rouvert sans preuve.
+
+
+## 25/09/2026 — retour Fab
+Pivot des matrices keyframes pour SAR non carré amélioré selon Fab ; vigilance sur les autres scénarios. Import réussi et import échoué : deux vidéos différentes ; FFprobe du second reste ouvert. Aucun code.

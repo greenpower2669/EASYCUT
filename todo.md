@@ -389,3 +389,9 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [ ] Fab : vérifier sources qui échouaient FFprobe, qualité des imports MKV/AVI, rendu keyframes SAR≠1 en preview simple / multi et export MP4, détecteur de changement SAR et copie normalisée, son/durée/rotation/qualité.
 - [ ] Restaurer par mission séparée le scanner natif de variation de résolution (-o actuellement neutralisé) seulement avec preuve Android et mémoire bornée ; davantage de décodage logiciel/coûts et formats restent limitations explicites.
 - [ ] Ne pas clore FAB-SOURCE-COMPAT-011 sans test réel Fab. Autres anciennes missions validées inchangées.
+
+
+## 25/09/2026 — retour Fab, sans code
+- [x] Pivot des matrices keyframes sur pixels non carrés : amélioration confirmée par Fab en v0.0.16.
+- [ ] Vigilance sur autres animations, SAR/DAR changeants et aperçu/MP4 ; ne pas transformer une vigilance en régression présumée.
+- [ ] FFprobe : la vidéo ouverte et la vidéo refusée sont DIFFERENTES ; la cause du refus de la seconde reste à établir, sans déduire une instabilité sur le même média.
