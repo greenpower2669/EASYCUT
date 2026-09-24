@@ -22,7 +22,7 @@ class SarKeyframeGeometryTest {
     @Test fun sarDetectedWithoutForcingRawPlayback() {
         val video = clip(sar = 16f / 15f)
         assertEquals(16f / 15f, SarKeyframeGeometry.pixelWidthRatio(video, 0), 0.0001f)
-        assertEquals(4f / 3f, video.displayAspectRatio(), 0.001f)
+        assertEquals(4f / 3f, video.displayAspectRatio()!!, 0.001f)
         val identity = floatArrayOf(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
         assertArrayEquals(identity, SarKeyframeGeometry.adjustMatrix(identity, 16f / 15f), 0.00001f)
     }
