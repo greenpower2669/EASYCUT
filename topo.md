@@ -74,3 +74,6 @@ Après v0.0.15 validée, Fab signale des échecs d'import/FFprobe encore présen
 
 ## 24/09/2026 — précision SAR : matrices keyframes, pas lecteur brut
 Fab : lecteur sans animation semble correct ; cibler la géométrie des matrices de transformations par keyframes pour SAR≠1. Auditer zoom/rotation/pivot/déplacement/interpolation et correspondance aperçu animé/MP4 ; ne pas ajouter une normalisation dans le lecteur déjà correct. FFprobe et formats restent l'autre volet de FAB-SOURCE-COMPAT-011. Toujours CODE PAS.
+
+## 24/09/2026 — sous-menu expérimental SAR/DAR (PAS DE CODE)
+Fab ajoute à SOURCE-COMPAT-011 : Auto-détection des proportions et sélecteurs SAR/DAR dans les losanges des keyframes pour correction manuelle optionnelle ; en cas de variation réelle de géométrie, proposition explicite de créer une copie normalisée à monter pour stabilité/fluidité éventuelle. Décider portée des overrides et éviter double correction dans l'audit. Ne pas confondre avec correction du lecteur brut, ne jamais écraser la source. Toutes ces pistes restent hypothèses à tester ; pas de code ni release.

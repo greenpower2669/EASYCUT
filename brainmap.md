@@ -187,3 +187,6 @@ Fichier source → inventaire fiable FFprobe/MediaExtractor (conteneur, pistes, 
 
 ## 24/09/2026 — cartographie rectifiée par Fab
 Lecteur vidéo sans animation : semble proportionné, à préserver. Domaine du défaut visé : métadonnées SAR/DAR et géométrie affichée ↔ calcul des matrices keyframes (zoom X/Y, rotation, pivot, translation/interpolation) ↔ application des transformations à l'image affichée (aperçu animé et MP4). Chercher l'endroit exact d'une conversion de repère requise, au lieu de modifier la vidéo brute ou appliquer une seconde normalisation SAR. Pipeline FFprobe/import conservé dans FAB-SOURCE-COMPAT-011, indépendant de ce sous-problème. Aucun code exécuté.
+
+## 24/09/2026 — sous-menu hypothèses SAR/DAR de FAB-SOURCE-COMPAT-011
+Métadonnées source et éventuelle chronologie géométrique → Auto SAR/DAR si fiables → repère de la matrice des keyframes → aperçu animé/MP4. Sur menu d'un losange, possibilité future d'override SAR/DAR manuel ou retour Auto ; décider dans l'audit de sa portée temporelle et de sa persistance sans double normalisation. Si SAR/DAR varient réellement, alerte puis proposition facultative d'export d'une copie de travail normalisée, jamais suppression/modification tacite de l'original ni de la timeline. Comparatifs source brute / animation Auto / override / copie normalisée ; fonctionnalité hypothétique, non codée.
