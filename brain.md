@@ -213,3 +213,6 @@ Ce pilote ne livre PAS encore les groupes composites imbriqués arbitraires vid�
 
 ## v0.0.17 — correctif de compilation de l'UI
 Première CI PR : référence clickable non importée dans CapCutMultitrackEditorV06. Ajouter l'import androidx.compose.foundation.clickable ; aucune transformation, vidéo/audio ou donnée de projet changée. Nouveau contrôle CI requis.
+
+## v0.0.17 — statut CI attesté
+Sur PR #1, workflow 36078108340 terminé avec succès : tests JVM, lint, build APK/AAB. Le constat porte sur la compilation, pas sur lecture réelle, affichage, son, import Android ou MP4 ; pilote et groupement composite avancé restent à valider/achever.
