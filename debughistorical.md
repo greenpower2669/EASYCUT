@@ -180,3 +180,6 @@ Fab corrige l'ancien « unifié par défaut » : split historique activé par d�
 
 ## v0.0.17 — premier échec CI, cause technique précise
 PR pilote run 36077976661 : compileDebugKotlin FAILED, CapCutMultitrackEditorV06.kt:1007 unresolved reference clickable ; oubli d'import Compose. Correctif unique : ajouter import androidx.compose.foundation.clickable. Aucun APK construit dans cette tentative, pas de régression fonctionnelle prouvée. Nouvelle CI requise.
+
+## v0.0.17 — CI après correctif
+Run PR #1 36078108340 terminé SUCCESS, après ajout import Compose clickable. Ancien run 36077976661 reste échec historique (non masqué), sans preuve d'incident sur téléphone. Pas d'attribution d'échec FFprobe au split avant inventaire.
