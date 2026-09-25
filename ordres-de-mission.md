@@ -142,3 +142,6 @@ FAB-IMPORT-UNIFIED-012 est ajouté aux missions ouvertes, sans réouvrir les val
 Fab autorise de coder mais corrige la valeur par défaut : conserver le split historique ACTIVÉ, ajouter la case « Désactiver le split (test) » DÉCOCHÉE par défaut. Cocher choisit le parcours unifié pour comparer sur le MÊME fichier, dans la MÊME version ; décocher choisit l'ancien split. Aucun basculement automatique ni changement des anciens projets.
 Le pilote source unifiée accepte exactement 1 vidéo et au plus 1 audio : deux références logiques synchronisées sur le même fichier local durable, sans remuxage ni extraction physique. Les médias à plusieurs flux demandent explicitement le split historique. FFprobe initial demeure commun : pas de promesse de guérison de ses échecs. Le groupement composite libre images/vidéos/sons et l'action nouvelle d'extraction audio restent NON livrés.
 **Statut : code pilote en branche, CI/MP4/Android non déclarés validés avant contrôle.**
+
+## Correctif CI du pilote v0.0.17
+Premier essai PR : compilation échouée sur import Compose clickable manquant dans l'éditeur multipiste ; import ajouté sur la branche pilote. Aucun changement du contrat split ON par défaut / OFF sur case cochée. CI à reconfirmer avant fusion et APK.
