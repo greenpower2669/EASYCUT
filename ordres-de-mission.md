@@ -145,3 +145,6 @@ Le pilote source unifiée accepte exactement 1 vidéo et au plus 1 audio : deux 
 
 ## Correctif CI du pilote v0.0.17
 Premier essai PR : compilation échouée sur import Compose clickable manquant dans l'éditeur multipiste ; import ajouté sur la branche pilote. Aucun changement du contrat split ON par défaut / OFF sur case cochée. CI à reconfirmer avant fusion et APK.
+
+## Validation CI pilote 0.0.17 — 25/09/2026
+PR #1, run 36078108340 : tests unitaires, lint, assembleDebug et bundleDebug réussis. Les binaires ne sont pas publiés depuis la PR ; fusion/publication principale à contrôler. Validation Android de Fab et mission composite globale toujours ouvertes.
