@@ -395,3 +395,11 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [x] Pivot des matrices keyframes sur pixels non carrés : amélioration confirmée par Fab en v0.0.16.
 - [ ] Vigilance sur autres animations, SAR/DAR changeants et aperçu/MP4 ; ne pas transformer une vigilance en régression présumée.
 - [ ] FFprobe : la vidéo ouverte et la vidéo refusée sont DIFFERENTES ; la cause du refus de la seconde reste à établir, sans déduire une instabilité sur le même média.
+
+## 25/09/2026 — FAB-IMPORT-UNIFIED-012 : étude autorisée, code interdit
+- [ ] [FAB / DOCUMENTÉ] Préserver l'idée d'origine : objets composites/groupés (vidéo+son, images, deuxième vidéo, autres médias et sous-groupes) se déplaçant et se synchronisant ensemble, modifiables/détachables individuellement ; distinguer lien logique et split physique.
+- [ ] [AGENT / AUDIT AVANT CODE] Cartographier le flux actuel URI → clone éventuel → FFprobe initial → validation → scans → split/remux → lecture/export ; classifier les erreurs par étape. Le premier échec FFprobe précède le split. Comparer le même média dans les futurs modes unique/split, sans inférer une cause depuis deux fichiers différents.
+- [ ] [AGENT / CONCEPTION NON AUTORISÉE À CODER] Prévoir fichier A/V unique par défaut et case à cocher « Séparer les pistes à l'import (split) » décochée par défaut ; conserver la séparation historique explicite pour multi-stream/segments/récupération. Étudier extraction audio après coup, lecture audio unique et absence de copies physiques inutiles.
+- [ ] [AGENT / CONCEPTION] Examiner capacité Media3 lecture directe et audio embarqué, champs syncGroupId/syncLocked, groupe multi-objets/imbriqué, gestion des horodatages, migration projets et nettoyage sûr ; identifier les formats nécessitant split ou repli expliqué, sans promesse universelle.
+- [ ] [FAB / VALIDATION ULTÉRIEURE] Après autorisation de coder seulement : import ordinaire sans split, split coché, extraction/déplacement groupé sans double son, médias atypiques/plusieurs pistes, intégrité des projets et des exports, mesures stockage/performance et test Samsung. Ne pas rouvrir le dossier SAR sans bug constaté.
+- **Statut : aucun code / build / release demandé, ni exécuté par cette entrée documentaire.**
