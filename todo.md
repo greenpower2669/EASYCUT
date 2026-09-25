@@ -419,3 +419,7 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [x] Premier run PR 36077976661 : compileDebugKotlin échoue sur import clickable manquant dans CapCutMultitrackEditorV06 ; diagnostic lu dans le journal.
 - [x] Import androidx.compose.foundation.clickable ajouté sur branche ; aucun changement des chemins split/unifié.
 - [ ] Recontrôler tests/lint/build APK/AAB et validation téléphone, ne pas annoncer la release sur le premier échec.
+
+## v0.0.17 — résultat CI pilote
+- [x] Run PR #1 36078108340 : tests JVM, lint, compilation APK et AAB réussis ; précédent run 36077976661 échoué sur import clickable puis corrigé.
+- [ ] Fusion main et URL GitHub Release avec les fichiers exacts, puis validation Android A/B de Fab.
