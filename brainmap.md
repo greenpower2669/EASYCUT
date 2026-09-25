@@ -210,3 +210,6 @@ DIAGNOSTIC : FFPROBE avant bifurcation, SÉPARATION STREAMS en historique, IMPOR
 
 ## v0.0.17 — détail UI CI
 CapCutMultitrackEditorV06 : Row de la case ON/OFF exige androidx.compose.foundation.clickable ; import ajouté après erreur compileDebugKotlin PR. Pipeline d'import inchangé par ce correctif.
+
+## v0.0.17 — preuve CI
+Workflow PR #1 run 36078108340 : unit tests / lint / assembleDebug / bundleDebug réussis. Publication main séparée ; aucun résultat smartphone déduit.
