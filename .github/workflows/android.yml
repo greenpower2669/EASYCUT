@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.16-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.16-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.17-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.17-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.16-preview-${short_sha}"
+          tag="easycut-v0.0.17-preview-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.16-arm64-debug.apk \
-            EASYCUT-v0.0.16-arm64-debug.aab \
+            EASYCUT-v0.0.17-arm64-debug.apk \
+            EASYCUT-v0.0.17-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.16 — sources et keyframes SAR/DAR ${short_sha}" \
-            --notes "FAB-SOURCE-COMPAT-011 : FFprobe inventaire étendu en repli, codecs archives vers MKV/AVI, SAR/DAR sauvegardés, commandes expérimentales par losange (Auto), sondage borné des variations de pixels et copie volontaire à pixels carrés. Scanner natif complet de résolution reste désactivé ; limites decodeurs/encodeurs appareil, tests Android nécessaires. Base v0.0.15 préservée."
+            --title "EASYCUT v0.0.17 — import unifié / split test ${short_sha}" \
+            --notes "FAB-IMPORT-UNIFIED-012 : case Désactiver le split décochée par défaut, parcours historique conservé et source vidéo+son unifiée expérimentale si cochée. Même version pour comparer les deux modes sur le même fichier ; inventaire FFprobe initial commun, mode unifié limité à une piste vidéo et au plus une piste audio. Vérifier sur Android lecture, son, montage et MP4 ; fonctionnalités précédentes préservées."
