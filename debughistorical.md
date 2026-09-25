@@ -177,3 +177,6 @@ Fab observe dans CapCut un objet vidéo+son initialement solidaire et une extrac
 
 ## v0.0.17 — vigilance des deux chemins d'import
 Fab corrige l'ancien « unifié par défaut » : split historique activé par défaut, case « Désactiver le split (test) » décochée. Le pilote permet de comparer l'étape FFprobe initiale commune puis les étapes propres à chaque mode SUR LE MÊME FICHIER. Un échec FFprobe avant split n'est pas expliqué par remuxage ; ne pas déclarer guérison automatique. Conteneur A/V partagé susceptible de produire des différences de choix de piste, timestamps, audio double en fallback, stockage, export : hypothèses de test, pas bugs confirmés Android. Preview simple mute le fallbackPlayer sur URI audio identique pour prévenir double son, contrôle auditif encore requis. Multi-audio/vidéo hors pilote : message demandant split, pas repli silencieux. SAR hors mission.
+
+## v0.0.17 — premier échec CI, cause technique précise
+PR pilote run 36077976661 : compileDebugKotlin FAILED, CapCutMultitrackEditorV06.kt:1007 unresolved reference clickable ; oubli d'import Compose. Correctif unique : ajouter import androidx.compose.foundation.clickable. Aucun APK construit dans cette tentative, pas de régression fonctionnelle prouvée. Nouvelle CI requise.
