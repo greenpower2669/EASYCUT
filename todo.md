@@ -422,4 +422,5 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 
 ## v0.0.17 — résultat CI pilote
 - [x] Run PR #1 36078108340 : tests JVM, lint, compilation APK et AAB réussis ; précédent run 36077976661 échoué sur import clickable puis corrigé.
-- [ ] Fusion main et URL GitHub Release avec les fichiers exacts, puis validation Android A/B de Fab.
+- [x] Fusion main du PR #1 : commit 449121cb816dc0da204e2f2ba0a23ff1fe665023 ; code pilote v0.0.17 intégré.
+- [ ] Confirmer URL exacte de GitHub Release, présence de EASYCUT-v0.0.17-arm64-debug.apk et EASYCUT-v0.0.17-arm64-debug.aab, puis validation Android A/B de Fab.
