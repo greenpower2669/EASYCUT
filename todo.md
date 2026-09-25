@@ -414,3 +414,8 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [ ] Sur le MÊME fichier comparer split ON/OFF : FFprobe, import, stockage, image, son preview simple/multipiste, déplacement lié, export MP4, non-double son et réouverture. Tester sans audio, multi-stream et vraie résolution variable en split.
 - [ ] Hors pilote : groupe composite générique vidéo+image+autre vidéo+sons, sous-groupes et action d'extraction audio à la demande. Ne pas clore mission entière après la case.
 - [ ] Garder SAR/keyframes sous vigilance seulement, sans rouvrir sans bug observé.
+
+## v0.0.17 — CI pilote, suivi correctif
+- [x] Premier run PR 36077976661 : compileDebugKotlin échoue sur import clickable manquant dans CapCutMultitrackEditorV06 ; diagnostic lu dans le journal.
+- [x] Import androidx.compose.foundation.clickable ajouté sur branche ; aucun changement des chemins split/unifié.
+- [ ] Recontrôler tests/lint/build APK/AAB et validation téléphone, ne pas annoncer la release sur le premier échec.
