@@ -56,6 +56,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -135,6 +136,7 @@ private enum class KeyframeMarker { DIAMOND, TRIANGLE }
 @Composable
 fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
     val context = LocalContext.current
+    val disableSplit by viewModel.disableSplitAtImport.collectAsStateWithLifecycleCompat()
     val selectedClipId by viewModel.selectedClipId.collectAsStateWithLifecycleCompat()
     val selectedClipIndex = project.clips.indexOfFirst { it.id == selectedClipId }
     val selectedClip = project.clips.getOrNull(selectedClipIndex)
@@ -353,6 +355,16 @@ fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
                 onTextTrack = { panel = EditorPanel.TEXT },
                 onAddClip = { addVideosLauncher.launch(arrayOf("video/*")) },
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable {
+                    viewModel.setDisableSplitAtImport(!disableSplit)
+                },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = disableSplit, onCheckedChange = viewModel::setDisableSplitAtImport)
+                Text("Désactiver le split (test)", fontSize = 12.sp)
+            }
 
             EditorTools(
                 selectedPanel = panel,

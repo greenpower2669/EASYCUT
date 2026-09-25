@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
@@ -69,6 +70,7 @@ import com.fabvidedit.app.util.formatDuration
 fun HomeScreen(viewModel: FabVidEditViewModel) {
     var showDiagnosticJournal by remember { mutableStateOf(false) }
     val projects by viewModel.projects.collectAsStateWithLifecycleCompat()
+    val disableSplit by viewModel.disableSplitAtImport.collectAsStateWithLifecycleCompat()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) {
         viewModel.createProject(it)
     }
@@ -99,6 +101,27 @@ fun HomeScreen(viewModel: FabVidEditViewModel) {
                     onClick = { showDiagnosticJournal = true },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                 ) { Text("Journal d’erreurs — GET ERR") }
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        viewModel.setDisableSplitAtImport(!disableSplit)
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(
+                        checked = disableSplit,
+                        onCheckedChange = viewModel::setDisableSplitAtImport,
+                    )
+                    Column {
+                        Text("Désactiver le split (test)", fontWeight = FontWeight.Bold)
+                        Text(
+                            if (disableSplit) "Import vidéo + son dans un seul fichier"
+                            else "Import historique : séparation des pistes",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             }
             if (projects.isEmpty()) {
                 item {

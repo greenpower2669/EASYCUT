@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * Single entry point for every import source. The actual container is first inventoried by FFprobe;
- * video-project imports then materialize one stable source per A/V stream.
+ * the historical mode materializes one stable source per A/V stream; the test mode keeps the A/V container whole.
  */
 object MediaImportPipeline {
     private const val TAG = "FabVidImport"
@@ -19,6 +19,7 @@ object MediaImportPipeline {
     suspend fun importContainer(
         context: Context,
         uri: Uri,
+        splitStreams: Boolean = true,
         onProgress: (String) -> Unit = {},
     ): ImportedMediaContainer =
         withContext(Dispatchers.IO) {
@@ -43,14 +44,26 @@ object MediaImportPipeline {
                 }
                 logInventory(inventory)
 
-                val imported = importStage("SÉPARATION STREAMS") {
-                    StreamSourceMaterializer.split(
-                        context = context,
-                        stableUri = stableUri,
-                        displayName = name,
-                        inventory = inventory,
-                        onProgress = onProgress,
-                    )
+                val imported = if (splitStreams) {
+                    importStage("SÉPARATION STREAMS") {
+                        StreamSourceMaterializer.split(
+                            context = context,
+                            stableUri = stableUri,
+                            displayName = name,
+                            inventory = inventory,
+                            onProgress = onProgress,
+                        )
+                    }
+                } else {
+                    importStage("IMPORT UNIFIÉ (SANS SPLIT)") {
+                        UnifiedSourceMaterializer.materialize(
+                            context = context,
+                            stableUri = stableUri,
+                            displayName = name,
+                            inventory = inventory,
+                            onProgress = onProgress,
+                        )
+                    }
                 }
                 Log.i(
                     TAG,

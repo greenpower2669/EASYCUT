@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -58,6 +59,7 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -155,6 +157,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
         if (memory.isLowRamDevice) 480 else 720
     }
     val latestProject by rememberUpdatedState(project)
+    val disableSplit by viewModel.disableSplitAtImport.collectAsStateWithLifecycleCompat()
     // Decoder/surface references intentionally are not Compose state: a pointer move
     // can update the last decoded texture without recomposing the entire editor.
     val previewTextureRef = remember(project.id) { arrayOfNulls<FabVidVideoTextureView>(1) }
@@ -284,6 +287,11 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
             fallbackClipId = clip.id
         }
         fallbackClip = clip
+        // Both logical tracks can reference one A/V file. The independent audio player owns
+        // its sound in stable preview; mute the video-only fallback to avoid double playback.
+        fallbackPlayer.volume = if (previewMuted ||
+            latestProject.sourceAudioTracks.any { it.uri == clip.uri }
+        ) 0f else 1f
         fallbackPlayer.setPlaybackParameters(PlaybackParameters(clip.speed.coerceIn(0.25f, 4f)))
         val projectDeltaMs = (positionMs - clip.timelineStartMs).coerceIn(0L, clip.outputDurationMs)
         val sourceDeltaMs = (projectDeltaMs * clip.speed).toLong()
@@ -838,7 +846,9 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                 onToggleMute = {
                     previewMuted = !previewMuted
                     player.volume = if (previewMuted) 0f else 1f
-                    fallbackPlayer.volume = if (previewMuted) 0f else 1f
+                    fallbackPlayer.volume = if (previewMuted ||
+                        latestProject.sourceAudioTracks.any { it.uri == fallbackClip?.uri }
+                    ) 0f else 1f
                     if (stablePreview) syncStableAudio(currentPositionMs, isPlaying)
                 },
                 onTogglePlay = {
@@ -993,6 +1003,16 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     if (selectedSourceAudioId == id) selectedSourceAudioId = null
                 },
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable {
+                    viewModel.setDisableSplitAtImport(!disableSplit)
+                },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = disableSplit, onCheckedChange = viewModel::setDisableSplitAtImport)
+                Text("Désactiver le split (test)", fontSize = 12.sp)
+            }
 
             V06Tools(
                 selectedPanel = panel,
