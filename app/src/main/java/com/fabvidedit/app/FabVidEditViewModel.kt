@@ -65,6 +65,14 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     private val _busyMessage = MutableStateFlow<String?>(null)
     val busyMessage: StateFlow<String?> = _busyMessage.asStateFlow()
 
+    // Test switch shared by Home and both editors. Default false = unchanged historical split.
+    private val _disableSplitAtImport = MutableStateFlow(false)
+    val disableSplitAtImport: StateFlow<Boolean> = _disableSplitAtImport.asStateFlow()
+
+    fun setDisableSplitAtImport(disabled: Boolean) {
+        _disableSplitAtImport.value = disabled
+    }
+
     private val _userMessage = MutableStateFlow<String?>(null)
     val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
@@ -82,6 +90,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
 
     fun createProject(uris: List<Uri>) {
         if (uris.isEmpty()) return
+        val splitStreams = !_disableSplitAtImport.value
         viewModelScope.launch {
             _busyMessage.value = "Préparation des médias…"
             try {
@@ -90,7 +99,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
             FabVidDiagnostics.mark("IMPORT_START")
             val imageUris = uris.filter(::isImageUri)
             val videoUris = uris.filterNot(::isImageUri)
-            val imported = importContainers(videoUris)
+            val imported = importContainers(videoUris, splitStreams)
             val additions = flattenImported(
                 containers = imported,
                 startingVideoTrack = 0,
@@ -128,6 +137,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     fun addClips(uris: List<Uri>, timelineStartMs: Long = 0L) {
         val current = _activeProject.value ?: return
         if (uris.isEmpty()) return
+        val splitStreams = !_disableSplitAtImport.value
         viewModelScope.launch {
             _busyMessage.value = "Préparation des nouveaux médias…"
             try {
@@ -139,7 +149,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
             val videoUris = uris.filterNot(::isImageUri)
             val startVideoTrack = (project.clips.maxOfOrNull(VideoClip::timelineTrackIndex) ?: -1) + 1
             val startAudioTrack = (project.sourceAudioTracks.maxOfOrNull(SourceAudioTrack::timelineTrackIndex) ?: -1) + 1
-            val imported = importContainers(videoUris)
+            val imported = importContainers(videoUris, splitStreams)
             val additions = flattenImported(
                 containers = imported,
                 startingVideoTrack = startVideoTrack,
@@ -1218,11 +1228,11 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         _userMessage.value = null
     }
 
-    private suspend fun importContainers(uris: List<Uri>): List<ImportedMediaContainer> =
+    private suspend fun importContainers(uris: List<Uri>, splitStreams: Boolean): List<ImportedMediaContainer> =
         uris.mapNotNull { uri ->
             persistReadPermission(uri)
             runCatching {
-                MediaImportPipeline.importContainer(getApplication(), uri) { stage ->
+                MediaImportPipeline.importContainer(getApplication(), uri, splitStreams = splitStreams) { stage ->
                     _busyMessage.value = stage
                     FabVidDiagnostics.mark(stage)
                 }
