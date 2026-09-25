@@ -396,10 +396,21 @@ FAB-SOURCE-COMPAT-011 est la mission utilisateur **en tête** après validation 
 - [ ] Vigilance sur autres animations, SAR/DAR changeants et aperçu/MP4 ; ne pas transformer une vigilance en régression présumée.
 - [ ] FFprobe : la vidéo ouverte et la vidéo refusée sont DIFFERENTES ; la cause du refus de la seconde reste à établir, sans déduire une instabilité sur le même média.
 
-## 25/09/2026 — FAB-IMPORT-UNIFIED-012 : étude autorisée, code interdit
+## 25/09/2026 — FAB-IMPORT-UNIFIED-012 : étude historique, pilote autorisé ensuite
 - [ ] [FAB / DOCUMENTÉ] Préserver l'idée d'origine : objets composites/groupés (vidéo+son, images, deuxième vidéo, autres médias et sous-groupes) se déplaçant et se synchronisant ensemble, modifiables/détachables individuellement ; distinguer lien logique et split physique.
 - [ ] [AGENT / AUDIT AVANT CODE] Cartographier le flux actuel URI → clone éventuel → FFprobe initial → validation → scans → split/remux → lecture/export ; classifier les erreurs par étape. Le premier échec FFprobe précède le split. Comparer le même média dans les futurs modes unique/split, sans inférer une cause depuis deux fichiers différents.
-- [ ] [AGENT / CONCEPTION NON AUTORISÉE À CODER] Prévoir fichier A/V unique par défaut et case à cocher « Séparer les pistes à l'import (split) » décochée par défaut ; conserver la séparation historique explicite pour multi-stream/segments/récupération. Étudier extraction audio après coup, lecture audio unique et absence de copies physiques inutiles.
+- [ ] [AGENT / CONCEPTION NON AUTORISÉE À CODER] Prévoir fichier A/V unique SUR CASE « Désactiver le split (test) » COCHÉE ; split historique actif par défaut (case décochée) pour multi-stream/segments/récupération. Étudier extraction audio après coup, lecture audio unique et absence de copies physiques inutiles.
 - [ ] [AGENT / CONCEPTION] Examiner capacité Media3 lecture directe et audio embarqué, champs syncGroupId/syncLocked, groupe multi-objets/imbriqué, gestion des horodatages, migration projets et nettoyage sûr ; identifier les formats nécessitant split ou repli expliqué, sans promesse universelle.
 - [ ] [FAB / VALIDATION ULTÉRIEURE] Après autorisation de coder seulement : import ordinaire sans split, split coché, extraction/déplacement groupé sans double son, médias atypiques/plusieurs pistes, intégrité des projets et des exports, mesures stockage/performance et test Samsung. Ne pas rouvrir le dossier SAR sans bug constaté.
 - **Statut : aucun code / build / release demandé, ni exécuté par cette entrée documentaire.**
+
+## v0.0.17 — pilote split ON/OFF dans la même application (25/09/2026)
+- [x] Fab corrige : case « Désactiver le split (test) » décochée par défaut ; ancien split actif. Même app, même version pour comparer un même fichier.
+- [x] Case partagée à l'accueil et aux deux éditeurs, option capturée au début de l'import ; anciens projets inchangés.
+- [x] Bifurcation après FFprobe commun : split historique inchangé OU source A/V durable à URI identiques pour les deux pistes LOGIQUES, même syncGroup. Prévisualisation simple prévient doublon audio.
+- [x] Pilote limité à 1 vidéo et 0/1 audio ; plusieurs streams demandent split. Scanner intra-fichier non exécuté sur voie unifiée, pas de promesse de gestion résolution variable.
+- [x] Tests JVM de garde ajoutés ; code50 / version 0.0.17, noms APK/AAB versionnés ; documents FAB Copilot synchronisés dans le cycle.
+- [ ] Confirmer CI testDebugUnitTest/lintDebug/assembleDebug/bundleDebug, publication et fichiers avant lien d'installation.
+- [ ] Sur le MÊME fichier comparer split ON/OFF : FFprobe, import, stockage, image, son preview simple/multipiste, déplacement lié, export MP4, non-double son et réouverture. Tester sans audio, multi-stream et vraie résolution variable en split.
+- [ ] Hors pilote : groupe composite générique vidéo+image+autre vidéo+sons, sous-groupes et action d'extraction audio à la demande. Ne pas clore mission entière après la case.
+- [ ] Garder SAR/keyframes sous vigilance seulement, sans rouvrir sans bug observé.
