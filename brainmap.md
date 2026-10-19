@@ -1,5 +1,9 @@
 # brainmap.md — FabVidEdit
 
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+V06MultitrackTimeline capte ≥2 pointers en phase Initiale, conserve le point d'ancrage au zoom et propage magnetEnabled/highContrast aux lanes. V06VideoLane et V018AudioLane suivent les offsets de trim via états locaux temporaires ; ViewModel ne reçoit une mutation qu'à la fin du drag. V06PlaybackControls fournit deux pas ≈33ms. VM audio snap s'appuie sur TimelineSnapPolicy. CI agent/easycut-touch-pro-019.
+
+
 ## EASYCUT-TOUCH-PRO-019 — cartographie
 `TimelineSnapPolicy` est un calcul pur (bords, tête de lecture, début projet) utilisé par `TimelineEditing.moveClipOnTimeline` avec paramètre snapEnabled ; `FabVidEditViewModel.moveClip` propage le réglage et l'historique Undo. Le mode ripple est appliqué par `removeSelectedClip(ripple)`. Les interactions UI sont dans `CapCutMultitrackEditorV06` (gestes, zoom, lecteur précis, palettes). `ProjectStore` lit les entrées individuellement, garde previous_snapshot, ne remplace pas un JSON partiellement récupéré. Tests JVM SnapPolicy ; CI APK/AAB par GitHub Actions.
 

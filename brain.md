@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+Version candidate 0.0.19/code 52. Gestes et modes ajoutés dans CapCutMultitrackEditorV06 ; déplacement direct au centre par glissement, bordures pour trim, zoom pincé avec ancre du centre, previews périodiques pendant trim sans sauvegarde intermédiaire, boutons de pas ≈33 ms (cadence exacte source à étudier), snap/ripple/contraste activables, duplication et vitesse depuis barre. Test de terrain indispensable.
+
+
 ## EASYCUT-TOUCH-PRO-019 — ergonomie tactile (accord Fab)
 Déplacement vidéo/audio direct à un doigt sur la zone centrale, poignées de coupe prioritaires en bordure. Zoom pincé ancré dans la frise, snap facultatif aux autres bords / tête de lecture, suppression en mode compactage ou trou préservé, navigation à petits pas près de l'image, outils directs et affichage contrasté. Chaque geste persiste un seul changement et garde les keyframes, projets originaux et export existant. Le stockage tient une sauvegarde précédente JSON, récupération partielle sans écrasement automatique. Les tests physiques et codec restent nécessaires.
 

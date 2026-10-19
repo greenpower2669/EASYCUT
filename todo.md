@@ -1,5 +1,13 @@
 # todo.md — FabVidEdit
 
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+- [x] Codage candidat UI de zoom, drag, trim vivant, aimant/ripple, haptique, boutons fins, contraste, duplications ; enregistrement de coupe seulement en fin de geste.
+- [x] Version 0.0.19, workflow APK/AAB direct depuis branche sans merge.
+- [ ] Exécuter CI et corriger erreur de compilation éventuelle avant fournir lien.
+- [ ] Contrôler tactile Samsung (drag vs scroll vs pinch, clip court, reconstitution source), films exportés, sauvegarde/restauration.
+- [ ] Améliorer vraie navigation frame-by-frame lorsque cadence source fiable ; les boutons ±33ms ne prétendent pas être une image réelle universelle.
+
+
 ## EASYCUT-TOUCH-PRO-019 — 19/10/2026
 - [x] Définir la priorité de gestes : poignées vs drag central, conserver action au relâchement.
 - [x] Introduire SnapPolicy pur et test de bords/playhead ; mode ripple facultatif dans ViewModel.

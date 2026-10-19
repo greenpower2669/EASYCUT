@@ -50,24 +50,24 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.18-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.18-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.19-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.19-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
       - name: Publish test APK and AAB as GitHub prerelease
-        if: ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/agent/easycut-audit-tactile-export-018')) || (github.event_name == 'workflow_dispatch' && inputs.publish == true)) && steps.gradle_build.outputs.status == '0'
+        if: ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/agent/easycut-touch-pro-019')) || (github.event_name == 'workflow_dispatch' && inputs.publish == true)) && steps.gradle_build.outputs.status == '0'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.18-audit-${short_sha}"
+          tag="easycut-v0.0.19-touch-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.18-arm64-debug.apk \
-            EASYCUT-v0.0.18-arm64-debug.aab \
+            EASYCUT-v0.0.19-arm64-debug.apk \
+            EASYCUT-v0.0.19-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.18 — audit tactile/export ${short_sha}" \
-            --notes "Branche de test, non fusionnée : poignées tactiles 20 dp, retour visuel, garde contre opérations export concurrentes, meilleure annulation. APK direct et AAB à tester sur téléphone."
+            --title "EASYCUT v0.0.19 — tactile avancé ${short_sha}" \
+            --notes "Branche de test sans merge : zoom par pincement, trims et image de bord, manipulation directe à un doigt, aimant facultatif, montage libre/compactage, navigation image approximative à 30 fps, outils contextuels, contraste et restauration des projets. Tester toutes les pistes et MP4 sur téléphone."

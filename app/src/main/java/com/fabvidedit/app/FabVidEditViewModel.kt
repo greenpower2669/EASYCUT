@@ -1026,15 +1026,20 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         _selectedClipId.value = null
     }
 
-    fun moveSourceAudioTrack(id: String, targetTrackIndex: Int, targetStartMs: Long) {
+    fun moveSourceAudioTrack(id: String, targetTrackIndex: Int, targetStartMs: Long, snapEnabled: Boolean = true, playheadMs: Long? = null) {
         val project = _activeProject.value ?: return
         val anchor = project.sourceAudioTracks.firstOrNull { it.id == id } ?: return
+        val requestedStart = if (snapEnabled) {
+            val neighbors = project.sourceAudioTracks.filter { it.id != id && it.timelineTrackIndex == targetTrackIndex }
+            TimelineSnapPolicy.snapStart(targetStartMs, anchor.outputDurationMs,
+                neighbors.flatMap { listOf(it.timelineStartMs, it.timelineStartMs + it.outputDurationMs) }, playheadMs)
+        } else targetStartMs
         val groupId = anchor.syncGroupId.takeIf { anchor.syncLocked }
         if (groupId == null) {
             updateProject(project.copy(sourceAudioTracks = project.sourceAudioTracks.map { track ->
                 if (track.id == id) track.copy(
                     timelineTrackIndex = targetTrackIndex.coerceAtLeast(0),
-                    timelineStartMs = targetStartMs.coerceAtLeast(0L),
+                    timelineStartMs = requestedStart.coerceAtLeast(0L),
                 ) else track
             }))
             return
@@ -1042,7 +1047,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         val groupStarts = project.clips.filter { it.syncLocked && it.syncGroupId == groupId }.map { it.timelineStartMs } +
             project.sourceAudioTracks.filter { it.syncLocked && it.syncGroupId == groupId }.map { it.timelineStartMs }
         val minimumStart = groupStarts.minOrNull() ?: anchor.timelineStartMs
-        val requestedDelta = targetStartMs.coerceAtLeast(0L) - anchor.timelineStartMs
+        val requestedDelta = requestedStart.coerceAtLeast(0L) - anchor.timelineStartMs
         val delta = requestedDelta.coerceAtLeast(-minimumStart)
         updateProject(project.copy(
             clips = project.clips.map { clip ->
