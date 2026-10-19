@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## Mise à jour FabCopilot — 19/10/2026
+Contrat EASYCUT-AUDIT-018 (19/10/2026) : conserver l'aperçu et le multipiste validés, sans modification des vidéos originales, SAR ou keyframes. Poignées 20dp des deux côtés en vidéo et audio, retour visuel pendant glissement et coupe écrite au relâchement. Protection contre export chevauché ou annulé et nettoyage des temporaires seulement à la fin du travail natif. Candidat non testé sur Android.
+
+
 ## Contrat rétabli (FABVID-REG-001)
 Version de référence technique : branche `agent/v0.25-matrix-texture-preview` au commit `0cb6d330a88d8d654f4e5bc9edd50e5a523887d4`. Branche de correction : `agent/v0.25.1-fab-copilot-regressions`. Fab constate : aperçu bugué, gros fichiers mal optimisés, formats de sortie et paramètres régressés. Les symptômes précis sur téléphone restent à reproduire ; ne pas prétendre les avoir validés.
 

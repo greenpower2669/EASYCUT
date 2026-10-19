@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 : vérifié en code : grips 10dp vidéo/12dp audio, feedback gestuel absent, trim sans changement enregistrable ; ExportManager.cancel supprimait le cache pendant FFmpeg synchrone et les anciennes phases pouvaient écrire des états après annulation. Correctifs candidats 0.0.18 : 20dp, translation gestuelle, no-op trim, annulation non traitée comme erreur et barrières de génération. Crashes réels non reproduits, cause non établie ; codecs, Media3, disque et résilience native restent sous surveillance.
+
+
 ## FABVID-EXP-001 — paramètres export perdus (cause confirmée par lecture du code)
 Symptôme rapporté par Fab : formats de sortie et paramètres revenus incorrects. Dans la v0.25 le moteur déclare `ExportVideoCodec`, `ExportFrameRate`, `ExportResolution`, `ExportBitrate`, mais `EditorScreen.ExportOptionsDialog` n'offre que 720/1080/4K et envoie un `Int`. Le ViewModel crée alors un `ExportSettings` par défaut, alors que le dialogue affiche H.264 et le défaut moteur était H.265. Correction sur cette branche : paramètre complet UI → moteur, H.264 par défaut, H.265 exposé avec garde matérielle. Pas encore validé sur téléphone. Intervalle continu 2–50 non encore réalisé.
 

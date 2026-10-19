@@ -258,8 +258,10 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun trimVisualMedia(project: VideoProject, clipId: String, startMs: Long, endMs: Long) {
         val anchor = project.clips.firstOrNull { it.id == clipId } ?: return
+        if (anchor.durationMs < 2L) return
         val start = startMs.coerceIn(0L, anchor.durationMs - 1L)
         val end = endMs.coerceIn(start + 1L, anchor.durationMs)
+        if (start == anchor.trimStartMs && end == anchor.trimEndMs) return
         val requestedLeftOutputMs = ((start - anchor.trimStartMs) / anchor.speed.coerceAtLeast(0.01f)).toLong()
         val requestedRightOutputMs = ((anchor.trimEndMs - end) / anchor.speed.coerceAtLeast(0.01f)).toLong()
         val groupId = anchor.syncGroupId.takeIf { anchor.syncLocked }

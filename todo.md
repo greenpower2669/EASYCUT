@@ -1,5 +1,15 @@
 # todo.md — FabVidEdit
 
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 (19/10/2026) :
+- [x] Auditer UI de timeline, sauvegarde trim, pipeline export et workflow ; lire mémoires FabCopilot.
+- [x] Préparer candidat 0.0.18 sur branche isolée, sans fusion main.
+- [ ] Confirmer CI tests/lint/assembleDebug/bundleDebug et Release APK direct/AAB ; aucun lien avant vérification.
+- [ ] Tester poignées gauche/droite vidéo+audio, zoom, groupes liés, sources courtes, vitesse, contrôle MP4.
+- [ ] Reproduire exports H264/HEVC et annuler pendant proxy/encodage/finalisation ; tester grande source, faible stockage, GET ERR.
+- [ ] Auditer chaque autre commande potentiellement inopérante et corriger d'après preuves, sans régresser les fonctions validées.
+
+
 ## PLAN D'EXÉCUTION DE L'ASSISTANT — FAB-MISSION-001 (23/09/2026)
 
 **Les ordres de mission de Fab sont dans [`ordres-de-mission.md`](ordres-de-mission.md), registre canonique séparé et persistant.** Lire ce fichier AVANT de décider de quoi coder et AVANT de répondre « que reste-t-il ? ». Une demande utilisateur reste inchangée tant que non produite ; seul Fab peut l'annuler, la remplacer ou en changer la priorité. `todo.md` décrit MES actions techniques et les vérifications, pas le carnet des projets de Fab. `debughistorical.md` = récit de bugs ; `topo.md` = aide-mémoire technique facultatif de l'agent.

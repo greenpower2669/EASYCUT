@@ -1625,9 +1625,10 @@ private fun androidx.compose.foundation.layout.BoxScope.V06TrimHandle(
     val modifier = if (left) Modifier.align(Alignment.CenterStart) else Modifier.align(Alignment.CenterEnd)
     Box(
         modifier
-            .width(10.dp)
+            .width(20.dp)
             .fillMaxHeight()
             .background(FabPink.copy(alpha = 0.92f))
+            .graphicsLayer { translationX = dragPx }
             .pointerInput(clip.id, left, clip.trimStartMs, clip.trimEndMs, durationMs) {
                 detectDragGestures(
                     onDragEnd = {
@@ -1722,7 +1723,7 @@ private fun V06VideoLane(
         clips.forEach { clip ->
             val startProgress = clip.timelineStartMs.toFloat() / durationMs.toFloat()
             val durationProgress = clip.outputDurationMs.toFloat() / durationMs.toFloat()
-            val clipWidth = (width * durationProgress).coerceAtLeast(46.dp)
+            val clipWidth = (width * durationProgress).coerceAtLeast(64.dp)
             var dragX by remember(clip.id) { mutableStateOf(0f) }
             var dragY by remember(clip.id) { mutableStateOf(0f) }
             val dragXDp = with(density) { dragX.toDp() }
@@ -1901,7 +1902,7 @@ private fun V018AudioLane(
         tracks.forEach { track ->
             val startProgress = track.timelineStartMs.toFloat() / durationMs.toFloat()
             val durationProgress = track.outputDurationMs.toFloat() / durationMs.toFloat()
-            val itemWidth = (width * durationProgress).coerceAtLeast(54.dp)
+            val itemWidth = (width * durationProgress).coerceAtLeast(64.dp)
             var dragX by remember(track.id) { mutableFloatStateOf(0f) }
             var dragY by remember(track.id) { mutableFloatStateOf(0f) }
             val dragXDp = with(density) { dragX.toDp() }
@@ -2008,7 +2009,8 @@ private fun androidx.compose.foundation.layout.BoxScope.V018AudioTrimHandle(
     var dragPx by remember(track.id, left, track.trimStartMs, track.trimEndMs) { mutableFloatStateOf(0f) }
     val modifier = if (left) Modifier.align(Alignment.CenterStart) else Modifier.align(Alignment.CenterEnd)
     Box(
-        modifier.width(12.dp).fillMaxHeight().background(FabMint.copy(alpha = 0.88f))
+        modifier.width(20.dp).fillMaxHeight().background(FabMint.copy(alpha = 0.88f))
+            .graphicsLayer { translationX = dragPx }
             .pointerInput(track.id, left, track.trimStartMs, track.trimEndMs, durationMs) {
                 detectDragGestures(
                     onDragEnd = {
