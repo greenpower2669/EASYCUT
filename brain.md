@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## Sécurité récupération — 0.0.19
+Sauvegardes : la dernière version complète validée est mise de côté avant remplacement. Si la source JSON est incomplète ou malformée, garder l'original brut séparément, afficher les projets récupérables et ne jamais remplacer automatiquement la source par une liste tronquée. L'éditeur ne doit pas diffuser ces données à un service externe.
+
+
 ## Retouches de cohérence tactile — 19/10/2026
 Navigation fine : prendre la cadence décodée réelle si Media3 la fournit, autrement avancer d'environ 33 ms ; aucun engagement de frame-accurate universel. Geste de trim affiché et borné par les limites des sources ; meilleur contraste de la frise et commandes zoom élargies. Curseur d'opacité : un seul point d'annulation par glissement via begin/endContinuousEdit. Garde continue pour changement de sélection.
 

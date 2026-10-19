@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## Sécurité récupération — 0.0.19
+La récupération du JSON précédent ne doit pas valider seulement une enveloppe JSONArray : une entrée endommagée reste possible. Snapshot de sauvegarde désormais issu du dernier chargement complet (ou d'un save valide) ; source abîmée conservée à part `KEY_RAW_RECOVERY` avant tout écrasement éventuel. Aucun transfert hors application.
+
+
 ## Compatibilité API Kotlin EASYCUT-TOUCH-PRO-019
 `removeSelectedClip(ripple: Boolean = true)` a maintenant un paramètre optionnel : les références de fonction `::removeSelectedClip` dans les éditeurs historiques ne sont plus automatiquement de type `() -> Unit`. Deux callbacks d'anciennes vues adaptés explicitement en lambda sans argument pour éviter une erreur de compilation, sans modifier leur politique ripple historique.
 

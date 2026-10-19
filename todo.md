@@ -1,5 +1,9 @@
 # todo.md — FabVidEdit
 
+## Sécurité récupération — 0.0.19
+- [x] Éviter de sauvegarder comme backup un JSON partiellement corrompu ; mémoriser le dernier snapshot entièrement parsé et préserver la source brute dans `KEY_RAW_RECOVERY`.
+
+
 ## Compatibilité API Kotlin EASYCUT-TOUCH-PRO-019
 `removeSelectedClip(ripple: Boolean = true)` a maintenant un paramètre optionnel : les références de fonction `::removeSelectedClip` dans les éditeurs historiques ne sont plus automatiquement de type `() -> Unit`. Deux callbacks d'anciennes vues adaptés explicitement en lambda sans argument pour éviter une erreur de compilation, sans modifier leur politique ripple historique.
 

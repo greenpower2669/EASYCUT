@@ -25,12 +25,16 @@ import org.json.JSONObject
 
 class ProjectStore(context: Context) {
     private val preferences = context.getSharedPreferences("fab_vid_edit_projects", Context.MODE_PRIVATE)
+    private var lastCompleteSnapshot: String? = null
 
     fun load(): List<VideoProject> {
         val primary = preferences.getString(KEY_PROJECTS, null) ?: return emptyList()
         var recovered = false
         val array = runCatching { JSONArray(primary) }.getOrElse { error ->
             Log.e(TAG, "Project index damaged; attempting last snapshot", error)
+            if (preferences.getString(KEY_RAW_RECOVERY, null) == null) {
+                preferences.edit().putString(KEY_RAW_RECOVERY, primary).apply()
+            }
             val backup = preferences.getString(KEY_BACKUP, null) ?: return emptyList()
             recovered = true
             runCatching { JSONArray(backup) }.getOrElse { backupError ->
@@ -52,6 +56,14 @@ class ProjectStore(context: Context) {
             } else project
         }
         // Never auto-save a partial recovery and overwrite the only complete source.
+        if (recovered) {
+            // Preserve the exact damaged primary JSON for later manual recovery.
+            if (preferences.getString(KEY_RAW_RECOVERY, null) == null) {
+                preferences.edit().putString(KEY_RAW_RECOVERY, primary).apply()
+            }
+        } else {
+            lastCompleteSnapshot = primary
+        }
         if (!recovered && repaired != loaded) save(repaired)
         repaired.forEach(::logMultitrackReload)
         return repaired.sortedByDescending(VideoProject::updatedAt)
@@ -62,12 +74,10 @@ class ProjectStore(context: Context) {
         projects.forEach { array.put(it.toJson()) }
         val serialized = array.toString()
         val editor = preferences.edit()
-        val previous = preferences.getString(KEY_PROJECTS, null)
-        if (previous != null && previous != serialized &&
-            runCatching { JSONArray(previous) }.isSuccess) {
-            editor.putString(KEY_BACKUP, previous)
-        }
+        // Use the last fully parsed state, never a partial or malformed array as a backup.
+        lastCompleteSnapshot?.takeIf { it != serialized }?.let { editor.putString(KEY_BACKUP, it) }
         editor.putString(KEY_PROJECTS, serialized).apply()
+        lastCompleteSnapshot = serialized
     }
 
     private fun VideoProject.toJson(): JSONObject = JSONObject().apply {
@@ -450,6 +460,7 @@ class ProjectStore(context: Context) {
     private companion object {
         const val KEY_PROJECTS = "projects_v1"
         const val KEY_BACKUP = "projects_v1_previous_snapshot"
+        const val KEY_RAW_RECOVERY = "projects_v1_raw_recovery"
         const val TAG = "FabVidProjectStore"
     }
 }
