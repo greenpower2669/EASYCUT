@@ -885,6 +885,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     }
                 },
                 onSeek = ::seekAndStop,
+                onStep = { delta -> seekAndStop((currentPositionMs + delta * 33L).coerceIn(0L, project.durationMs)) },
                 onDiamond = {
                     if (selectedKeyframe == null) viewModel.addSelectedKeyframe(currentPositionMs)
                     else viewModel.removeSelectedKeyframe(currentPositionMs)
@@ -1044,6 +1045,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     }
                 },
                 onSplit = { viewModel.splitSelectedAt(currentPositionMs) },
+                onDuplicate = viewModel::duplicateSelected,
                 onDelete = {
                     if (rippleDeleteEnabled) viewModel.removeSelectedClip() else viewModel.removeSelectedClipFree()
                     inspectorOpen = false
@@ -1443,6 +1445,7 @@ private fun V06PlaybackControls(
     onToggleMute: () -> Unit,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
+    onStep: (Int) -> Unit,
     onDiamond: () -> Unit,
 ) {
     Row(
@@ -1459,7 +1462,8 @@ private fun V06PlaybackControls(
                 tint = if (previewMuted) MaterialTheme.colorScheme.onSurfaceVariant else FabMint,
             )
         }
-        Text(formatDuration(currentPositionMs), fontSize = 10.sp, modifier = Modifier.padding(start = 6.dp))
+        TextButton(onClick = { onStep(-1) }, modifier = Modifier.width(38.dp)) { Text("◀", fontSize = 13.sp) }
+        Text(formatDuration(currentPositionMs), fontSize = 10.sp, modifier = Modifier.padding(start = 2.dp))
         Slider(
             value = currentPositionMs.coerceIn(0L, durationMs.coerceAtLeast(1L)).toFloat(),
             onValueChange = { onSeek(it.toLong()) },
@@ -1467,6 +1471,7 @@ private fun V06PlaybackControls(
             modifier = Modifier.weight(1f),
         )
         Text(formatDuration(durationMs), fontSize = 10.sp)
+        TextButton(onClick = { onStep(1) }, modifier = Modifier.width(38.dp)) { Text("▶", fontSize = 13.sp) }
         if (showDiamond) {
             IconButton(onClick = onDiamond) {
                 Box(
@@ -1673,6 +1678,7 @@ private fun androidx.compose.foundation.layout.BoxScope.V06TrimHandle(
     durationMs: Long,
     timelineWidthPx: Float,
     onTrimClip: (String, Long, Long, Boolean) -> Unit,
+    onProgress: (Float) -> Unit,
 ) {
     var dragPx by remember(clip.id, left, clip.trimStartMs, clip.trimEndMs) { mutableFloatStateOf(0f) }
     val modifier = if (left) Modifier.align(Alignment.CenterStart) else Modifier.align(Alignment.CenterEnd)
@@ -1681,7 +1687,6 @@ private fun androidx.compose.foundation.layout.BoxScope.V06TrimHandle(
             .width(20.dp)
             .fillMaxHeight()
             .background(FabPink.copy(alpha = 0.92f))
-            .graphicsLayer { translationX = dragPx }
             .pointerInput(clip.id, left, clip.trimStartMs, clip.trimEndMs, durationMs) {
                 detectDragGestures(
                     onDragEnd = {
@@ -1697,12 +1702,13 @@ private fun androidx.compose.foundation.layout.BoxScope.V06TrimHandle(
                                 .coerceIn(clip.trimStartMs + 250L, clip.durationMs)
                             onTrimClip(clip.id, clip.trimStartMs, end, false)
                         }
-                        dragPx = 0f
+                        dragPx = 0f; onProgress(0f)
                     },
-                    onDragCancel = { dragPx = 0f },
+                    onDragCancel = { dragPx = 0f; onProgress(0f) },
                 ) { change, amount ->
                     change.consume()
                     dragPx += amount.x
+                    onProgress(dragPx)
                 }
             },
         contentAlignment = Alignment.Center,
@@ -1782,11 +1788,14 @@ private fun V06VideoLane(
             val clipWidth = (width * durationProgress).coerceAtLeast(64.dp)
             var dragX by remember(clip.id) { mutableStateOf(0f) }
             var dragY by remember(clip.id) { mutableStateOf(0f) }
+            var trimLeftPx by remember(clip.id, clip.trimStartMs, clip.trimEndMs) { mutableFloatStateOf(0f) }
+            var trimRightPx by remember(clip.id, clip.trimStartMs, clip.trimEndMs) { mutableFloatStateOf(0f) }
+            val previewClipWidth = (clipWidth + with(density) { (trimRightPx - trimLeftPx).toDp() }).coerceAtLeast(40.dp)
             val dragXDp = with(density) { dragX.toDp() }
             val dragYDp = with(density) { dragY.toDp() }
             Box(
-                modifier = Modifier.offset(x = width * startProgress + dragXDp, y = dragYDp).padding(vertical = 3.dp)
-                    .width(clipWidth).height(36.dp).clip(RoundedCornerShape(7.dp))
+                modifier = Modifier.offset(x = width * startProgress + dragXDp + with(density) { trimLeftPx.toDp() }, y = dragYDp).padding(vertical = 3.dp)
+                    .width(previewClipWidth).height(36.dp).clip(RoundedCornerShape(7.dp))
                     .background(FabPurple.copy(alpha = if (dragX != 0f || dragY != 0f) 0.72f else 0.44f))
                     .border(if (clip.id == selectedClipId) 2.dp else 1.dp, if (clip.id == selectedClipId) FabPink else FabPurple, RoundedCornerShape(7.dp))
                     .pointerInput(clip.id, clip.outputDurationMs) {
@@ -1820,7 +1829,7 @@ private fun V06VideoLane(
                         }
                     },
             ) {
-                V06ClipFilmstrip(clip = clip, clipWidth = clipWidth)
+                V06ClipFilmstrip(clip = clip, clipWidth = previewClipWidth)
                 if (clip.id == selectedClipId) {
                     V06TrimHandle(
                         left = true,
@@ -1828,6 +1837,11 @@ private fun V06VideoLane(
                         durationMs = durationMs,
                         timelineWidthPx = timelineWidthPx,
                         onTrimClip = onTrimClip,
+                        onProgress = { px ->
+                            val leftBoundMs = -minOf(clip.timelineStartMs, (clip.trimStartMs / clip.speed).toLong())
+                            val rightBoundMs = (clip.outputDurationMs - 250L).coerceAtLeast(0L)
+                            trimLeftPx = px.coerceIn(leftBoundMs.toFloat() / durationMs * timelineWidthPx, rightBoundMs.toFloat() / durationMs * timelineWidthPx)
+                        },
                     )
                     V06TrimHandle(
                         left = false,
@@ -1835,7 +1849,17 @@ private fun V06VideoLane(
                         durationMs = durationMs,
                         timelineWidthPx = timelineWidthPx,
                         onTrimClip = onTrimClip,
+                        onProgress = { px ->
+                            val leftBoundMs = -(clip.outputDurationMs - 250L).coerceAtLeast(0L)
+                            val rightBoundMs = ((clip.durationMs - clip.trimEndMs) / clip.speed).toLong()
+                            trimRightPx = px.coerceIn(leftBoundMs.toFloat() / durationMs * timelineWidthPx, rightBoundMs.toFloat() / durationMs * timelineWidthPx)
+                        },
                     )
+                }
+                if (trimLeftPx != 0f || trimRightPx != 0f) {
+                    val previewMs = (clip.outputDurationMs + ((trimRightPx - trimLeftPx) / timelineWidthPx * durationMs).toLong()).coerceAtLeast(1L)
+                    Text("✂ ${formatDuration(previewMs)}", modifier = Modifier.align(Alignment.Center)
+                        .background(Color.Black.copy(alpha = 0.82f)), fontSize = 11.sp, color = Color.White, maxLines = 1)
                 }
                 if (clip.id == selectedClipId) {
                     Text(
@@ -1868,7 +1892,7 @@ private fun V06VideoLane(
                 }
                 clip.keyframes.forEach { keyframe ->
                     val k = keyframe.timeMs.toFloat() / clip.sourceDurationMs.coerceAtLeast(1L).toFloat()
-                    Box(Modifier.align(Alignment.BottomStart).offset(x = clipWidth * k.coerceIn(0f, 1f) - 5.dp, y = (-3).dp).size(10.dp).rotate(45f).clip(RoundedCornerShape(1.dp)).background(FabPink).pointerInput(keyframe.id) { detectTapGestures { onKeyframe(clip, keyframe) } })
+                    Box(Modifier.align(Alignment.BottomStart).offset(x = previewClipWidth * k.coerceIn(0f, 1f) - 5.dp, y = (-3).dp).size(10.dp).rotate(45f).clip(RoundedCornerShape(1.dp)).background(FabPink).pointerInput(keyframe.id) { detectTapGestures { onKeyframe(clip, keyframe) } })
                 }
             }
         }
@@ -1970,11 +1994,14 @@ private fun V018AudioLane(
             val itemWidth = (width * durationProgress).coerceAtLeast(64.dp)
             var dragX by remember(track.id) { mutableFloatStateOf(0f) }
             var dragY by remember(track.id) { mutableFloatStateOf(0f) }
+            var trimLeftPx by remember(track.id, track.trimStartMs, track.trimEndMs) { mutableFloatStateOf(0f) }
+            var trimRightPx by remember(track.id, track.trimStartMs, track.trimEndMs) { mutableFloatStateOf(0f) }
+            val previewWidth = (itemWidth + with(density) { (trimRightPx - trimLeftPx).toDp() }).coerceAtLeast(40.dp)
             val dragXDp = with(density) { dragX.toDp() }
             val dragYDp = with(density) { dragY.toDp() }
             Box(
-                Modifier.offset(x = width * startProgress + dragXDp, y = dragYDp)
-                    .padding(vertical = 4.dp).width(itemWidth).height(34.dp)
+                Modifier.offset(x = width * startProgress + dragXDp + with(density) { trimLeftPx.toDp() }, y = dragYDp)
+                    .padding(vertical = 4.dp).width(previewWidth).height(34.dp)
                     .clip(RoundedCornerShape(7.dp))
                     .background(FabMint.copy(alpha = if (dragX != 0f || dragY != 0f) 0.26f else 0.16f))
                     .border(if (track.id == selectedAudioId) 2.dp else 1.dp, if (track.id == selectedAudioId) Color.White else FabMint, RoundedCornerShape(7.dp))
@@ -2022,7 +2049,7 @@ private fun V018AudioLane(
                         val progress = (keyframe.timeMs - track.trimStartMs).toFloat() / track.sourceDurationMs.coerceAtLeast(1L).toFloat()
                         Box(
                             Modifier.align(Alignment.BottomStart)
-                                .offset(x = itemWidth * progress.coerceIn(0f, 1f) - 5.dp, y = (-5).dp)
+                                .offset(x = previewWidth * progress.coerceIn(0f, 1f) - 5.dp, y = (-5).dp)
                                 .size(10.dp).rotate(45f).clip(RoundedCornerShape(1.dp))
                                 .background(FabPink)
                                 .pointerInput(track.id, keyframe.id) {
@@ -2040,9 +2067,21 @@ private fun V018AudioLane(
                     fontSize = 8.sp,
                     maxLines = 1,
                 )
+                if (trimLeftPx != 0f || trimRightPx != 0f) {
+                    Text("✂ ${formatDuration((track.outputDurationMs + ((trimRightPx - trimLeftPx) / timelineWidthPx * durationMs).toLong()).coerceAtLeast(1L))}",
+                        modifier = Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = 0.8f)),
+                        fontSize = 11.sp, color = Color.White)
+                }
                 if (track.id == selectedAudioId) {
-                    V018AudioTrimHandle(true, track, durationMs, timelineWidthPx, onTrim)
-                    V018AudioTrimHandle(false, track, durationMs, timelineWidthPx, onTrim)
+                    V018AudioTrimHandle(true, track, durationMs, timelineWidthPx, onTrim) { px ->
+                        val minMs = -minOf(track.timelineStartMs, track.trimStartMs)
+                        trimLeftPx = px.coerceIn(minMs.toFloat() / durationMs * timelineWidthPx,
+                            (track.outputDurationMs - 120L).coerceAtLeast(0L).toFloat() / durationMs * timelineWidthPx)
+                    }
+                    V018AudioTrimHandle(false, track, durationMs, timelineWidthPx, onTrim) { px ->
+                        trimRightPx = px.coerceIn(-(track.outputDurationMs - 120L).coerceAtLeast(0L).toFloat() / durationMs * timelineWidthPx,
+                            (track.durationMs - track.trimEndMs).toFloat() / durationMs * timelineWidthPx)
+                    }
                     Text(
                         "⧉",
                         modifier = Modifier.align(Alignment.TopEnd).padding(end = 25.dp, top = 1.dp)
@@ -2077,12 +2116,12 @@ private fun androidx.compose.foundation.layout.BoxScope.V018AudioTrimHandle(
     durationMs: Long,
     timelineWidthPx: Float,
     onTrim: (String, Long, Long, Boolean) -> Unit,
+    onProgress: (Float) -> Unit,
 ) {
     var dragPx by remember(track.id, left, track.trimStartMs, track.trimEndMs) { mutableFloatStateOf(0f) }
     val modifier = if (left) Modifier.align(Alignment.CenterStart) else Modifier.align(Alignment.CenterEnd)
     Box(
         modifier.width(20.dp).fillMaxHeight().background(FabMint.copy(alpha = 0.88f))
-            .graphicsLayer { translationX = dragPx }
             .pointerInput(track.id, left, track.trimStartMs, track.trimEndMs, durationMs) {
                 detectDragGestures(
                     onDragEnd = {
@@ -2097,12 +2136,13 @@ private fun androidx.compose.foundation.layout.BoxScope.V018AudioTrimHandle(
                                 .coerceIn(track.trimStartMs + 120L, track.durationMs)
                             onTrim(track.id, track.trimStartMs, end, false)
                         }
-                        dragPx = 0f
+                        dragPx = 0f; onProgress(0f)
                     },
-                    onDragCancel = { dragPx = 0f },
+                    onDragCancel = { dragPx = 0f; onProgress(0f) },
                 ) { change, amount ->
                     change.consume()
                     dragPx += amount.x
+                    onProgress(dragPx)
                 }
             },
         contentAlignment = Alignment.Center,
@@ -2284,6 +2324,7 @@ private fun V06Tools(
     clipSelected: Boolean,
     onPanel: (EditorPanel) -> Unit,
     onSplit: () -> Unit,
+    onDuplicate: () -> Unit,
     onDelete: () -> Unit,
     onText: () -> Unit,
     onAdd: () -> Unit,
@@ -2294,6 +2335,7 @@ private fun V06Tools(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         V06Tool(Icons.Rounded.ContentCut, "Scinder", false, clipSelected, onSplit)
+        V06Tool(Icons.Rounded.AddCircle, "Dupliquer", false, clipSelected, onDuplicate)
         V06Tool(Icons.Rounded.Tune, "Modifier", inspectorOpen && selectedPanel == EditorPanel.CLIP, clipSelected) { onPanel(EditorPanel.CLIP) }
         V06Tool(Icons.Rounded.Animation, "Keyframes", inspectorOpen && selectedPanel == EditorPanel.MOTION, clipSelected) { onPanel(EditorPanel.MOTION) }
         V06Tool(Icons.Rounded.AutoFixHigh, "Transition", inspectorOpen && selectedPanel == EditorPanel.TRANSITION, clipSelected) { onPanel(EditorPanel.TRANSITION) }
@@ -2314,7 +2356,7 @@ private fun V06Tool(
     onClick: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.width(72.dp).clip(RoundedCornerShape(10.dp))
+        modifier = Modifier.width(88.dp).clip(RoundedCornerShape(10.dp))
             .background(if (selected) FabPink.copy(alpha = 0.16f) else Color.Transparent)
             .pointerInput(enabled) { if (enabled) detectTapGestures { onClick() } }
             .padding(vertical = 6.dp),
@@ -2328,9 +2370,9 @@ private fun V06Tool(
                 selected -> FabPink
                 else -> MaterialTheme.colorScheme.onSurface
             },
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(25.dp),
         )
-        Text(label, fontSize = 9.sp, maxLines = 1)
+        Text(label, fontSize = 11.sp, maxLines = 1)
     }
 }
 

@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : anciennes poignées 0.0.18 ne déplaçaient que la ligne colorée, pas le bord visuel du clip ; affichage maintenant attaché à largeur + origine. Points à tester : modifier la largeur d'un composable sous le pointeur peut perturber l'acheminement tactile ; min clipWidth 64dp n'est pas le temps réel ; frame stepping exact non livré. Un succès de CI n'équivaut pas à test Android.
+
+
 ## TOUCH-019 — 19/10/2026
 TOUCH-019 : avant, clips déplacés seulement après appui long, zoom timeline par boutons et aimantation du moteur toujours active ; code candidat tactile sans test réel. Risque de concurrence avec scroll horizontal/tap ou d'ancrage durant le pinch ; ne pas annoncer validé sur appareil.
 

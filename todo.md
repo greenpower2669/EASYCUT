@@ -1,5 +1,9 @@
 # todo.md — FabVidEdit
 
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : [x] prévisualisation de découpe (géométrie + durée) audio et vidéo, commit au relâchement, pas de lecture ±33ms, Dupliquer/contrôles élargis, version Android 0.0.19. [ ] Vérifier CI, release apk/aab, essais Samsung (bord en cours de geste), collision pinch/scroll/drag, frame vidéo de découpe et précision fps.
+
+
 ## TOUCH-019 — 19/10/2026
 TOUCH-019 : [x] pinch timeline, déplacement direct vidéo/audio, aimantation 12dp toggle/haptic, mode suppression libre/ripple ; [ ] découpe visuelle en direct, outils et pas de lecture ; [ ] CI + tests appareil et export réels.
 

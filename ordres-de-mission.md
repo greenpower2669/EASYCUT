@@ -18,7 +18,7 @@
 
 ### EASYCUT-TOUCH-019 — Montage tactile (19/10/2026)
 - Fab autorise le code des propositions de confort tactile : découpe directe, pinch timeline, aimantation, drag immédiat, précision, mode libre/ripple, barre d'outils et haptique.
-- Candidat en cours : pinch timeline, déplacement vidéo/audio immédiat, aimantation désactivable/vibration à l'alignement, suppression libre/ripple. Découpe visuelle, repères de précision, validation CI/téléphone encore ouverts ; ne pas clore la mission.
+- Candidat 0.0.19 : pinch, drag immédiat, aimantation et vibration, libre/ripple ; preview géométrique de découpe et durée audio/vidéo, barre Dupliquer élargie et pas de lecture ±33ms (NON frame exacte). Tests CI/téléphone, aperçu vidéo bord sous doigt, persistance options et précision VFR toujours ouverts ; ne pas clore la mission.
 
 
 ### EASYCUT-AUDIT-018 — Audit global tactile et export (demande Fab, 19/10/2026)

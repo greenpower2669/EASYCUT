@@ -50,8 +50,8 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.18-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.18-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.19-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.19-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
@@ -63,11 +63,11 @@ jobs:
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.18-audit-${short_sha}"
+          tag="easycut-v0.0.19-touch-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.18-arm64-debug.apk \
-            EASYCUT-v0.0.18-arm64-debug.aab \
+            EASYCUT-v0.0.19-arm64-debug.apk \
+            EASYCUT-v0.0.19-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.18 — audit tactile/export ${short_sha}" \
-            --notes "Branche de test, non fusionnée : poignées tactiles 20 dp, retour visuel, garde contre opérations export concurrentes, meilleure annulation. APK direct et AAB à tester sur téléphone."
+            --title "EASYCUT v0.0.19 — montage tactile ${short_sha}" \
+            --notes "Candidat tactile : glissement des bords video/audio avec duree visible, zoom deux doigts, aimantation, deplacement direct, suppression libre/ripple, outils agrandis et pas lecture 33ms. CI et test telephone requis."

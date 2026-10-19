@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : le clip sélectionné change graphiquement de largeur et position pendant le glissement de bord gauche/droit ; affichage de durée provisoire pour vidéo/audio et modification réelle une fois au relâchement. ±33ms est un pas approximatif uniquement, pas image exacte. Dupliquer ajouté à la barre, boutons 88dp/25dp. Format projet/export/keyframes préservés.
+
+
 ## TOUCH-019 — 19/10/2026
 TOUCH-019 : pinch de timeline indépendant du zoom contenu ; déplacement immédiat au centre des clips ; aimantation désactivable (12dp) vers repères + vibration ; suppression libre par défaut, ripple sur option. Ne pas modifier les originaux et préserver l'export multipiste.
 
