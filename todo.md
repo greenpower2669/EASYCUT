@@ -1,5 +1,9 @@
 # todo.md — FabVidEdit
 
+## Compatibilité API Kotlin EASYCUT-TOUCH-PRO-019
+`removeSelectedClip(ripple: Boolean = true)` a maintenant un paramètre optionnel : les références de fonction `::removeSelectedClip` dans les éditeurs historiques ne sont plus automatiquement de type `() -> Unit`. Deux callbacks d'anciennes vues adaptés explicitement en lambda sans argument pour éviter une erreur de compilation, sans modifier leur politique ripple historique.
+
+
 ## Retouches de cohérence tactile — 19/10/2026
 - [x] Stabiliser callbacks de glissement avec rememberUpdatedState ; clamp visuel des trims et retour audio différé.
 - [x] Cadence décodée utilisée pour pas lecteur si disponible ; approximation explicitement documentée.

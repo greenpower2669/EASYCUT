@@ -400,7 +400,7 @@ fun EditorScreen(viewModel: FabVidEditViewModel, project: VideoProject) {
                         onDuplicate = viewModel::duplicateSelected,
                         onMoveLeft = { viewModel.moveSelected(-1) },
                         onMoveRight = { viewModel.moveSelected(1) },
-                        onDelete = viewModel::removeSelectedClip,
+                        onDelete = { viewModel.removeSelectedClip() },
                     )
                     EditorPanel.MOTION -> TransformInspector(
                         clip = selectedClip,

@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## Compatibilité API Kotlin EASYCUT-TOUCH-PRO-019
+`removeSelectedClip(ripple: Boolean = true)` a maintenant un paramètre optionnel : les références de fonction `::removeSelectedClip` dans les éditeurs historiques ne sont plus automatiquement de type `() -> Unit`. Deux callbacks d'anciennes vues adaptés explicitement en lambda sans argument pour éviter une erreur de compilation, sans modifier leur politique ripple historique.
+
+
 ## Retouches de cohérence tactile — 19/10/2026
 Audit ajustement : callbacks capturés par pointerInput avec clés immuables risquaient d'employer aimant OFF/ON périmé ; correction rememberUpdatedState. La sélection au début de drag audio pouvait déclencher recomposition sous doigt ; différée au relâchement. Trims au-delà source pouvaient montrer une extension fictive : contraints aux bornes. Curseur opacité produisait nombreux undo : regroupement du seul curseur traité. Reste à étendre si besoin aux autres sliders.
 
