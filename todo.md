@@ -2,6 +2,7 @@
 
 ## Mise à jour FabCopilot — 19/10/2026
 EASYCUT-AUDIT-018 (19/10/2026) :
+- [x] Vérifier et réaligner les noms de fichiers copiés et transmis à gh release (.apk et .aab version 0.0.18) avant publication.
 - [x] Auditer UI de timeline, sauvegarde trim, pipeline export et workflow ; lire mémoires FabCopilot.
 - [x] Préparer candidat 0.0.18 sur branche isolée, sans fusion main.
 - [ ] Confirmer CI tests/lint/assembleDebug/bundleDebug et Release APK direct/AAB ; aucun lien avant vérification.
