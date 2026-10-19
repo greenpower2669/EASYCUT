@@ -1085,7 +1085,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                         onFilter = viewModel::setSelectedFilter,
                         onRotate = viewModel::rotateSelected,
                         onDuplicate = viewModel::duplicateSelected,
-                        onDelete = viewModel::removeSelectedClip,
+                        onDelete = { viewModel.removeSelectedClip(rippleEnabled) },
                     )
                     EditorPanel.MOTION -> TransformInspector(
                         clip = selectedClip,
@@ -1134,7 +1134,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                             track = selectedSourceAudio,
                             currentVolume = selectedSourceAudioVolume,
                             keyframeAtPlayhead = selectedSourceAudioKeyframe != null,
-                            onVolume = { viewModel.setSourceAudioTrackVolume(selectedSourceAudio.id, currentPositionMs, it) },
+                            onVolume = { viewModel.beginContinuousEdit(); viewModel.setSourceAudioTrackVolume(selectedSourceAudio.id, currentPositionMs, it) },
+                            onVolumeFinished = viewModel::endContinuousEdit,
                             onAddKeyframe = { viewModel.addSourceAudioKeyframe(selectedSourceAudio.id, currentPositionMs) },
                             onRemoveKeyframe = { viewModel.removeSourceAudioKeyframe(selectedSourceAudio.id, currentPositionMs) },
                             onFadeIn = { viewModel.applySourceAudioFadeIn(selectedSourceAudio.id) },
@@ -2185,6 +2186,7 @@ private fun V019SourceAudioInspector(
     currentVolume: Float,
     keyframeAtPlayhead: Boolean,
     onVolume: (Float) -> Unit,
+    onVolumeFinished: () -> Unit,
     onAddKeyframe: () -> Unit,
     onRemoveKeyframe: () -> Unit,
     onFadeIn: () -> Unit,
@@ -2208,6 +2210,7 @@ private fun V019SourceAudioInspector(
         Slider(
             value = currentVolume.coerceIn(0f, 1f),
             onValueChange = onVolume,
+            onValueChangeFinished = onVolumeFinished,
             valueRange = 0f..1f,
             modifier = Modifier.fillMaxWidth().height(32.dp),
         )

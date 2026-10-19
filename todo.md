@@ -1,5 +1,10 @@
 # todo.md — FabVidEdit
 
+## Compatibilité API / Undo — 19/10/2026
+- [x] Éviter la rupture d'une référence onDelete restante dans V06ClipInspector, propager le mode ripple.
+- [x] Historique source audio : grouper les ajustements de volume d'un geste de slider en une seule entrée undo.
+
+
 ## Sécurité récupération — 0.0.19
 - [x] Éviter de sauvegarder comme backup un JSON partiellement corrompu ; mémoriser le dernier snapshot entièrement parsé et préserver la source brute dans `KEY_RAW_RECOVERY`.
 

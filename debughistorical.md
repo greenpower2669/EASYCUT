@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## Compatibilité API / Undo — 19/10/2026
+L'éditeur multipiste hébergeait encore `onDelete = viewModel::removeSelectedClip` ; paramètre Boolean facultatif de la nouvelle API ne convient pas à la signature callback `() -> Unit`. Lambda explicite ajoutée avec mode ripple. Slider de volume audio source utilise désormais begin/endContinuousEdit pour éviter une pile Undo saturée par chaque mouvement.
+
+
 ## Sécurité récupération — 0.0.19
 La récupération du JSON précédent ne doit pas valider seulement une enveloppe JSONArray : une entrée endommagée reste possible. Snapshot de sauvegarde désormais issu du dernier chargement complet (ou d'un save valide) ; source abîmée conservée à part `KEY_RAW_RECOVERY` avant tout écrasement éventuel. Aucun transfert hors application.
 
