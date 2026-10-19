@@ -1,5 +1,9 @@
 # brainmap.md — FabVidEdit
 
+## État de livraison 0.0.19 — 19/10/2026
+Le calcul du zoom pincé lit `latestRawWidth` via rememberUpdatedState, pour suivre la durée actuelle du projet même quand le curseur tactile n'est pas recréé.
+
+
 ## Retouches de cohérence tactile — 19/10/2026
 Vie des gestes : rememberUpdatedState pour callbacks drag vidéo/audio même si playhead/snap changent, onDragEnd audio sélectionne après fin au lieu de recomposer au premier contact, cadre trims clamp local. V06ZoomHeader et V06Ruler = 32dp, en-tête pistes = 96dp. VM continuousEditBaseline groupe les valeurs intermédiaires du curseur opacité en une entrée Undo.
 

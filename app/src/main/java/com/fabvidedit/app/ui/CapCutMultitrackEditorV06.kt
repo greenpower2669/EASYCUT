@@ -1525,6 +1525,7 @@ private fun V06MultitrackTimeline(
     val zoomScope = rememberCoroutineScope()
     val duration = project.durationMs.coerceAtLeast(1L)
     val rawWidthAt100 = (duration / 1000f) * 18f
+    val latestRawWidth by rememberUpdatedState(rawWidthAt100)
     val fitZoom = (360f / rawWidthAt100.coerceAtLeast(1f)).coerceIn(0.05f, 8f)
     var timelineZoom by remember(project.id) { mutableFloatStateOf(fitZoom) }
     val widthDp = (rawWidthAt100 * timelineZoom).coerceIn(360f, 40_000f).dp
@@ -1573,9 +1574,9 @@ private fun V06MultitrackTimeline(
                         if (fingers >= 2) {
                             val factor = event.calculateZoom()
                             if (factor.isFinite() && kotlin.math.abs(factor - 1f) > 0.002f) {
-                                val previousWidth = (rawWidthAt100 * timelineZoom).coerceIn(360f, 40_000f)
+                                val previousWidth = (latestRawWidth * timelineZoom).coerceIn(360f, 40_000f)
                                 val nextZoom = (timelineZoom * factor).coerceIn(0.05f, 8f)
-                                val nextWidth = (rawWidthAt100 * nextZoom).coerceIn(360f, 40_000f)
+                                val nextWidth = (latestRawWidth * nextZoom).coerceIn(360f, 40_000f)
                                 val anchor = event.calculateCentroid().x
                                 val scrollTarget = ((scroll.value + anchor) * (nextWidth / previousWidth) - anchor)
                                     .toInt().coerceAtLeast(0)

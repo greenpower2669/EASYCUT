@@ -1,5 +1,9 @@
 # todo.md — FabVidEdit
 
+## État de livraison 0.0.19 — 19/10/2026
+- [ ] Blocage actuel : GitHub Actions pour 0.0.19 en état `queued` ; aucune compilation, aucun binaire ni sortie Android 0.0.19 encore confirmés. Lien du run le plus récent : https://github.com/greenpower2669/EASYCUT/actions/runs/39285173634. Contrôler le dernier run du HEAD avant toute annonce APK.
+
+
 ## Compatibilité API / Undo — 19/10/2026
 - [x] Éviter la rupture d'une référence onDelete restante dans V06ClipInspector, propager le mode ripple.
 - [x] Historique source audio : grouper les ajustements de volume d'un geste de slider en une seule entrée undo.
