@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## TOUCH-019 — compilation et publication
+Le commit `fc37221` a échoué au compilateur sur un import `withValidTransitions` ajouté à tort : il s'agit d'une méthode membre de `VideoProject`, pas d'une extension importable. Correction confirmée au commit `9036b4a` ; run push 39287739142 : tests/lint/APK/AAB/Release réussis. Un run antérieur 39287245704 a eu un 403 de publication GitHub malgré une compilation réussie ; incident non reproduit sur le dernier run. Pas de test tactile smartphone dans la CI.
+
+
 ## TOUCH-019 phase 2 — 19/10/2026
 TOUCH-019 phase 2 : anciennes poignées 0.0.18 ne déplaçaient que la ligne colorée, pas le bord visuel du clip ; affichage maintenant attaché à largeur + origine. Points à tester : modifier la largeur d'un composable sous le pointeur peut perturber l'acheminement tactile ; min clipWidth 64dp n'est pas le temps réel ; frame stepping exact non livré. Un succès de CI n'équivaut pas à test Android.
 

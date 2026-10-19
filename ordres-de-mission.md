@@ -18,7 +18,7 @@
 
 ### EASYCUT-TOUCH-019 — Montage tactile (19/10/2026)
 - Fab autorise le code des propositions de confort tactile : découpe directe, pinch timeline, aimantation, drag immédiat, précision, mode libre/ripple, barre d'outils et haptique.
-- Candidat 0.0.19 : pinch, drag immédiat, aimantation et vibration, libre/ripple ; preview géométrique de découpe et durée audio/vidéo, barre Dupliquer élargie et pas de lecture ±33ms (NON frame exacte). Tests CI/téléphone, aperçu vidéo bord sous doigt, persistance options et précision VFR toujours ouverts ; ne pas clore la mission.
+- **Livré en code et Release 0.0.19 (à valider sur téléphone)** : pinch, drag immédiat, aimantation/vibration, libre/ripple, découpe visuelle géométrique et durée audio/vidéo, barre Dupliquer et pas ±33ms (non exact à tous FPS). CI 39287739142 entièrement réussie, APK/AAB directs vérifiés. Reste : vraies frames décodées sous le doigt, stepping VFR et ergonomie/accessibilité Samsung ; ne pas clôturer sans Fab.
 
 
 ### EASYCUT-AUDIT-018 — Audit global tactile et export (demande Fab, 19/10/2026)

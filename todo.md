@@ -1,5 +1,14 @@
 # todo.md — FabVidEdit
 
+## TOUCH-019 — preuve GitHub Actions et livraison (19/10/2026)
+- [x] **CI de la version 0.0.19** : run push 39287739142 sur commit `9036b4a` ; `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `bundleDebug` et étape Release tous **SUCCESS**.
+- [x] **APK vérifié** : [EASYCUT-v0.0.19-arm64-debug.apk](https://github.com/greenpower2669/EASYCUT/releases/download/easycut-v0.0.19-touch-9036b4a/EASYCUT-v0.0.19-arm64-debug.apk) — 103746400 octets, direct, sans ZIP.
+- [x] **AAB vérifié** : [EASYCUT-v0.0.19-arm64-debug.aab](https://github.com/greenpower2669/EASYCUT/releases/download/easycut-v0.0.19-touch-9036b4a/EASYCUT-v0.0.19-arm64-debug.aab) — 35250249 octets.
+- [ ] Validation réelle Samsung (touch, clips courts, déplacement, synchro audio, export et annuler/reprendre) ; publication finale/main uniquement après Fab.
+- [ ] Compléter les points restant de TOUCH-019 : vrai contrôle de frame source (VFR/FPS), preview visuelle décodée au bord, mémorisation des préférences, revue TalkBack et ergonomie multi-doigts.
+- **Incident intermédiaire** : run 39287245704, code compilé mais publication 403. Le dernier run 39287739142 a réussi ; ne pas conclure à une interdiction durable de publier.
+
+
 ## TOUCH-019 phase 2 — 19/10/2026
 TOUCH-019 phase 2 : [x] Correction pré-CI : `withValidTransitions` est une méthode membre de VideoProject, pas une extension importable ; suppression de l'import illégal.
 

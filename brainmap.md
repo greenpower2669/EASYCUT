@@ -1,5 +1,9 @@
 # brainmap.md — FabVidEdit
 
+## Référence technique vérifiée 0.0.19
+Commit de code `9036b4a`, action `39287739142`, release `easycut-v0.0.19-touch-9036b4a` ; APK direct et AAB publiés. Tests CI réussis, instrumentation Android non réalisée. Le présent ajout est purement documentaire et n'invalide pas ces binaires.
+
+
 ## TOUCH-019 phase 2 — 19/10/2026
 TOUCH-019 phase 2 : V06VideoLane/V018AudioLane `trimLeftPx`/`trimRightPx` gèrent la géométrie Compose pendant le geste, handlers `onProgress(Float)` remontent des deltas bornés, V06TrimHandle et V018AudioTrimHandle ne changent le ViewModel qu'une fois au relâchement. V06PlaybackControls ajoute `onStep(Int)` (+/-33ms), V06Tools expose Dupliquer. Workflow/Gradle 0.0.19.
 

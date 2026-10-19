@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## Livraison 0.0.19 — distinction des preuves
+La CI 39287739142 a réussi et l'APK/AAB GitHub Release ont été vérifiés. Cela ne valide ni les gestes sur Samsung, ni l'export réel de projets volumineux ; ces critères restent ouverts dans les missions.
+
+
 ## TOUCH-019 phase 2 — 19/10/2026
 TOUCH-019 phase 2 : le clip sélectionné change graphiquement de largeur et position pendant le glissement de bord gauche/droit ; affichage de durée provisoire pour vidéo/audio et modification réelle une fois au relâchement. ±33ms est un pas approximatif uniquement, pas image exacte. Dupliquer ajouté à la barre, boutons 88dp/25dp. Format projet/export/keyframes préservés.
 
