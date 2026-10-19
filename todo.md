@@ -1,6 +1,8 @@
 # todo.md — FabVidEdit
 
 ## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : [x] Correction pré-CI : `withValidTransitions` est une méthode membre de VideoProject, pas une extension importable ; suppression de l'import illégal.
+
 TOUCH-019 phase 2 : [x] prévisualisation de découpe (géométrie + durée) audio et vidéo, commit au relâchement, pas de lecture ±33ms, Dupliquer/contrôles élargis, version Android 0.0.19. [ ] Vérifier CI, release apk/aab, essais Samsung (bord en cours de geste), collision pinch/scroll/drag, frame vidéo de découpe et précision fps.
 
 

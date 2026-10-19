@@ -38,7 +38,6 @@ import com.fabvidedit.app.model.VisualMediaKind
 import com.fabvidedit.app.model.endOfVideoTrack
 import com.fabvidedit.app.model.moveClipOnTimeline
 import com.fabvidedit.app.model.rippleDeleteClip
-import com.fabvidedit.app.model.withValidTransitions
 import java.text.SimpleDateFormat
 import java.util.ArrayDeque
 import java.util.Date
