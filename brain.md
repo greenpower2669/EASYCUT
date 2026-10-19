@@ -1,5 +1,26 @@
 # brain.md — FabVidEdit
 
+EASYCUT-ASPECT-020 suite : en fallback, `transform.normalized()` appliqué *après* la motion tronquait les zooms >4x et les déplacements au-delà de ±2, tandis que Media3 export autorisait échelles [0.05,6]. Les transformations modèles sont déjà bornées en amont ; clamp après animation limité à échelle [0.05,6] sans altérer translation/rotation temporaire.
+
+## Suivi EASYCUT-ASPECT-020
+EASYCUT-ASPECT-020 : le fallback ExoPlayer restait matrix=identity dans `PreviewV03RenderPolicy` malgré un cadre projet, étirant 9:16 dans 16:9 ; activer TextureView FIT géométrique uniquement en raw fallback, sans double scale/rotation créative, et réappliquer resize Surface. Pour Media3 Composition : canvas explicite aussi dans preview multitrack (plus de DEFAULT premier input) ; appliquer rotation source avant FIT, transformations/keyframes ensuite. `TransitionTiming` calcule désormais le même temps source et cap de transition à 1/3 du clip dans export et fallback, y compris clip accéléré. Formats média SAR/DAR non réécrits.
+
+## Livraison 0.0.19 — distinction des preuves
+La CI 39287739142 a réussi et l'APK/AAB GitHub Release ont été vérifiés. Cela ne valide ni les gestes sur Samsung, ni l'export réel de projets volumineux ; ces critères restent ouverts dans les missions.
+
+
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : le clip sélectionné change graphiquement de largeur et position pendant le glissement de bord gauche/droit ; affichage de durée provisoire pour vidéo/audio et modification réelle une fois au relâchement. ±33ms est un pas approximatif uniquement, pas image exacte. Dupliquer ajouté à la barre, boutons 88dp/25dp. Format projet/export/keyframes préservés.
+
+
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : pinch de timeline indépendant du zoom contenu ; déplacement immédiat au centre des clips ; aimantation désactivable (12dp) vers repères + vibration ; suppression libre par défaut, ripple sur option. Ne pas modifier les originaux et préserver l'export multipiste.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+Contrat EASYCUT-AUDIT-018 (19/10/2026) : conserver l'aperçu et le multipiste validés, sans modification des vidéos originales, SAR ou keyframes. Poignées 20dp des deux côtés en vidéo et audio, retour visuel pendant glissement et coupe écrite au relâchement. Protection contre export chevauché ou annulé et nettoyage des temporaires seulement à la fin du travail natif. Candidat non testé sur Android.
+
+
 ## Contrat rétabli (FABVID-REG-001)
 Version de référence technique : branche `agent/v0.25-matrix-texture-preview` au commit `0cb6d330a88d8d654f4e5bc9edd50e5a523887d4`. Branche de correction : `agent/v0.25.1-fab-copilot-regressions`. Fab constate : aperçu bugué, gros fichiers mal optimisés, formats de sortie et paramètres régressés. Les symptômes précis sur téléphone restent à reproduire ; ne pas prétendre les avoir validés.
 

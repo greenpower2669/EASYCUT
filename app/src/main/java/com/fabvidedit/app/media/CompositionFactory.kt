@@ -43,6 +43,7 @@ import com.fabvidedit.app.model.SourceAudioTrack
 import com.fabvidedit.app.model.TextLayer
 import com.fabvidedit.app.model.TimelineMode
 import com.fabvidedit.app.model.TransitionType
+import com.fabvidedit.app.model.TransitionTiming
 import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoProject
@@ -66,7 +67,7 @@ object CompositionFactory {
         // A leading MULTITRACK addGap() supplies 16x16 synthetic frames. Fix the export canvas
         // from the project, not from whichever input the compositor first sees.
         // traceExport is only enabled by ExportManager; preview stays on its known-good path.
-        val exportCanvas = if (traceExport && VideoLayerPolicy.needsVideoCompositor(project)) {
+        val compositorCanvas = if (VideoLayerPolicy.needsVideoCompositor(project)) {
             ExportCanvasGeometry.resolve(
                 canvasRatio = canvasRatio,
                 requestedShortSide = resolutionShortSide,
@@ -77,8 +78,8 @@ object CompositionFactory {
                 fallbackHeight = project.clips.firstOrNull { it.height > 16 }?.height,
             )
         } else null
-        if (traceExport && exportCanvas != null) FabVidDiagnostics.traceExport(
-            "CANVAS_FIXED width=${exportCanvas.width} height=${exportCanvas.height} " +
+        if (traceExport && compositorCanvas != null) FabVidDiagnostics.traceExport(
+            "CANVAS_FIXED width=${compositorCanvas.width} height=${compositorCanvas.height} " +
                 "ratio=$canvasRatio shortSide=$resolutionShortSide origin=project",
         )
 
@@ -117,7 +118,7 @@ object CompositionFactory {
                 private val loggedSeconds = mutableMapOf<Int, Long>()
                 private var lastSizeTrace: String? = null
                 override fun getOutputSize(inputSizes: List<Size>): Size {
-                    val output = exportCanvas?.let { Size(it.width, it.height) }
+                    val output = compositorCanvas?.let { Size(it.width, it.height) }
                         ?: VideoCompositorSettings.DEFAULT.getOutputSize(inputSizes)
                     if (traceExport) {
                         val signature = "input=${inputSizes.joinToString { "${it.width}x${it.height}" }} " +
@@ -310,7 +311,19 @@ object CompositionFactory {
         }
 
         val videoEffects = buildList<Effect> {
-            canvasRatio?.takeIf { it > 0f }?.let {
+            // Orientation FIRST: fitting the encoded landscape frame before rotating
+            // a 90° portrait source uses the wrong aspect and can distort animations.
+            if (clip.rotationDegrees % 360 != 0) {
+                add(
+                    ScaleAndRotateTransformation.Builder()
+                        // Preserve the validated FFprobe rotation convention.
+                        .setRotationDegrees(clip.rotationDegrees.toFloat())
+                        .build(),
+                )
+            }
+            // FIT, never STRETCH: keep the displayed source proportional in a
+            // canvas chosen by the project, independent of imported clip order.
+            canvasRatio?.takeIf { it.isFinite() && it > 0f }?.let {
                 add(Presentation.createForAspectRatio(it, Presentation.LAYOUT_SCALE_TO_FIT))
             }
             when (clip.filter) {
@@ -329,15 +342,6 @@ object CompositionFactory {
                         .setRedScale(0.90f)
                         .setGreenScale(1.02f)
                         .setBlueScale(1.10f)
-                        .build(),
-                )
-            }
-            if (clip.rotationDegrees % 360 != 0) {
-                add(
-                    ScaleAndRotateTransformation.Builder()
-                        // FFprobe side-data rotation is already expressed in Media3's
-                        // counter-clockwise convention. Keep source/orientation rotation unchanged.
-                        .setRotationDegrees(clip.rotationDegrees.toFloat())
                         .build(),
                 )
             }
@@ -611,20 +615,8 @@ object CompositionFactory {
         transition: ClipTransition?,
         isIncoming: Boolean,
     ): Pair<TransitionType, Float>? {
-        transition ?: return null
-        val requestedSourceMs = ((transition.durationMs / 2f) * clip.speed).toLong()
-        val durationMs = requestedSourceMs
-            .coerceAtMost((clip.sourceDurationMs / 3).coerceAtLeast(1))
-            .coerceAtLeast(1)
-        val raw = if (isIncoming) {
-            if (timeMs > durationMs) return null
-            timeMs.toFloat() / durationMs
-        } else {
-            val start = clip.sourceDurationMs - durationMs
-            if (timeMs < start) return null
-            (timeMs - start).toFloat() / durationMs
-        }
-        val eased = raw.coerceIn(0f, 1f).let { it * it * (3f - 2f * it) }
-        return transition.type to eased
+        val chosen = transition ?: return null
+        val progress = TransitionTiming.progress(clip, timeMs, chosen, isIncoming) ?: return null
+        return chosen.type to progress
     }
 }

@@ -50,24 +50,24 @@ jobs:
       - name: Name Android outputs
         if: steps.gradle_build.outputs.status == '0'
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.17-arm64-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.17-arm64-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk EASYCUT-v0.0.20-arm64-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab EASYCUT-v0.0.20-arm64-debug.aab
 
       # GitHub Actions artifact storage is saturated for this account.
       # Publish temporary test builds in Releases instead of upload-artifact.
       - name: Publish test APK and AAB as GitHub prerelease
-        if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main')) && steps.gradle_build.outputs.status == '0'
+        if: ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/agent/easycut-audit-tactile-export-018')) || (github.event_name == 'workflow_dispatch' && inputs.publish == true)) && steps.gradle_build.outputs.status == '0'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           short_sha="${GITHUB_SHA:0:7}"
-          tag="easycut-v0.0.17-preview-${short_sha}"
+          tag="easycut-v0.0.20-aspect-${short_sha}"
           gh release create "$tag" \
-            EASYCUT-v0.0.17-arm64-debug.apk \
-            EASYCUT-v0.0.17-arm64-debug.aab \
+            EASYCUT-v0.0.20-arm64-debug.apk \
+            EASYCUT-v0.0.20-arm64-debug.aab \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "EASYCUT v0.0.17 — import unifié / split test ${short_sha}" \
-            --notes "FAB-IMPORT-UNIFIED-012 : case Désactiver le split décochée par défaut, parcours historique conservé et source vidéo+son unifiée expérimentale si cochée. Même version pour comparer les deux modes sur le même fichier ; inventaire FFprobe initial commun, mode unifié limité à une piste vidéo et au plus une piste audio. Vérifier sur Android lecture, son, montage et MP4 ; fonctionnalités précédentes préservées."
+            --title "EASYCUT v0.0.20 — formats et animations ${short_sha}" \
+            --notes "Candidat tactile : glissement des bords video/audio avec duree visible, zoom deux doigts, aimantation, deplacement direct, suppression libre/ripple, outils agrandis et pas lecture 33ms. CI et test telephone requis."

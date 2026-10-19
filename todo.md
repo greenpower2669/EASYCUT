@@ -1,5 +1,47 @@
 # todo.md — FabVidEdit
 
+- [x] Correction de l'écrêtage caché des transitions de zoom et slide par `transform.normalized()` tardif dans le lecteur ExoPlayer ; mêmes limites animées que Media3 0.05..6 pour scale.
+
+## Suivi EASYCUT-ASPECT-020
+### EASYCUT-ASPECT-020 (19/10/2026)
+- [x] Auditer code ratios source/projet, Surface ExoPlayer, compositor Media3, animations et keyframes.
+- [x] Correctif géométrie raw fallback FIT, canvas compositeur preview/export, ordre rotation-source/FIT, timing transitions partagé.
+- [x] Ajouter tests ratios 9:16->16:9, 16:9->9:16, animations courtes et à vitesse x2, intégrité plan Transform.
+- [ ] Tests GitHub CI/lint/debug APK/AAB/Release et corriger anomalies.
+- [ ] Tests sur Samsung : vidéo portrait ajoutée à landscape, réciproque, modes simple/multitrack, lecture prévisualisation vs export, changement de plan, effets Slide/Zoom/Rotate/Fade, keyframes, speed, SAR/DAR, projet non écrasé.
+- [ ] Inspection visuelle réelle des animations et Media3 GL, avec GET ERR si plantage ; ne pas prétendre certifier tous scénarios par tests JVM.
+
+
+## TOUCH-019 — preuve GitHub Actions et livraison (19/10/2026)
+- [x] **CI de la version 0.0.19** : run push 39287739142 sur commit `9036b4a` ; `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `bundleDebug` et étape Release tous **SUCCESS**.
+- [x] **APK vérifié** : [EASYCUT-v0.0.19-arm64-debug.apk](https://github.com/greenpower2669/EASYCUT/releases/download/easycut-v0.0.19-touch-9036b4a/EASYCUT-v0.0.19-arm64-debug.apk) — 103746400 octets, direct, sans ZIP.
+- [x] **AAB vérifié** : [EASYCUT-v0.0.19-arm64-debug.aab](https://github.com/greenpower2669/EASYCUT/releases/download/easycut-v0.0.19-touch-9036b4a/EASYCUT-v0.0.19-arm64-debug.aab) — 35250249 octets.
+- [ ] Validation réelle Samsung (touch, clips courts, déplacement, synchro audio, export et annuler/reprendre) ; publication finale/main uniquement après Fab.
+- [ ] Compléter les points restant de TOUCH-019 : vrai contrôle de frame source (VFR/FPS), preview visuelle décodée au bord, mémorisation des préférences, revue TalkBack et ergonomie multi-doigts.
+- **Incident intermédiaire** : run 39287245704, code compilé mais publication 403. Le dernier run 39287739142 a réussi ; ne pas conclure à une interdiction durable de publier.
+
+
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : [x] Correction pré-CI : `withValidTransitions` est une méthode membre de VideoProject, pas une extension importable ; suppression de l'import illégal.
+
+TOUCH-019 phase 2 : [x] prévisualisation de découpe (géométrie + durée) audio et vidéo, commit au relâchement, pas de lecture ±33ms, Dupliquer/contrôles élargis, version Android 0.0.19. [ ] Vérifier CI, release apk/aab, essais Samsung (bord en cours de geste), collision pinch/scroll/drag, frame vidéo de découpe et précision fps.
+
+
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : [x] pinch timeline, déplacement direct vidéo/audio, aimantation 12dp toggle/haptic, mode suppression libre/ripple ; [ ] découpe visuelle en direct, outils et pas de lecture ; [ ] CI + tests appareil et export réels.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 (19/10/2026) :
+- [x] Vérifier et réaligner les noms de fichiers copiés et transmis à gh release (.apk et .aab version 0.0.18) avant publication.
+- [x] Auditer UI de timeline, sauvegarde trim, pipeline export et workflow ; lire mémoires FabCopilot.
+- [x] Préparer candidat 0.0.18 sur branche isolée, sans fusion main.
+- [ ] Confirmer CI tests/lint/assembleDebug/bundleDebug et Release APK direct/AAB ; aucun lien avant vérification.
+- [ ] Tester poignées gauche/droite vidéo+audio, zoom, groupes liés, sources courtes, vitesse, contrôle MP4.
+- [ ] Reproduire exports H264/HEVC et annuler pendant proxy/encodage/finalisation ; tester grande source, faible stockage, GET ERR.
+- [ ] Auditer chaque autre commande potentiellement inopérante et corriger d'après preuves, sans régresser les fonctions validées.
+
+
 ## PLAN D'EXÉCUTION DE L'ASSISTANT — FAB-MISSION-001 (23/09/2026)
 
 **Les ordres de mission de Fab sont dans [`ordres-de-mission.md`](ordres-de-mission.md), registre canonique séparé et persistant.** Lire ce fichier AVANT de décider de quoi coder et AVANT de répondre « que reste-t-il ? ». Une demande utilisateur reste inchangée tant que non produite ; seul Fab peut l'annuler, la remplacer ou en changer la priorité. `todo.md` décrit MES actions techniques et les vérifications, pas le carnet des projets de Fab. `debughistorical.md` = récit de bugs ; `topo.md` = aide-mémoire technique facultatif de l'agent.

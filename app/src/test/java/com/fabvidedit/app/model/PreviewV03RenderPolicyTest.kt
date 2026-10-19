@@ -2,6 +2,8 @@ package com.fabvidedit.app.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class PreviewV03RenderPolicyTest {
@@ -15,6 +17,7 @@ class PreviewV03RenderPolicyTest {
         val plan = PreviewV03RenderPolicy.plan(simplePreview = true, visualTransform = transform)
         assertNull("No second TextureView zoom", plan.textureTransform)
         assertEquals(transform, plan.outerTransform)
+        assertTrue(plan.fitRawSourceToCanvas)
     }
 
     @Test fun compositionPreviewNeverAddsASecondTransform() {
@@ -24,11 +27,13 @@ class PreviewV03RenderPolicyTest {
         )
         assertNull(plan.textureTransform)
         assertNull(plan.outerTransform)
+        assertFalse(plan.fitRawSourceToCanvas)
     }
 
     @Test fun emptyIntervalHasNoPreviewTransform() {
         val plan = PreviewV03RenderPolicy.plan(simplePreview = true, visualTransform = null)
         assertNull(plan.textureTransform)
         assertNull(plan.outerTransform)
+        assertTrue(plan.fitRawSourceToCanvas)
     }
 }

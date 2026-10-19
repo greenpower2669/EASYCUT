@@ -28,12 +28,14 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
     private var previewTransform: ClipTransform? = null
     private var previewSourceAspectRatio = 1f
     private var previewCanvasAspectRatio = 1f
+    private var fitRawSourceToCanvas = false
     // Applying an unchanged matrix invalidates the video view for no visual benefit.
     // Reapply after surface creation/resize, even when the parameters match.
     private data class MatrixKey(
         val transform: ClipTransform?,
         val sourceAspectRatio: Float,
         val canvasAspectRatio: Float,
+        val fitRawSourceToCanvas: Boolean,
         val width: Int,
         val height: Int,
     )
@@ -95,22 +97,28 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         transform: ClipTransform?,
         sourceAspectRatio: Float,
         canvasAspectRatio: Float,
+        fitRawSourceToCanvas: Boolean = false,
     ) {
         previewTransform = transform
+        this.fitRawSourceToCanvas = fitRawSourceToCanvas
         previewSourceAspectRatio = sourceAspectRatio
         previewCanvasAspectRatio = canvasAspectRatio
-        val key = MatrixKey(transform, sourceAspectRatio, canvasAspectRatio, width, height)
+        val key = MatrixKey(transform, sourceAspectRatio, canvasAspectRatio, fitRawSourceToCanvas, width, height)
         if (key == appliedMatrixKey) return
         val matrix = Matrix()
-        if (transform != null && width > 0 && height > 0) {
+        if ((transform != null || fitRawSourceToCanvas) && width > 0 && height > 0) {
             val f = PreviewCanvasGeometry.forFrame(
-                transform, width.toFloat(), height.toFloat(),
+                transform ?: ClipTransform(), width.toFloat(), height.toFloat(),
                 sourceAspectRatio, canvasAspectRatio,
             )
+            // The raw Surface fills TextureView bounds by default; inverse letterbox
+            // only on ExoPlayer. CompositionPlayer already applied Media3 FIT.
             matrix.setScale(f.fitX, f.fitY, f.centerX, f.centerY)
-            matrix.postScale(f.scaleX, f.scaleY, f.pivotX, f.pivotY)
-            matrix.postRotate(f.rotationDegrees, f.pivotX, f.pivotY)
-            matrix.postTranslate(f.translationX, f.translationY)
+            if (transform != null) {
+                matrix.postScale(f.scaleX, f.scaleY, f.pivotX, f.pivotY)
+                matrix.postRotate(f.rotationDegrees, f.pivotX, f.pivotY)
+                matrix.postTranslate(f.translationX, f.translationY)
+            }
         }
         setTransform(matrix)
         appliedPreviewMatrixCount++
@@ -155,14 +163,14 @@ class FabVidVideoTextureView(context: Context) : TextureView(context), TextureVi
         hasPresentedFrameOnCurrentSurface = false
         lastFrameElapsedMs = -1L
         appliedMatrixKey = null
-        applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio)
+        applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio, fitRawSourceToCanvas)
         bind(wanted)
     }
 
     override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
         // The surface backing changed; preserve FIT, zoom and finger pivot.
         appliedMatrixKey = null
-        applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio)
+        applyPreviewTransform(previewTransform, previewSourceAspectRatio, previewCanvasAspectRatio, fitRawSourceToCanvas)
         bind(wanted)
     }
 

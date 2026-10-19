@@ -1,5 +1,24 @@
 # brainmap.md — FabVidEdit
 
+## Suivi EASYCUT-ASPECT-020
+EASYCUT-ASPECT-020 : `PreviewV03RenderPolicy.fitRawSourceToCanvas` commande `FabVidVideoTextureView.applyPreviewTransform(fitRawSourceToCanvas)`, qui ne touche au Matrix TextureView que pour fallback ExoPlayer. `PreviewCanvasGeometry.forFrame` calcule fitX/fitY selon ratios source/projet ; `CompositionFactory` ordonne orientation->Presentation.FIT->filtres/keyframes, et impose `ExportCanvasGeometry` au compositeur preview et export. `TransitionTiming.progress(clip,sourceTime,transition,isIncoming)` remplace logique dupliquée export/fallback. New tests : TransitionTiming et mixed-ratio canvas.
+
+## Référence technique vérifiée 0.0.19
+Commit de code `9036b4a`, action `39287739142`, release `easycut-v0.0.19-touch-9036b4a` ; APK direct et AAB publiés. Tests CI réussis, instrumentation Android non réalisée. Le présent ajout est purement documentaire et n'invalide pas ces binaires.
+
+
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : V06VideoLane/V018AudioLane `trimLeftPx`/`trimRightPx` gèrent la géométrie Compose pendant le geste, handlers `onProgress(Float)` remontent des deltas bornés, V06TrimHandle et V018AudioTrimHandle ne changent le ViewModel qu'une fois au relâchement. V06PlaybackControls ajoute `onStep(Int)` (+/-33ms), V06Tools expose Dupliquer. Workflow/Gradle 0.0.19.
+
+
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : V06MultitrackTimeline -> pointerInput awaitEachGesture calculateZoom + scroll anchor; Video/AudioLane -> detectDragGestures immédiat et haptique; TimelineTouchMath -> markers/tolerance/snapStart; TimelineEditing.moveClipOnTimeline(snapEnabled); ViewModel.removeSelectedClipFree pour conserver les trous.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 : `ui/CapCutMultitrackEditorV06.kt` (`V06TrimHandle`, `V018AudioTrimHandle` et lanes) -> `FabVidEditViewModel.trimVisualMedia/applyLinkedTrim`. Export : `media/ExportManager.kt` IO/proxy FFmpegKit -> Media3 Transformer -> FFmpeg audio -> MediaStore, avec compteur de génération et garde sur preparationJob/transformer/finalizationJob. Workflow `.github/workflows/android.yml` publie un APK et un AAB de test sur branche agent après CI.
+
+
 ## Base et chemins
 - Base technique `0cb6d330a88d8d654f4e5bc9edd50e5a523887d4` / branche `agent/v0.25-matrix-texture-preview`. Le dépôt distinct FabCut possède une version 0.4 ; ne pas amalgamer les historiques.
 - `app/src/main/java/com/fabvidedit/app/ui/EditorScreen.kt` : Compose, `CompositionPlayer`, `PreviewSurface`, `ExportOptionsDialog` et `ExportChoiceRow`. L'UI fournit un `ExportSettings` complet au ViewModel. `remember` préserve le geste pendant les changements de transform. La composition d'aperçu utilise une résolution plafonnée et 30 i/s, distincte de l'export.

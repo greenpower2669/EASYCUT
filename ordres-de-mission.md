@@ -1,5 +1,17 @@
 # Ordres de mission de Fab — EASYCUT
 
+### EASYCUT-ASPECT-020 — Mix de formats et animations (Fab, 19/10/2026)
+- Garder le ratio natif (notamment vidéo 9:16 ajoutée à un projet 16:9), avec bandes libres ; éviter étirement imposé par le premier clip ou par l'ordre d'import. Préserver les zooms/recadrages créatifs, effets, SAR/DAR et médias originaux.
+- Auditer les transitions animées et le pipeline preview/export, corriger divergences prouvées ; livrer test APK/AAB sans merge main ; vérifier CI et demander validation smartphone.
+- Correctif candidat 0.0.20 : mode ExoPlayer applique FIT sur TextureView sans double transform ; export/aperçu composite fixent un canvas projet ; rotation source puis FIT puis keyframes ; rythme de transition partagé preview/export, cohérent clips courts/vitesse. Tester vraie lecture et MP4 sur Android, ne pas déclarer toutes animations visuellement validées.
+
+
+## IMMUTABLE / À PRÉSERVER (19/10/2026)
+- Application ID réel `com.fabvidedit.app.poc` ; ni renommer ni migrer les projets sans Fab.
+- Préserver fichiers source, signatures, identités locales, acquis preview/export multipiste.
+- Livrables Android : APK direct EASYCUT-vX.Y.Z-arm64-debug.apk et AAB distinct.
+- Branche de travail isolée, aucun merge main sans validation de Fab.
+
 > **Ce fichier appartient aux demandes de Fab.** `todo.md` décrit uniquement le plan d'exécution de l'assistant ; `debughistorical.md` conserve les incidents ; `topo.md` est une aide à la navigation pour l'assistant. Ce registre ne remplace pas `brain.md`, qui détaille le contrat. Version de référence au moment du classement : **EASYCUT 0.0.10** (aperçu et premier export confirmés par Fab).
 
 ## Règle de persistance — FAB-MISSION-001
@@ -9,6 +21,17 @@
 - Le détail des erreurs, de leurs causes supposées et des régressions se trouve dans `debughistorical.md` ; un bug ne remplace ni ne supprime une fonctionnalité demandée ici. Les étapes d'implémentation restent dans `todo.md`.
 
 ## Missions ouvertes demandées par Fab
+
+### EASYCUT-TOUCH-019 — Montage tactile (19/10/2026)
+- Fab autorise le code des propositions de confort tactile : découpe directe, pinch timeline, aimantation, drag immédiat, précision, mode libre/ripple, barre d'outils et haptique.
+- **Livré en code et Release 0.0.19 (à valider sur téléphone)** : pinch, drag immédiat, aimantation/vibration, libre/ripple, découpe visuelle géométrique et durée audio/vidéo, barre Dupliquer et pas ±33ms (non exact à tous FPS). CI 39287739142 entièrement réussie, APK/AAB directs vérifiés. Reste : vraies frames décodées sous le doigt, stepping VFR et ergonomie/accessibilité Samsung ; ne pas clôturer sans Fab.
+
+
+### EASYCUT-AUDIT-018 — Audit global tactile et export (demande Fab, 19/10/2026)
+- Fab demande audit profond des incohérences, bugs, options inopérantes et plantages d'export. Montage à un doigt : agrandir/raccourcir clips depuis chacun des deux bords sur leur piste.
+- Candidat partiel 0.0.18 : poignées vidéo/audio 20dp, suivi visuel du doigt, suppressions de trims inchangés, sécurisation de chevauchements et annulations d'export.
+- Restent ouverts : examen de toutes les options, validations Samsung, exports réels (longs, H264/HEVC), robustesse en espace limité, causes précises GET ERR. Ne pas promettre résolution globale.
+
 
 ### FAB-SOURCE-COMPAT-011 — Étendre la compatibilité des sources et respecter les pixels non carrés
 - **Origine :** Fab, 24/09/2026, après validation d'EASYCUT v0.0.15. **Ordre actuel : inscrire la mission maintenant ; « code pas de suite ».**

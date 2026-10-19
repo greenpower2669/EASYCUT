@@ -1,5 +1,26 @@
 # debughistorical.md — FabVidEdit
 
+ASPECT-020 ANIMATION EXTRA : incohérence prouvée dans fallback `v020FallbackVisual` : normalisation après transition imposait une taille max 4x et une translation ±2. Le moteur export `AnimatedTransformEffect` autorise zoom animés jusqu'à 6x et slide ±2.05. Correction : laisser motion s'appliquer après limites des keyframes, uniquement clamp échelle export 0.05..6.
+
+## Suivi EASYCUT-ASPECT-020
+EASYCUT-ASPECT-020 : BUG confirmé dans chemin de code fallback : plan TextureView transform null, `matrix=identity`, la source ExoPlayer brute occupe frame projet indépendamment du ratio ; portrait susceptible d'être étiré sur horizontal, malgré Présentation Media3 correcte ailleurs. Incohérence animation établie : fallback transitions sur temps de sortie simple durée/2, Media3 source-time vitesse et cap 1/3 ; transitions sur clips courts pas synchrones. Corrigés en code candidat ; risques restant rotations de métadonnées Media3 sur appareils, surfaces, sources SAR variables, multitrack hétérogène et effet lors interpolation à tester sur smartphone. CI ne prouve pas rendu.
+
+## TOUCH-019 — compilation et publication
+Le commit `fc37221` a échoué au compilateur sur un import `withValidTransitions` ajouté à tort : il s'agit d'une méthode membre de `VideoProject`, pas d'une extension importable. Correction confirmée au commit `9036b4a` ; run push 39287739142 : tests/lint/APK/AAB/Release réussis. Un run antérieur 39287245704 a eu un 403 de publication GitHub malgré une compilation réussie ; incident non reproduit sur le dernier run. Pas de test tactile smartphone dans la CI.
+
+
+## TOUCH-019 phase 2 — 19/10/2026
+TOUCH-019 phase 2 : anciennes poignées 0.0.18 ne déplaçaient que la ligne colorée, pas le bord visuel du clip ; affichage maintenant attaché à largeur + origine. Points à tester : modifier la largeur d'un composable sous le pointeur peut perturber l'acheminement tactile ; min clipWidth 64dp n'est pas le temps réel ; frame stepping exact non livré. Un succès de CI n'équivaut pas à test Android.
+
+
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : avant, clips déplacés seulement après appui long, zoom timeline par boutons et aimantation du moteur toujours active ; code candidat tactile sans test réel. Risque de concurrence avec scroll horizontal/tap ou d'ancrage durant le pinch ; ne pas annoncer validé sur appareil.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 : vérifié en code : grips 10dp vidéo/12dp audio, feedback gestuel absent, trim sans changement enregistrable ; ExportManager.cancel supprimait le cache pendant FFmpeg synchrone et les anciennes phases pouvaient écrire des états après annulation. Correctifs candidats 0.0.18 : 20dp, translation gestuelle, no-op trim, annulation non traitée comme erreur et barrières de génération. Crashes réels non reproduits, cause non établie ; codecs, Media3, disque et résilience native restent sous surveillance.
+
+
 ## FABVID-EXP-001 — paramètres export perdus (cause confirmée par lecture du code)
 Symptôme rapporté par Fab : formats de sortie et paramètres revenus incorrects. Dans la v0.25 le moteur déclare `ExportVideoCodec`, `ExportFrameRate`, `ExportResolution`, `ExportBitrate`, mais `EditorScreen.ExportOptionsDialog` n'offre que 720/1080/4K et envoie un `Int`. Le ViewModel crée alors un `ExportSettings` par défaut, alors que le dialogue affiche H.264 et le défaut moteur était H.265. Correction sur cette branche : paramètre complet UI → moteur, H.264 par défaut, H.265 exposé avec garde matérielle. Pas encore validé sur téléphone. Intervalle continu 2–50 non encore réalisé.
 
