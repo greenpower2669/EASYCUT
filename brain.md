@@ -1,5 +1,7 @@
 # brain.md — FabVidEdit
 
+EASYCUT-ASPECT-020 suite : en fallback, `transform.normalized()` appliqué *après* la motion tronquait les zooms >4x et les déplacements au-delà de ±2, tandis que Media3 export autorisait échelles [0.05,6]. Les transformations modèles sont déjà bornées en amont ; clamp après animation limité à échelle [0.05,6] sans altérer translation/rotation temporaire.
+
 ## Suivi EASYCUT-ASPECT-020
 EASYCUT-ASPECT-020 : le fallback ExoPlayer restait matrix=identity dans `PreviewV03RenderPolicy` malgré un cadre projet, étirant 9:16 dans 16:9 ; activer TextureView FIT géométrique uniquement en raw fallback, sans double scale/rotation créative, et réappliquer resize Surface. Pour Media3 Composition : canvas explicite aussi dans preview multitrack (plus de DEFAULT premier input) ; appliquer rotation source avant FIT, transformations/keyframes ensuite. `TransitionTiming` calcule désormais le même temps source et cap de transition à 1/3 du clip dans export et fallback, y compris clip accéléré. Formats média SAR/DAR non réécrits.
 

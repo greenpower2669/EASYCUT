@@ -1,5 +1,7 @@
 # todo.md — FabVidEdit
 
+- [x] Correction de l'écrêtage caché des transitions de zoom et slide par `transform.normalized()` tardif dans le lecteur ExoPlayer ; mêmes limites animées que Media3 0.05..6 pour scale.
+
 ## Suivi EASYCUT-ASPECT-020
 ### EASYCUT-ASPECT-020 (19/10/2026)
 - [x] Auditer code ratios source/projet, Surface ExoPlayer, compositor Media3, animations et keyframes.

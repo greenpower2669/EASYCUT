@@ -1,5 +1,7 @@
 # debughistorical.md — FabVidEdit
 
+ASPECT-020 ANIMATION EXTRA : incohérence prouvée dans fallback `v020FallbackVisual` : normalisation après transition imposait une taille max 4x et une translation ±2. Le moteur export `AnimatedTransformEffect` autorise zoom animés jusqu'à 6x et slide ±2.05. Correction : laisser motion s'appliquer après limites des keyframes, uniquement clamp échelle export 0.05..6.
+
 ## Suivi EASYCUT-ASPECT-020
 EASYCUT-ASPECT-020 : BUG confirmé dans chemin de code fallback : plan TextureView transform null, `matrix=identity`, la source ExoPlayer brute occupe frame projet indépendamment du ratio ; portrait susceptible d'être étiré sur horizontal, malgré Présentation Media3 correcte ailleurs. Incohérence animation établie : fallback transitions sur temps de sortie simple durée/2, Media3 source-time vitesse et cap 1/3 ; transitions sur clips courts pas synchrones. Corrigés en code candidat ; risques restant rotations de métadonnées Media3 sur appareils, surfaces, sources SAR variables, multitrack hétérogène et effet lors interpolation à tester sur smartphone. CI ne prouve pas rendu.
 

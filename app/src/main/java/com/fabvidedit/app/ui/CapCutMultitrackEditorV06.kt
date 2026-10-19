@@ -1276,7 +1276,14 @@ private fun v020FallbackVisual(
     val fadeIn = incomingProgress?.takeIf { incoming?.type == TransitionType.FADE } ?: 1f
     val fadeOut = outgoingProgress?.takeIf { outgoing?.type == TransitionType.FADE }?.let { 1f - it } ?: 1f
     alpha = minOf(fadeIn, fadeOut)
-    return V020FallbackVisual(transform.normalized(), alpha.coerceIn(0f, 1f), label)
+    // The base/keyframe was normalized before motion. Do not re-normalize the
+    // animated result: it would clamp a legitimate 4x→5.36x zoom to 4x and
+    // truncate a slide offset beyond ±2, while the export retains that motion.
+    return V020FallbackVisual(
+        transform.copy(scaleX = transform.scaleX.coerceIn(0.05f, 6f),
+            scaleY = transform.scaleY.coerceIn(0.05f, 6f)),
+        alpha.coerceIn(0f, 1f), label,
+    )
 }
 
 @Composable
