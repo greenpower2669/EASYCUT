@@ -1,5 +1,9 @@
 # todo.md — FabVidEdit
 
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : [x] pinch timeline, déplacement direct vidéo/audio, aimantation 12dp toggle/haptic, mode suppression libre/ripple ; [ ] découpe visuelle en direct, outils et pas de lecture ; [ ] CI + tests appareil et export réels.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 EASYCUT-AUDIT-018 (19/10/2026) :
 - [x] Vérifier et réaligner les noms de fichiers copiés et transmis à gh release (.apk et .aab version 0.0.18) avant publication.

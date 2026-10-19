@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : avant, clips déplacés seulement après appui long, zoom timeline par boutons et aimantation du moteur toujours active ; code candidat tactile sans test réel. Risque de concurrence avec scroll horizontal/tap ou d'ancrage durant le pinch ; ne pas annoncer validé sur appareil.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 EASYCUT-AUDIT-018 : vérifié en code : grips 10dp vidéo/12dp audio, feedback gestuel absent, trim sans changement enregistrable ; ExportManager.cancel supprimait le cache pendant FFmpeg synchrone et les anciennes phases pouvaient écrire des états après annulation. Correctifs candidats 0.0.18 : 20dp, translation gestuelle, no-op trim, annulation non traitée comme erreur et barrières de génération. Crashes réels non reproduits, cause non établie ; codecs, Media3, disque et résilience native restent sous surveillance.
 

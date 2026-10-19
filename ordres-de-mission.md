@@ -16,6 +16,11 @@
 
 ## Missions ouvertes demandées par Fab
 
+### EASYCUT-TOUCH-019 — Montage tactile (19/10/2026)
+- Fab autorise le code des propositions de confort tactile : découpe directe, pinch timeline, aimantation, drag immédiat, précision, mode libre/ripple, barre d'outils et haptique.
+- Candidat en cours : pinch timeline, déplacement vidéo/audio immédiat, aimantation désactivable/vibration à l'alignement, suppression libre/ripple. Découpe visuelle, repères de précision, validation CI/téléphone encore ouverts ; ne pas clore la mission.
+
+
 ### EASYCUT-AUDIT-018 — Audit global tactile et export (demande Fab, 19/10/2026)
 - Fab demande audit profond des incohérences, bugs, options inopérantes et plantages d'export. Montage à un doigt : agrandir/raccourcir clips depuis chacun des deux bords sur leur piste.
 - Candidat partiel 0.0.18 : poignées vidéo/audio 20dp, suivi visuel du doigt, suppressions de trims inchangés, sécurisation de chevauchements et annulations d'export.

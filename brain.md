@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## TOUCH-019 — 19/10/2026
+TOUCH-019 : pinch de timeline indépendant du zoom contenu ; déplacement immédiat au centre des clips ; aimantation désactivable (12dp) vers repères + vibration ; suppression libre par défaut, ripple sur option. Ne pas modifier les originaux et préserver l'export multipiste.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 Contrat EASYCUT-AUDIT-018 (19/10/2026) : conserver l'aperçu et le multipiste validés, sans modification des vidéos originales, SAR ou keyframes. Poignées 20dp des deux côtés en vidéo et audio, retour visuel pendant glissement et coupe écrite au relâchement. Protection contre export chevauché ou annulé et nettoyage des temporaires seulement à la fin du travail natif. Candidat non testé sur Android.
 

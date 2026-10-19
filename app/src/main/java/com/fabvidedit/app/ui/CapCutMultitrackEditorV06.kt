@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
@@ -92,6 +93,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -133,6 +136,7 @@ import com.fabvidedit.app.model.TransformKeyframe
 import com.fabvidedit.app.model.TransitionType
 import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoLayerPolicy
+import com.fabvidedit.app.model.TimelineTouchMath
 import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.displayAspectRatio
 import com.fabvidedit.app.model.VisualMediaKind
@@ -198,6 +202,8 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
     var editingText by remember { mutableStateOf<TextLayer?>(null) }
     var showTextDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var magnetEnabled by remember(project.id) { mutableStateOf(true) }
+    var rippleDeleteEnabled by remember(project.id) { mutableStateOf(false) }
     var showDiagnosticJournal by remember { mutableStateOf(false) }
     var previewMuted by remember { mutableStateOf(false) }
     var selectedSourceAudioId by remember(project.id) { mutableStateOf<String?>(null) }
@@ -944,6 +950,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
 
             V06MultitrackTimeline(
                 project = project,
+                magnetEnabled = magnetEnabled,
                 selectedClipId = selectedClipId,
                 selectedSourceAudioId = selectedSourceAudioId,
                 currentPositionMs = currentPositionMs,
@@ -972,7 +979,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                 },
                 onAudioTrack = { panel = EditorPanel.AUDIO; inspectorOpen = true },
                 onTextTrack = { panel = EditorPanel.TEXT; inspectorOpen = true },
-                onMoveClip = viewModel::moveClip,
+                onMoveClip = { id, track, pos -> viewModel.moveClip(id, track, pos, snapEnabled = magnetEnabled) },
                 onTrimClip = viewModel::trimClipOnTimeline,
                 onDuplicateClip = { clip ->
                     selectedSourceAudioId = null
@@ -1005,6 +1012,16 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
             )
 
             Row(
+                modifier = Modifier.fillMaxWidth().background(FabSurfaceHigh).horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = magnetEnabled, onCheckedChange = { magnetEnabled = it }, modifier = Modifier.size(36.dp))
+                Text("Aimant", fontSize = 12.sp, modifier = Modifier.clickable { magnetEnabled = !magnetEnabled })
+                Spacer(Modifier.width(10.dp))
+                Checkbox(checked = rippleDeleteEnabled, onCheckedChange = { rippleDeleteEnabled = it }, modifier = Modifier.size(36.dp))
+                Text("Refermer les trous", fontSize = 12.sp, modifier = Modifier.clickable { rippleDeleteEnabled = !rippleDeleteEnabled })
+            }
+            Row(
                 modifier = Modifier.fillMaxWidth().clickable {
                     viewModel.setDisableSplitAtImport(!disableSplit)
                 },
@@ -1027,7 +1044,10 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                     }
                 },
                 onSplit = { viewModel.splitSelectedAt(currentPositionMs) },
-                onDelete = { viewModel.removeSelectedClip(); inspectorOpen = false },
+                onDelete = {
+                    if (rippleDeleteEnabled) viewModel.removeSelectedClip() else viewModel.removeSelectedClipFree()
+                    inspectorOpen = false
+                },
                 onText = {
                     editingText = null
                     showTextDialog = true
@@ -1462,6 +1482,7 @@ private fun V06PlaybackControls(
 @Composable
 private fun V06MultitrackTimeline(
     project: VideoProject,
+    magnetEnabled: Boolean,
     selectedClipId: String?,
     selectedSourceAudioId: String?,
     currentPositionMs: Long,
@@ -1486,6 +1507,11 @@ private fun V06MultitrackTimeline(
     val rawWidthAt100 = (duration / 1000f) * 18f
     val fitZoom = (360f / rawWidthAt100.coerceAtLeast(1f)).coerceIn(0.05f, 8f)
     var timelineZoom by remember(project.id) { mutableFloatStateOf(fitZoom) }
+    val currentTimelineZoom by rememberUpdatedState(timelineZoom)
+    var scrollAnchor by remember(project.id) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(timelineZoom) {
+        scrollAnchor?.let { scroll.scrollTo(it.coerceAtLeast(0)); scrollAnchor = null }
+    }
     val widthDp = (rawWidthAt100 * timelineZoom).coerceIn(360f, 40_000f).dp
     val videoTracks = project.clips.groupBy(VideoClip::timelineTrackIndex)
     val highestUsedTrack = videoTracks.keys.maxOrNull() ?: 0
@@ -1519,7 +1545,30 @@ private fun V06MultitrackTimeline(
             project.audioTrack?.let { V06TrackLabel("♫", FabMint) }
             if (project.textLayers.isNotEmpty()) V06TrackLabel("T", FabPurple)
         }
-        Column(Modifier.weight(1f).horizontalScroll(scroll)) {
+        Column(Modifier.weight(1f)
+            .pointerInput(project.id, duration) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.changes.count { it.pressed } >= 2) {
+                            val zoomFactor = event.calculateZoom()
+                            if (zoomFactor.isFinite() && kotlin.math.abs(zoomFactor - 1f) > 0.002f) {
+                                val before = currentTimelineZoom
+                                val after = (before * zoomFactor).coerceIn(0.05f, 8f)
+                                val oldWidth = (rawWidthAt100 * before).coerceIn(360f, 40_000f)
+                                val newWidth = (rawWidthAt100 * after).coerceIn(360f, 40_000f)
+                                if (after != before) {
+                                    val cx = event.calculateCentroid(useCurrent = true).x
+                                    scrollAnchor = ((scroll.value + cx) * newWidth / oldWidth - cx).toInt().coerceAtLeast(0)
+                                    timelineZoom = after
+                                }
+                            }
+                        }
+                    } while (event.changes.any { it.pressed })
+                }
+            }
+            .horizontalScroll(scroll)) {
             V06Ruler(widthDp, duration, currentPositionMs, onSeek)
             val maxTrackIndex = visualVideoTrackCount - 1
             visualTrackIndexes.forEach { trackIndex ->
@@ -1528,6 +1577,8 @@ private fun V06MultitrackTimeline(
                     trackIndex = trackIndex,
                     maxTrackIndex = maxTrackIndex,
                     width = widthDp,
+                    magnetEnabled = magnetEnabled,
+                    markers = TimelineTouchMath.markers(project, currentPositionMs),
                     durationMs = duration,
                     clips = clips.sortedBy(VideoClip::timelineStartMs),
                     selectedClipId = selectedClipId,
@@ -1547,6 +1598,8 @@ private fun V06MultitrackTimeline(
                     trackIndex = audioTrackIndex,
                     maxTrackIndex = maxAudioTrackIndex,
                     width = widthDp,
+                    magnetEnabled = magnetEnabled,
+                    markers = TimelineTouchMath.markers(project, currentPositionMs),
                     durationMs = duration,
                     tracks = sourceAudioByLane[audioTrackIndex].orEmpty().sortedBy(SourceAudioTrack::timelineStartMs),
                     selectedAudioId = selectedSourceAudioId,
@@ -1702,6 +1755,8 @@ private fun V06VideoLane(
     trackIndex: Int,
     maxTrackIndex: Int,
     width: Dp,
+    magnetEnabled: Boolean,
+    markers: List<Long>,
     durationMs: Long,
     clips: List<VideoClip>,
     selectedClipId: String?,
@@ -1717,6 +1772,7 @@ private fun V06VideoLane(
     val density = LocalDensity.current
     val timelineWidthPx = with(density) { width.toPx() }.coerceAtLeast(1f)
     val rowHeightPx = with(density) { 42.dp.toPx() }.coerceAtLeast(1f)
+    val haptic = LocalHapticFeedback.current
     Box(Modifier.width(width).height(42.dp).background(if (clips.isEmpty()) Color(0xFF0F0D14) else Color(0xFF131019)).pointerInput(durationMs) {
         detectTapGestures { tap -> onSeek((tap.x / size.width.coerceAtLeast(1) * durationMs).toLong()) }
     }) {
@@ -1740,7 +1796,7 @@ private fun V06VideoLane(
                         }
                     }
                     .pointerInput(clip.id, durationMs, trackIndex, maxTrackIndex) {
-                        detectDragGesturesAfterLongPress(
+                        detectDragGestures(
                             // Selection triggers a seek and may recompose trim handles while
                             // the pointer is down. Keep this gesture stable; select on drop.
                             onDragStart = { dragX = 0f; dragY = 0f },
@@ -1748,8 +1804,14 @@ private fun V06VideoLane(
                                 val deltaMs = (dragX / timelineWidthPx * durationMs.toFloat()).toLong()
                                 val deltaTrack = (-dragY / rowHeightPx).roundToInt()
                                 val targetTrack = (trackIndex + deltaTrack).coerceIn(0, maxTrackIndex)
-                                onMoveClip(clip.id, targetTrack, (clip.timelineStartMs + deltaMs).coerceAtLeast(0L))
-                                onSelectClip(clip, (clip.timelineStartMs + deltaMs).coerceAtLeast(0L))
+                                val original = clip.timelineStartMs
+                                val candidate = (original + deltaMs).coerceAtLeast(0L)
+                                val eligible = markers.filterNot { it == original || it == original + clip.outputDurationMs }
+                                val snapped = if (magnetEnabled) TimelineTouchMath.snapStart(candidate, clip.outputDurationMs, eligible,
+                                    TimelineTouchMath.toleranceMs(timelineWidthPx, durationMs, with(density) { 12.dp.toPx() })) else candidate
+                                if (snapped != candidate) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (snapped != original || targetTrack != trackIndex) onMoveClip(clip.id, targetTrack, snapped)
+                                onSelectClip(clip, snapped)
                                 dragX = 0f; dragY = 0f
                             },
                             onDragCancel = { dragX = 0f; dragY = 0f },
@@ -1878,6 +1940,8 @@ private fun V018AudioLane(
     trackIndex: Int,
     maxTrackIndex: Int,
     width: Dp,
+    magnetEnabled: Boolean,
+    markers: List<Long>,
     durationMs: Long,
     tracks: List<SourceAudioTrack>,
     selectedAudioId: String?,
@@ -1892,6 +1956,7 @@ private fun V018AudioLane(
     val density = LocalDensity.current
     val timelineWidthPx = with(density) { width.toPx() }.coerceAtLeast(1f)
     val rowHeightPx = with(density) { 42.dp.toPx() }.coerceAtLeast(1f)
+    val haptic = LocalHapticFeedback.current
     Box(
         Modifier.width(width).height(42.dp)
             .background(if (tracks.isEmpty()) Color(0xFF0F0D14) else Color(0xFF11171A))
@@ -1920,13 +1985,20 @@ private fun V018AudioLane(
                         }
                     }
                     .pointerInput(track.id, durationMs, trackIndex, maxTrackIndex) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = { onSelect(track, track.timelineStartMs) },
+                        detectDragGestures(
+                            onDragStart = { dragX = 0f; dragY = 0f },
                             onDragEnd = {
                                 val deltaMs = (dragX / timelineWidthPx * durationMs.toFloat()).toLong()
                                 val deltaTrack = (dragY / rowHeightPx).roundToInt()
                                 val targetTrack = (trackIndex + deltaTrack).coerceIn(0, maxTrackIndex)
-                                onMove(track.id, targetTrack, (track.timelineStartMs + deltaMs).coerceAtLeast(0L))
+                                val original = track.timelineStartMs
+                                val candidate = (original + deltaMs).coerceAtLeast(0L)
+                                val eligible = markers.filterNot { it == original || it == original + track.outputDurationMs }
+                                val snapped = if (magnetEnabled) TimelineTouchMath.snapStart(candidate, track.outputDurationMs, eligible,
+                                    TimelineTouchMath.toleranceMs(timelineWidthPx, durationMs, with(density) { 12.dp.toPx() })) else candidate
+                                if (snapped != candidate) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (snapped != original || targetTrack != trackIndex) onMove(track.id, targetTrack, snapped)
+                                onSelect(track, snapped)
                                 dragX = 0f
                                 dragY = 0f
                             },

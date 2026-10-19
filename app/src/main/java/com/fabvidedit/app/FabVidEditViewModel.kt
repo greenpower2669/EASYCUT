@@ -423,12 +423,18 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         updateProject(project.copy(clips = clips))
     }
 
-    fun removeSelectedClip() {
+    fun removeSelectedClip() = deleteSelectedClip(ripple = true)
+
+    fun removeSelectedClipFree() = deleteSelectedClip(ripple = false)
+
+    private fun deleteSelectedClip(ripple: Boolean) {
         val project = _activeProject.value ?: return
         val selectedId = _selectedClipId.value ?: return
         val removed = project.clips.firstOrNull { it.id == selectedId } ?: return
         val linkedGroupId = removed.syncGroupId.takeIf { removed.syncLocked }
-        val visualUpdate = project.rippleDeleteClip(selectedId)
+        val visualUpdate = if (ripple) project.rippleDeleteClip(selectedId) else project.copy(
+            clips = project.clips.filterNot { it.id == selectedId },
+        ).withValidTransitions()
         val updated = if (linkedGroupId == null) {
             visualUpdate
         } else {
@@ -453,12 +459,12 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         moveClip(id, targetTrackIndex = 0, targetStartMs = endOfV1)
     }
 
-    fun moveClip(clipId: String, targetTrackIndex: Int, targetStartMs: Long) {
+    fun moveClip(clipId: String, targetTrackIndex: Int, targetStartMs: Long, snapEnabled: Boolean = true) {
         val project = _activeProject.value ?: return
         val anchor = project.clips.firstOrNull { it.id == clipId } ?: return
         val groupId = anchor.syncGroupId.takeIf { anchor.syncLocked }
         if (groupId == null) {
-            updateProject(project.moveClipOnTimeline(clipId, targetTrackIndex, targetStartMs))
+            updateProject(project.moveClipOnTimeline(clipId, targetTrackIndex, targetStartMs, snapEnabled))
             _selectedClipId.value = clipId
             return
         }
@@ -471,6 +477,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
             clipId,
             targetTrackIndex,
             (anchor.timelineStartMs + safeDelta).coerceAtLeast(0L),
+            snapEnabled,
         )
         val movedAnchor = movedAnchorProject.clips.first { it.id == clipId }
         val actualDelta = movedAnchor.timelineStartMs - anchor.timelineStartMs
