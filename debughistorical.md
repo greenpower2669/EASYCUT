@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## EASYCUT-TOUCH-PRO-019 — risques/contexte
+Audit statique : le déplacement vidéo exigeait appui long ; la suppression compactait implicitement la piste ; le snap fixe 180 ms ne prenait ni fin du clip ni tête de lecture ; un JSON de projet malformé faisait retourner une liste vide entière sans diagnostic. Implémentation candidate : déplacement direct, snap bords/deux côtés, mode suppression libre, sauvegarde précédente et récupération non destructive. Risques à mesurer : compétition gestuelle avec scroll horizontal, découpes très courtes, surcharge du lecteur lors du scrub, limites d'encodeur non traitées. Tests Android non prétendus.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 EASYCUT-AUDIT-018 : vérifié en code : grips 10dp vidéo/12dp audio, feedback gestuel absent, trim sans changement enregistrable ; ExportManager.cancel supprimait le cache pendant FFmpeg synchrone et les anciennes phases pouvaient écrire des états après annulation. Correctifs candidats 0.0.18 : 20dp, translation gestuelle, no-op trim, annulation non traitée comme erreur et barrières de génération. Crashes réels non reproduits, cause non établie ; codecs, Media3, disque et résilience native restent sous surveillance.
 

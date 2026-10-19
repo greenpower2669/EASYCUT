@@ -1,5 +1,14 @@
 # todo.md — FabVidEdit
 
+## EASYCUT-TOUCH-PRO-019 — 19/10/2026
+- [x] Définir la priorité de gestes : poignées vs drag central, conserver action au relâchement.
+- [x] Introduire SnapPolicy pur et test de bords/playhead ; mode ripple facultatif dans ViewModel.
+- [x] Sécuriser ProjectStore avec sauvegarde précédente, lecture par entrée et pas d'écrasement en cas de récupération.
+- [ ] Intégrer et vérifier UI pincement zoom, scrubbing, aimant/retour haptique, commandes, contraste.
+- [ ] CI tests/lint/APK/AAB, liens directs et validation Samsung.
+- [ ] Compléter si nécessaire la matrice de tests finaux, interruptions et gros exports.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 EASYCUT-AUDIT-018 (19/10/2026) :
 - [x] Vérifier et réaligner les noms de fichiers copiés et transmis à gh release (.apk et .aab version 0.0.18) avant publication.

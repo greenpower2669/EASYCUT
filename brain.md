@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## EASYCUT-TOUCH-PRO-019 — ergonomie tactile (accord Fab)
+Déplacement vidéo/audio direct à un doigt sur la zone centrale, poignées de coupe prioritaires en bordure. Zoom pincé ancré dans la frise, snap facultatif aux autres bords / tête de lecture, suppression en mode compactage ou trou préservé, navigation à petits pas près de l'image, outils directs et affichage contrasté. Chaque geste persiste un seul changement et garde les keyframes, projets originaux et export existant. Le stockage tient une sauvegarde précédente JSON, récupération partielle sans écrasement automatique. Les tests physiques et codec restent nécessaires.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 Contrat EASYCUT-AUDIT-018 (19/10/2026) : conserver l'aperçu et le multipiste validés, sans modification des vidéos originales, SAR ou keyframes. Poignées 20dp des deux côtés en vidéo et audio, retour visuel pendant glissement et coupe écrite au relâchement. Protection contre export chevauché ou annulé et nettoyage des temporaires seulement à la fin du travail natif. Candidat non testé sur Android.
 

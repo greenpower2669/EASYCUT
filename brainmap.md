@@ -1,5 +1,9 @@
 # brainmap.md — FabVidEdit
 
+## EASYCUT-TOUCH-PRO-019 — cartographie
+`TimelineSnapPolicy` est un calcul pur (bords, tête de lecture, début projet) utilisé par `TimelineEditing.moveClipOnTimeline` avec paramètre snapEnabled ; `FabVidEditViewModel.moveClip` propage le réglage et l'historique Undo. Le mode ripple est appliqué par `removeSelectedClip(ripple)`. Les interactions UI sont dans `CapCutMultitrackEditorV06` (gestes, zoom, lecteur précis, palettes). `ProjectStore` lit les entrées individuellement, garde previous_snapshot, ne remplace pas un JSON partiellement récupéré. Tests JVM SnapPolicy ; CI APK/AAB par GitHub Actions.
+
+
 ## Mise à jour FabCopilot — 19/10/2026
 EASYCUT-AUDIT-018 : `ui/CapCutMultitrackEditorV06.kt` (`V06TrimHandle`, `V018AudioTrimHandle` et lanes) -> `FabVidEditViewModel.trimVisualMedia/applyLinkedTrim`. Export : `media/ExportManager.kt` IO/proxy FFmpegKit -> Media3 Transformer -> FFmpeg audio -> MediaStore, avec compteur de génération et garde sur preparationJob/transformer/finalizationJob. Workflow `.github/workflows/android.yml` publie un APK et un AAB de test sur branche agent après CI.
 
