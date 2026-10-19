@@ -619,12 +619,4 @@ object CompositionFactory {
         val progress = TransitionTiming.progress(clip, timeMs, chosen, isIncoming) ?: return null
         return chosen.type to progress
     }
-} else {
-            val start = clip.sourceDurationMs - durationMs
-            if (timeMs < start) return null
-            (timeMs - start).toFloat() / durationMs
-        }
-        val eased = raw.coerceIn(0f, 1f).let { it * it * (3f - 2f * it) }
-        return transition.type to eased
-    }
 }
