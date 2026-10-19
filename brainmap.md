@@ -1,5 +1,9 @@
 # brainmap.md — FabVidEdit
 
+## Retouches de cohérence tactile — 19/10/2026
+Vie des gestes : rememberUpdatedState pour callbacks drag vidéo/audio même si playhead/snap changent, onDragEnd audio sélectionne après fin au lieu de recomposer au premier contact, cadre trims clamp local. V06ZoomHeader et V06Ruler = 32dp, en-tête pistes = 96dp. VM continuousEditBaseline groupe les valeurs intermédiaires du curseur opacité en une entrée Undo.
+
+
 ## Phase UI/CI EASYCUT-TOUCH-PRO-019
 V06MultitrackTimeline capte ≥2 pointers en phase Initiale, conserve le point d'ancrage au zoom et propage magnetEnabled/highContrast aux lanes. V06VideoLane et V018AudioLane suivent les offsets de trim via états locaux temporaires ; ViewModel ne reçoit une mutation qu'à la fin du drag. V06PlaybackControls fournit deux pas ≈33ms. VM audio snap s'appuie sur TimelineSnapPolicy. CI agent/easycut-touch-pro-019.
 

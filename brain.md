@@ -1,5 +1,9 @@
 # brain.md — FabVidEdit
 
+## Retouches de cohérence tactile — 19/10/2026
+Navigation fine : prendre la cadence décodée réelle si Media3 la fournit, autrement avancer d'environ 33 ms ; aucun engagement de frame-accurate universel. Geste de trim affiché et borné par les limites des sources ; meilleur contraste de la frise et commandes zoom élargies. Curseur d'opacité : un seul point d'annulation par glissement via begin/endContinuousEdit. Garde continue pour changement de sélection.
+
+
 ## Phase UI/CI EASYCUT-TOUCH-PRO-019
 Version candidate 0.0.19/code 52. Gestes et modes ajoutés dans CapCutMultitrackEditorV06 ; déplacement direct au centre par glissement, bordures pour trim, zoom pincé avec ancre du centre, previews périodiques pendant trim sans sauvegarde intermédiaire, boutons de pas ≈33 ms (cadence exacte source à étudier), snap/ripple/contraste activables, duplication et vitesse depuis barre. Test de terrain indispensable.
 

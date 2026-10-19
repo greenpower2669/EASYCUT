@@ -1,5 +1,9 @@
 # debughistorical.md — FabVidEdit
 
+## Retouches de cohérence tactile — 19/10/2026
+Audit ajustement : callbacks capturés par pointerInput avec clés immuables risquaient d'employer aimant OFF/ON périmé ; correction rememberUpdatedState. La sélection au début de drag audio pouvait déclencher recomposition sous doigt ; différée au relâchement. Trims au-delà source pouvaient montrer une extension fictive : contraints aux bornes. Curseur opacité produisait nombreux undo : regroupement du seul curseur traité. Reste à étendre si besoin aux autres sliders.
+
+
 ## Phase UI/CI EASYCUT-TOUCH-PRO-019
 Risques de 0.0.19 : scroll horizontal concurrent avec drag direct, pince deux doigts sur parent et poignées latérales, animation de trim des clips au-delà des limites de la source, seek limité à 90ms et approximation frame 30fps. Pas de test d'interaction physique dans l'agent. Les callbacks d'export/galerie existants et la géométrie de CompositionFactory sont préservés.
 

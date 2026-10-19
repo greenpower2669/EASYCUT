@@ -81,6 +81,23 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
 
     private val undoStack = ArrayDeque<VideoProject>()
+    private var continuousEditBaseline: VideoProject? = null
+
+    fun beginContinuousEdit() {
+        if (continuousEditBaseline == null) continuousEditBaseline = _activeProject.value
+    }
+
+    fun endContinuousEdit() {
+        val before = continuousEditBaseline ?: return
+        continuousEditBaseline = null
+        val after = _activeProject.value ?: return
+        if (before.id == after.id && before.copy(updatedAt = after.updatedAt) != after) {
+            undoStack.addLast(before)
+            trimHistory(undoStack)
+            redoStack.clear()
+            updateHistoryFlags()
+        }
+    }
     private val redoStack = ArrayDeque<VideoProject>()
     private val _canUndo = MutableStateFlow(false)
     val canUndo: StateFlow<Boolean> = _canUndo.asStateFlow()
@@ -1480,7 +1497,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         val candidate = project.withValidTransitions()
         if (previous != null && previous.id == candidate.id) {
             val comparable = candidate.copy(updatedAt = previous.updatedAt)
-            if (comparable != previous) {
+            if (comparable != previous && continuousEditBaseline == null) {
                 undoStack.addLast(previous)
                 trimHistory(undoStack)
                 redoStack.clear()
@@ -1514,6 +1531,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun clearEditHistory() {
+        continuousEditBaseline = null
         undoStack.clear()
         redoStack.clear()
         updateHistoryFlags()

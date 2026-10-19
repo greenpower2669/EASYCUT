@@ -1,5 +1,12 @@
 # todo.md — FabVidEdit
 
+## Retouches de cohérence tactile — 19/10/2026
+- [x] Stabiliser callbacks de glissement avec rememberUpdatedState ; clamp visuel des trims et retour audio différé.
+- [x] Cadence décodée utilisée pour pas lecteur si disponible ; approximation explicitement documentée.
+- [x] Historique regroupé pour l'opacité, vérification autre curseur à poursuivre.
+- [ ] Android : zones de zoom élargies, poignée dans clip 64 dp, scroll et drag concurrents.
+
+
 ## Phase UI/CI EASYCUT-TOUCH-PRO-019
 - [x] Codage candidat UI de zoom, drag, trim vivant, aimant/ripple, haptique, boutons fins, contraste, duplications ; enregistrement de coupe seulement en fin de geste.
 - [x] Version 0.0.19, workflow APK/AAB direct depuis branche sans merge.
