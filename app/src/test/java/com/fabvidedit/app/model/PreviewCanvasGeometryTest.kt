@@ -4,6 +4,26 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PreviewCanvasGeometryTest {
+    @Test fun mixedPortraitInsideLandscapeNeverStretchesByDefault() {
+        val fit = PreviewCanvasGeometry.forFrame(
+            ClipTransform(), 1920f, 1080f, sourceAspectRatio = 9f/16f,
+            canvasAspectRatio = 16f/9f,
+        )
+        assertEquals(81f / 256f, fit.fitX, 0.0001f)
+        assertEquals(1f, fit.fitY, 0.0001f)
+        assertEquals(1f, fit.scaleX, 0.0001f)
+        assertEquals(1f, fit.scaleY, 0.0001f)
+    }
+
+    @Test fun landscapeInPortraitUsesLetterboxRatherThanVerticalStretch() {
+        val fit = PreviewCanvasGeometry.forFrame(
+            ClipTransform(), 720f, 1280f, sourceAspectRatio = 16f/9f,
+            canvasAspectRatio = 9f/16f,
+        )
+        assertEquals(1f, fit.fitX, 0.0001f)
+        assertEquals(81f / 256f, fit.fitY, 0.0001f)
+    }
+
     @Test fun portraitVideoOnSquareCanvasUsesFitBeforeUserZoom() {
         val desired = ClipTransform(scaleX = 3.21f, scaleY = 3.21f,
             positionX = -0.10f, positionY = -1.15f, rotationDegrees = 2f)

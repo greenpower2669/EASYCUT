@@ -1,5 +1,8 @@
 # debughistorical.md — FabVidEdit
 
+## Suivi EASYCUT-ASPECT-020
+EASYCUT-ASPECT-020 : BUG confirmé dans chemin de code fallback : plan TextureView transform null, `matrix=identity`, la source ExoPlayer brute occupe frame projet indépendamment du ratio ; portrait susceptible d'être étiré sur horizontal, malgré Présentation Media3 correcte ailleurs. Incohérence animation établie : fallback transitions sur temps de sortie simple durée/2, Media3 source-time vitesse et cap 1/3 ; transitions sur clips courts pas synchrones. Corrigés en code candidat ; risques restant rotations de métadonnées Media3 sur appareils, surfaces, sources SAR variables, multitrack hétérogène et effet lors interpolation à tester sur smartphone. CI ne prouve pas rendu.
+
 ## TOUCH-019 — compilation et publication
 Le commit `fc37221` a échoué au compilateur sur un import `withValidTransitions` ajouté à tort : il s'agit d'une méthode membre de `VideoProject`, pas d'une extension importable. Correction confirmée au commit `9036b4a` ; run push 39287739142 : tests/lint/APK/AAB/Release réussis. Un run antérieur 39287245704 a eu un 403 de publication GitHub malgré une compilation réussie ; incident non reproduit sur le dernier run. Pas de test tactile smartphone dans la CI.
 

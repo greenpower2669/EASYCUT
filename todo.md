@@ -1,5 +1,15 @@
 # todo.md — FabVidEdit
 
+## Suivi EASYCUT-ASPECT-020
+### EASYCUT-ASPECT-020 (19/10/2026)
+- [x] Auditer code ratios source/projet, Surface ExoPlayer, compositor Media3, animations et keyframes.
+- [x] Correctif géométrie raw fallback FIT, canvas compositeur preview/export, ordre rotation-source/FIT, timing transitions partagé.
+- [x] Ajouter tests ratios 9:16->16:9, 16:9->9:16, animations courtes et à vitesse x2, intégrité plan Transform.
+- [ ] Tests GitHub CI/lint/debug APK/AAB/Release et corriger anomalies.
+- [ ] Tests sur Samsung : vidéo portrait ajoutée à landscape, réciproque, modes simple/multitrack, lecture prévisualisation vs export, changement de plan, effets Slide/Zoom/Rotate/Fade, keyframes, speed, SAR/DAR, projet non écrasé.
+- [ ] Inspection visuelle réelle des animations et Media3 GL, avec GET ERR si plantage ; ne pas prétendre certifier tous scénarios par tests JVM.
+
+
 ## TOUCH-019 — preuve GitHub Actions et livraison (19/10/2026)
 - [x] **CI de la version 0.0.19** : run push 39287739142 sur commit `9036b4a` ; `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `bundleDebug` et étape Release tous **SUCCESS**.
 - [x] **APK vérifié** : [EASYCUT-v0.0.19-arm64-debug.apk](https://github.com/greenpower2669/EASYCUT/releases/download/easycut-v0.0.19-touch-9036b4a/EASYCUT-v0.0.19-arm64-debug.apk) — 103746400 octets, direct, sans ZIP.

@@ -1,5 +1,8 @@
 # brainmap.md — FabVidEdit
 
+## Suivi EASYCUT-ASPECT-020
+EASYCUT-ASPECT-020 : `PreviewV03RenderPolicy.fitRawSourceToCanvas` commande `FabVidVideoTextureView.applyPreviewTransform(fitRawSourceToCanvas)`, qui ne touche au Matrix TextureView que pour fallback ExoPlayer. `PreviewCanvasGeometry.forFrame` calcule fitX/fitY selon ratios source/projet ; `CompositionFactory` ordonne orientation->Presentation.FIT->filtres/keyframes, et impose `ExportCanvasGeometry` au compositeur preview et export. `TransitionTiming.progress(clip,sourceTime,transition,isIncoming)` remplace logique dupliquée export/fallback. New tests : TransitionTiming et mixed-ratio canvas.
+
 ## Référence technique vérifiée 0.0.19
 Commit de code `9036b4a`, action `39287739142`, release `easycut-v0.0.19-touch-9036b4a` ; APK direct et AAB publiés. Tests CI réussis, instrumentation Android non réalisée. Le présent ajout est purement documentaire et n'invalide pas ces binaires.
 

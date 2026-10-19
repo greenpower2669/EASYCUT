@@ -1,5 +1,11 @@
 # Ordres de mission de Fab — EASYCUT
 
+### EASYCUT-ASPECT-020 — Mix de formats et animations (Fab, 19/10/2026)
+- Garder le ratio natif (notamment vidéo 9:16 ajoutée à un projet 16:9), avec bandes libres ; éviter étirement imposé par le premier clip ou par l'ordre d'import. Préserver les zooms/recadrages créatifs, effets, SAR/DAR et médias originaux.
+- Auditer les transitions animées et le pipeline preview/export, corriger divergences prouvées ; livrer test APK/AAB sans merge main ; vérifier CI et demander validation smartphone.
+- Correctif candidat 0.0.20 : mode ExoPlayer applique FIT sur TextureView sans double transform ; export/aperçu composite fixent un canvas projet ; rotation source puis FIT puis keyframes ; rythme de transition partagé preview/export, cohérent clips courts/vitesse. Tester vraie lecture et MP4 sur Android, ne pas déclarer toutes animations visuellement validées.
+
+
 ## IMMUTABLE / À PRÉSERVER (19/10/2026)
 - Application ID réel `com.fabvidedit.app.poc` ; ni renommer ni migrer les projets sans Fab.
 - Préserver fichiers source, signatures, identités locales, acquis preview/export multipiste.

@@ -4,6 +4,24 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ExportCanvasGeometryTest {
+    @Test fun portraitFrameIsIndependentOfLandscapeInputSize() {
+        val frame = ExportCanvasGeometry.resolve(
+            canvasRatio = 9f / 16f, requestedShortSide = 720,
+            sourceShortSide = 1080, fallbackWidth = 1920, fallbackHeight = 1080,
+        )
+        org.junit.Assert.assertEquals(720, frame.width)
+        org.junit.Assert.assertEquals(1280, frame.height)
+    }
+
+    @Test fun landscapeFrameIsIndependentOfPortraitInputSize() {
+        val frame = ExportCanvasGeometry.resolve(
+            canvasRatio = 16f / 9f, requestedShortSide = 720,
+            sourceShortSide = 720, fallbackWidth = 720, fallbackHeight = 1280,
+        )
+        org.junit.Assert.assertEquals(1280, frame.width)
+        org.junit.Assert.assertEquals(720, frame.height)
+    }
+
     @Test fun portraitUsesProjectAspectEvenWhenMetadataIsSquare() {
         val size = ExportCanvasGeometry.resolve(
             canvasRatio = 9f / 16f,

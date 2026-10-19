@@ -134,6 +134,7 @@ import com.fabvidedit.app.model.TextLayer
 import com.fabvidedit.app.model.TextPosition
 import com.fabvidedit.app.model.TransformKeyframe
 import com.fabvidedit.app.model.TransitionType
+import com.fabvidedit.app.model.TransitionTiming
 import com.fabvidedit.app.model.VideoClip
 import com.fabvidedit.app.model.VideoLayerPolicy
 import com.fabvidedit.app.model.TimelineTouchMath
@@ -660,6 +661,7 @@ fun CapCutMultitrackEditorV06(viewModel: FabVidEditViewModel, project: VideoProj
                                     renderPlan.textureTransform,
                                     sourceAspectRatio = fallbackClip?.displayAspectRatio() ?: outputRatio,
                                     canvasAspectRatio = outputRatio,
+                                    fitRawSourceToCanvas = renderPlan.fitRawSourceToCanvas,
                                 )
                             },
                             onRelease = { frame ->
@@ -1235,59 +1237,45 @@ private fun v020FallbackVisual(
     var alpha = 1f
     var label: String? = null
 
-    fun smooth(raw: Float): Float {
-        val p = raw.coerceIn(0f, 1f)
-        return p * p * (3f - 2f * p)
-    }
-
     val incoming = project.transitions.firstOrNull { it.toClipId == clip.id }
     val outgoing = project.transitions.firstOrNull { it.fromClipId == clip.id }
-    val incomingDuration = ((incoming?.durationMs ?: 0L) / 2L).coerceAtLeast(1L)
-    val outgoingDuration = ((outgoing?.durationMs ?: 0L) / 2L).coerceAtLeast(1L)
+    val incomingProgress = TransitionTiming.progress(clip, sourceLocalMs, incoming, true)
+    val outgoingProgress = TransitionTiming.progress(clip, sourceLocalMs, outgoing, false)
 
-    val incomingProgress = incoming?.takeIf { outputLocalMs <= incomingDuration }?.let {
-        smooth(outputLocalMs.toFloat() / incomingDuration.toFloat())
-    }
-    val outgoingProgress = outgoing?.takeIf { outputLocalMs >= clip.outputDurationMs - outgoingDuration }?.let {
-        smooth((outputLocalMs - (clip.outputDurationMs - outgoingDuration)).toFloat() / outgoingDuration.toFloat())
-    }
-
-    incomingProgress?.let { p ->
-        label = incoming?.type?.name
-        when (incoming?.type) {
-            TransitionType.FADE -> alpha *= p
-            TransitionType.SLIDE_LEFT -> transform = transform.copy(positionX = transform.positionX + 2.05f * (1f - p))
-            TransitionType.SLIDE_RIGHT -> transform = transform.copy(positionX = transform.positionX - 2.05f * (1f - p))
-            TransitionType.ZOOM -> transform = transform.copy(
-                scaleX = transform.scaleX * (0.68f + 0.32f * p),
-                scaleY = transform.scaleY * (0.68f + 0.32f * p),
+    // Keep motion precedence identical to CompositionFactory.transitionMotion.
+    // FADE is a separate brightness/alpha channel, like export's RgbMatrix.
+    val motionIsIncoming = incomingProgress != null
+    val motionType = if (motionIsIncoming) incoming?.type else outgoing?.type
+    val motionProgress = if (motionIsIncoming) incomingProgress else outgoingProgress
+    if (motionProgress != null) {
+        val p = motionProgress
+        label = motionType?.name
+        when (motionType) {
+            TransitionType.FADE -> Unit
+            TransitionType.SLIDE_LEFT -> transform = transform.copy(
+                positionX = transform.positionX + if (motionIsIncoming) 2.05f * (1f - p) else -2.05f * p,
             )
-            TransitionType.ROTATE -> transform = transform.copy(
-                scaleX = transform.scaleX * (0.78f + 0.22f * p),
-                scaleY = transform.scaleY * (0.78f + 0.22f * p),
-                rotationDegrees = transform.rotationDegrees - 18f * (1f - p),
+            TransitionType.SLIDE_RIGHT -> transform = transform.copy(
+                positionX = transform.positionX + if (motionIsIncoming) -2.05f * (1f - p) else 2.05f * p,
             )
+            TransitionType.ZOOM -> {
+                val scale = if (motionIsIncoming) 0.68f + 0.32f * p else 1f + 0.34f * p
+                transform = transform.copy(scaleX = transform.scaleX * scale, scaleY = transform.scaleY * scale)
+            }
+            TransitionType.ROTATE -> {
+                val scale = if (motionIsIncoming) 0.78f + 0.22f * p else 1f - 0.22f * p
+                val angle = if (motionIsIncoming) -18f * (1f - p) else 18f * p
+                transform = transform.copy(
+                    scaleX = transform.scaleX * scale, scaleY = transform.scaleY * scale,
+                    rotationDegrees = transform.rotationDegrees + angle,
+                )
+            }
             null -> Unit
         }
     }
-    outgoingProgress?.let { p ->
-        label = outgoing?.type?.name
-        when (outgoing?.type) {
-            TransitionType.FADE -> alpha *= 1f - p
-            TransitionType.SLIDE_LEFT -> transform = transform.copy(positionX = transform.positionX - 2.05f * p)
-            TransitionType.SLIDE_RIGHT -> transform = transform.copy(positionX = transform.positionX + 2.05f * p)
-            TransitionType.ZOOM -> transform = transform.copy(
-                scaleX = transform.scaleX * (1f + 0.34f * p),
-                scaleY = transform.scaleY * (1f + 0.34f * p),
-            )
-            TransitionType.ROTATE -> transform = transform.copy(
-                scaleX = transform.scaleX * (1f - 0.22f * p),
-                scaleY = transform.scaleY * (1f - 0.22f * p),
-                rotationDegrees = transform.rotationDegrees + 18f * p,
-            )
-            null -> Unit
-        }
-    }
+    val fadeIn = incomingProgress?.takeIf { incoming?.type == TransitionType.FADE } ?: 1f
+    val fadeOut = outgoingProgress?.takeIf { outgoing?.type == TransitionType.FADE }?.let { 1f - it } ?: 1f
+    alpha = minOf(fadeIn, fadeOut)
     return V020FallbackVisual(transform.normalized(), alpha.coerceIn(0f, 1f), label)
 }
 

@@ -1,5 +1,8 @@
 # brain.md — FabVidEdit
 
+## Suivi EASYCUT-ASPECT-020
+EASYCUT-ASPECT-020 : le fallback ExoPlayer restait matrix=identity dans `PreviewV03RenderPolicy` malgré un cadre projet, étirant 9:16 dans 16:9 ; activer TextureView FIT géométrique uniquement en raw fallback, sans double scale/rotation créative, et réappliquer resize Surface. Pour Media3 Composition : canvas explicite aussi dans preview multitrack (plus de DEFAULT premier input) ; appliquer rotation source avant FIT, transformations/keyframes ensuite. `TransitionTiming` calcule désormais le même temps source et cap de transition à 1/3 du clip dans export et fallback, y compris clip accéléré. Formats média SAR/DAR non réécrits.
+
 ## Livraison 0.0.19 — distinction des preuves
 La CI 39287739142 a réussi et l'APK/AAB GitHub Release ont été vérifiés. Cela ne valide ni les gestes sur Samsung, ni l'export réel de projets volumineux ; ces critères restent ouverts dans les missions.
 
