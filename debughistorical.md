@@ -1,5 +1,33 @@
 # debughistorical.md — FabVidEdit
 
+## Compatibilité API / Undo — 19/10/2026
+L'éditeur multipiste hébergeait encore `onDelete = viewModel::removeSelectedClip` ; paramètre Boolean facultatif de la nouvelle API ne convient pas à la signature callback `() -> Unit`. Lambda explicite ajoutée avec mode ripple. Slider de volume audio source utilise désormais begin/endContinuousEdit pour éviter une pile Undo saturée par chaque mouvement.
+
+
+## Sécurité récupération — 0.0.19
+La récupération du JSON précédent ne doit pas valider seulement une enveloppe JSONArray : une entrée endommagée reste possible. Snapshot de sauvegarde désormais issu du dernier chargement complet (ou d'un save valide) ; source abîmée conservée à part `KEY_RAW_RECOVERY` avant tout écrasement éventuel. Aucun transfert hors application.
+
+
+## Compatibilité API Kotlin EASYCUT-TOUCH-PRO-019
+`removeSelectedClip(ripple: Boolean = true)` a maintenant un paramètre optionnel : les références de fonction `::removeSelectedClip` dans les éditeurs historiques ne sont plus automatiquement de type `() -> Unit`. Deux callbacks d'anciennes vues adaptés explicitement en lambda sans argument pour éviter une erreur de compilation, sans modifier leur politique ripple historique.
+
+
+## Retouches de cohérence tactile — 19/10/2026
+Audit ajustement : callbacks capturés par pointerInput avec clés immuables risquaient d'employer aimant OFF/ON périmé ; correction rememberUpdatedState. La sélection au début de drag audio pouvait déclencher recomposition sous doigt ; différée au relâchement. Trims au-delà source pouvaient montrer une extension fictive : contraints aux bornes. Curseur opacité produisait nombreux undo : regroupement du seul curseur traité. Reste à étendre si besoin aux autres sliders.
+
+
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+Risques de 0.0.19 : scroll horizontal concurrent avec drag direct, pince deux doigts sur parent et poignées latérales, animation de trim des clips au-delà des limites de la source, seek limité à 90ms et approximation frame 30fps. Pas de test d'interaction physique dans l'agent. Les callbacks d'export/galerie existants et la géométrie de CompositionFactory sont préservés.
+
+
+## EASYCUT-TOUCH-PRO-019 — risques/contexte
+Audit statique : le déplacement vidéo exigeait appui long ; la suppression compactait implicitement la piste ; le snap fixe 180 ms ne prenait ni fin du clip ni tête de lecture ; un JSON de projet malformé faisait retourner une liste vide entière sans diagnostic. Implémentation candidate : déplacement direct, snap bords/deux côtés, mode suppression libre, sauvegarde précédente et récupération non destructive. Risques à mesurer : compétition gestuelle avec scroll horizontal, découpes très courtes, surcharge du lecteur lors du scrub, limites d'encodeur non traitées. Tests Android non prétendus.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 : vérifié en code : grips 10dp vidéo/12dp audio, feedback gestuel absent, trim sans changement enregistrable ; ExportManager.cancel supprimait le cache pendant FFmpeg synchrone et les anciennes phases pouvaient écrire des états après annulation. Correctifs candidats 0.0.18 : 20dp, translation gestuelle, no-op trim, annulation non traitée comme erreur et barrières de génération. Crashes réels non reproduits, cause non établie ; codecs, Media3, disque et résilience native restent sous surveillance.
+
+
 ## FABVID-EXP-001 — paramètres export perdus (cause confirmée par lecture du code)
 Symptôme rapporté par Fab : formats de sortie et paramètres revenus incorrects. Dans la v0.25 le moteur déclare `ExportVideoCodec`, `ExportFrameRate`, `ExportResolution`, `ExportBitrate`, mais `EditorScreen.ExportOptionsDialog` n'offre que 720/1080/4K et envoie un `Int`. Le ViewModel crée alors un `ExportSettings` par défaut, alors que le dialogue affiche H.264 et le défaut moteur était H.265. Correction sur cette branche : paramètre complet UI → moteur, H.264 par défaut, H.265 exposé avec garde matérielle. Pas encore validé sur téléphone. Intervalle continu 2–50 non encore réalisé.
 

@@ -1,5 +1,15 @@
 # Ordres de mission de Fab — EASYCUT
 
+### EASYCUT-TOUCH-PRO-019 — Commande « OK code tout » (19/10/2026)
+Fab approuve les 8 améliorations ergonomiques proposées : découpe interactive depuis les deux côtés, zoom pincé des pistes, aimantation, déplacement à un doigt, précision image par image, mode libre/ripple, barre d'outils contextuelle, mode confort visuel. Préserver Annuler/Rétablir en une seule entrée par geste et sauvegardes de sécurité. Déplacement immédiat retenu à la place de l'appui long ; choix réversible par réglage si nécessaire. Livrer 0.0.19 sur branche distincte et APK direct si CI réussi ; tests Android restent à valider. Les deux boutons de pas sont une approximation de 33 ms et NON un vrai step d'une image si cadence autre que 30 fps. Maintenir la mission ouverte tant que ces critères ne sont pas démontrés.
+
+
+## IMMUTABLE / À PRÉSERVER (19/10/2026)
+- Application ID réel `com.fabvidedit.app.poc` ; ni renommer ni migrer les projets sans Fab.
+- Préserver fichiers source, signatures, identités locales, acquis preview/export multipiste.
+- Livrables Android : APK direct EASYCUT-vX.Y.Z-arm64-debug.apk et AAB distinct.
+- Branche de travail isolée, aucun merge main sans validation de Fab.
+
 > **Ce fichier appartient aux demandes de Fab.** `todo.md` décrit uniquement le plan d'exécution de l'assistant ; `debughistorical.md` conserve les incidents ; `topo.md` est une aide à la navigation pour l'assistant. Ce registre ne remplace pas `brain.md`, qui détaille le contrat. Version de référence au moment du classement : **EASYCUT 0.0.10** (aperçu et premier export confirmés par Fab).
 
 ## Règle de persistance — FAB-MISSION-001
@@ -9,6 +19,12 @@
 - Le détail des erreurs, de leurs causes supposées et des régressions se trouve dans `debughistorical.md` ; un bug ne remplace ni ne supprime une fonctionnalité demandée ici. Les étapes d'implémentation restent dans `todo.md`.
 
 ## Missions ouvertes demandées par Fab
+
+### EASYCUT-AUDIT-018 — Audit global tactile et export (demande Fab, 19/10/2026)
+- Fab demande audit profond des incohérences, bugs, options inopérantes et plantages d'export. Montage à un doigt : agrandir/raccourcir clips depuis chacun des deux bords sur leur piste.
+- Candidat partiel 0.0.18 : poignées vidéo/audio 20dp, suivi visuel du doigt, suppressions de trims inchangés, sécurisation de chevauchements et annulations d'export.
+- Restent ouverts : examen de toutes les options, validations Samsung, exports réels (longs, H264/HEVC), robustesse en espace limité, causes précises GET ERR. Ne pas promettre résolution globale.
+
 
 ### FAB-SOURCE-COMPAT-011 — Étendre la compatibilité des sources et respecter les pixels non carrés
 - **Origine :** Fab, 24/09/2026, après validation d'EASYCUT v0.0.15. **Ordre actuel : inscrire la mission maintenant ; « code pas de suite ».**

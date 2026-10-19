@@ -19,7 +19,7 @@ fun VideoProject.rippleDeleteClip(clipId: String): VideoProject {
     return copy(clips = shifted, projectFormatVersion = 9).withValidTransitions()
 }
 
-fun VideoProject.moveClipOnTimeline(clipId: String, targetTrackIndex: Int, targetStartMs: Long): VideoProject {
+fun VideoProject.moveClipOnTimeline(clipId: String, targetTrackIndex: Int, targetStartMs: Long, snapEnabled: Boolean = true, playheadMs: Long? = null): VideoProject {
     val moving = clips.firstOrNull { it.id == clipId } ?: return this
     // v0.11: the UI may expose empty V1..V6 (and later more). Do not clamp to the currently-used
     // tracks, otherwise dropping from V1 to an empty V5/V6 silently falls back to V2/V3.
@@ -27,8 +27,10 @@ fun VideoProject.moveClipOnTimeline(clipId: String, targetTrackIndex: Int, targe
     val duration = moving.outputDurationMs.coerceAtLeast(1L)
     val occupied = clips.filter { it.id != clipId && it.timelineTrackIndex == targetTrack }.sortedBy(VideoClip::timelineStartMs)
     var start = targetStartMs.coerceAtLeast(0L)
-    val boundaries = occupied.flatMap { listOf(it.timelineStartMs, it.timelineStartMs + it.outputDurationMs) } + 0L
-    boundaries.minByOrNull { abs(it - start) }?.takeIf { abs(it - start) <= MOVE_SNAP_MS }?.let { start = it }
+    if (snapEnabled) {
+        val boundaries = occupied.flatMap { listOf(it.timelineStartMs, it.timelineStartMs + it.outputDurationMs) } + 0L
+        start = TimelineSnapPolicy.snapStart(start, duration, boundaries, playheadMs, MOVE_SNAP_MS)
+    }
     var guard = 0
     while (guard++ < occupied.size + 2) {
         val end = start + duration

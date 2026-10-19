@@ -1,5 +1,25 @@
 # brainmap.md — FabVidEdit
 
+## État de livraison 0.0.19 — 19/10/2026
+Le calcul du zoom pincé lit `latestRawWidth` via rememberUpdatedState, pour suivre la durée actuelle du projet même quand le curseur tactile n'est pas recréé.
+
+
+## Retouches de cohérence tactile — 19/10/2026
+Vie des gestes : rememberUpdatedState pour callbacks drag vidéo/audio même si playhead/snap changent, onDragEnd audio sélectionne après fin au lieu de recomposer au premier contact, cadre trims clamp local. V06ZoomHeader et V06Ruler = 32dp, en-tête pistes = 96dp. VM continuousEditBaseline groupe les valeurs intermédiaires du curseur opacité en une entrée Undo.
+
+
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+V06MultitrackTimeline capte ≥2 pointers en phase Initiale, conserve le point d'ancrage au zoom et propage magnetEnabled/highContrast aux lanes. V06VideoLane et V018AudioLane suivent les offsets de trim via états locaux temporaires ; ViewModel ne reçoit une mutation qu'à la fin du drag. V06PlaybackControls fournit deux pas ≈33ms. VM audio snap s'appuie sur TimelineSnapPolicy. CI agent/easycut-touch-pro-019.
+
+
+## EASYCUT-TOUCH-PRO-019 — cartographie
+`TimelineSnapPolicy` est un calcul pur (bords, tête de lecture, début projet) utilisé par `TimelineEditing.moveClipOnTimeline` avec paramètre snapEnabled ; `FabVidEditViewModel.moveClip` propage le réglage et l'historique Undo. Le mode ripple est appliqué par `removeSelectedClip(ripple)`. Les interactions UI sont dans `CapCutMultitrackEditorV06` (gestes, zoom, lecteur précis, palettes). `ProjectStore` lit les entrées individuellement, garde previous_snapshot, ne remplace pas un JSON partiellement récupéré. Tests JVM SnapPolicy ; CI APK/AAB par GitHub Actions.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 : `ui/CapCutMultitrackEditorV06.kt` (`V06TrimHandle`, `V018AudioTrimHandle` et lanes) -> `FabVidEditViewModel.trimVisualMedia/applyLinkedTrim`. Export : `media/ExportManager.kt` IO/proxy FFmpegKit -> Media3 Transformer -> FFmpeg audio -> MediaStore, avec compteur de génération et garde sur preparationJob/transformer/finalizationJob. Workflow `.github/workflows/android.yml` publie un APK et un AAB de test sur branche agent après CI.
+
+
 ## Base et chemins
 - Base technique `0cb6d330a88d8d654f4e5bc9edd50e5a523887d4` / branche `agent/v0.25-matrix-texture-preview`. Le dépôt distinct FabCut possède une version 0.4 ; ne pas amalgamer les historiques.
 - `app/src/main/java/com/fabvidedit/app/ui/EditorScreen.kt` : Compose, `CompositionPlayer`, `PreviewSurface`, `ExportOptionsDialog` et `ExportChoiceRow`. L'UI fournit un `ExportSettings` complet au ViewModel. `remember` préserve le geste pendant les changements de transform. La composition d'aperçu utilise une résolution plafonnée et 30 i/s, distincte de l'export.

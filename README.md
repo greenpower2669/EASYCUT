@@ -1,3 +1,14 @@
+# EASYCUT — candidate tactile v0.0.19 (branche agent/easycut-touch-pro-019)
+
+**19/10/2026 — développement non fusionné à main.** VersionCode 52, versionName 0.0.19, identifiant Android inchangé `com.fabvidedit.app.poc`.
+PR de contrôle : https://github.com/greenpower2669/EASYCUT/pull/3
+
+Nouveautés candidates : couper/allonger au doigt sur les deux bords avec retour visuel, pince à deux doigts sur la frise, déplacement direct vidéo/audio, aimantation configurable (bords + tête de lecture), suppression libre ou compacte, haptique vidéo, petits pas de lecture calculés avec FPS du décodeur si disponible, outils contextuels et contraste renforcé. Undo/Redo existants conservés, coalescence pour gestes de trim/drag/opacité et volume audio source. Sauvegarde JSON précédente et récupération non destructive.
+
+**Limites :** ce n'est pas encore une preuve de montage parfaitement identique à CapCut. Les pas sont une approximation temporelle, pas une extraction garantie de chaque image. Contrôle sur téléphone Samsung et exports réels indispensables, notamment gestes simultanés, gros médias et options historiques. Les jobs GitHub Actions du 19/10/2026 sont actuellement en file d'attente (queued), donc **aucun APK/AAB 0.0.19 n'est attesté pour l'instant**. `main` reste en 0.0.17 et la candidate 0.0.18 antérieure reste disponible en Release.
+
+## Historique du dépôt (texte original ci-dessous)
+
 # EASYCUT — v0
 
 Éditeur vidéo Android Kotlin/Compose. Cette **base v0** importe avec autorisation explicite les sources de FabVidEdit 0.25.6 (commit `436649444f480c0aff21875de1a3a5e5d0be1618`) dans un nouveau dépôt public, **sans publier l'historique privé ni les anciens APK, AAB et logs**. Le dépôt FabVidEdit d'origine n'est pas modifié.

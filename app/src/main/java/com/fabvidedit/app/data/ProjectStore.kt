@@ -25,34 +25,59 @@ import org.json.JSONObject
 
 class ProjectStore(context: Context) {
     private val preferences = context.getSharedPreferences("fab_vid_edit_projects", Context.MODE_PRIVATE)
+    private var lastCompleteSnapshot: String? = null
 
-    fun load(): List<VideoProject> = runCatching {
-        val value = preferences.getString(KEY_PROJECTS, null) ?: return emptyList()
-        val array = JSONArray(value)
+    fun load(): List<VideoProject> {
+        val primary = preferences.getString(KEY_PROJECTS, null) ?: return emptyList()
+        var recovered = false
+        val array = runCatching { JSONArray(primary) }.getOrElse { error ->
+            Log.e(TAG, "Project index damaged; attempting last snapshot", error)
+            if (preferences.getString(KEY_RAW_RECOVERY, null) == null) {
+                preferences.edit().putString(KEY_RAW_RECOVERY, primary).apply()
+            }
+            val backup = preferences.getString(KEY_BACKUP, null) ?: return emptyList()
+            recovered = true
+            runCatching { JSONArray(backup) }.getOrElse { backupError ->
+                Log.e(TAG, "Project backup also unavailable; existing raw data preserved", backupError)
+                return emptyList()
+            }
+        }
         val loaded = buildList {
             for (index in 0 until array.length()) {
-                add(projectFromJson(array.getJSONObject(index)))
+                val project = runCatching { projectFromJson(array.getJSONObject(index)) }
+                    .onFailure { Log.e(TAG, "Project entry $index unreadable; raw JSON retained", it) }
+                    .getOrNull()
+                if (project != null) add(project) else recovered = true
             }
         }
         val repaired = loaded.map { project ->
             if (project.projectFormatVersion < 9) {
                 project.repairIndependentStreamLayout().copy(projectFormatVersion = 9)
-            } else {
-                project
+            } else project
+        }
+        // Never auto-save a partial recovery and overwrite the only complete source.
+        if (recovered) {
+            // Preserve the exact damaged primary JSON for later manual recovery.
+            if (preferences.getString(KEY_RAW_RECOVERY, null) == null) {
+                preferences.edit().putString(KEY_RAW_RECOVERY, primary).apply()
             }
+        } else {
+            lastCompleteSnapshot = primary
         }
-        if (repaired != loaded) {
-            save(repaired)
-            Log.i(TAG, "v0.9 repaired persisted independent video streams into distinct tracks")
-        }
+        if (!recovered && repaired != loaded) save(repaired)
         repaired.forEach(::logMultitrackReload)
-        repaired.sortedByDescending(VideoProject::updatedAt)
-    }.getOrDefault(emptyList())
+        return repaired.sortedByDescending(VideoProject::updatedAt)
+    }
 
     fun save(projects: List<VideoProject>) {
         val array = JSONArray()
         projects.forEach { array.put(it.toJson()) }
-        preferences.edit().putString(KEY_PROJECTS, array.toString()).apply()
+        val serialized = array.toString()
+        val editor = preferences.edit()
+        // Use the last fully parsed state, never a partial or malformed array as a backup.
+        lastCompleteSnapshot?.takeIf { it != serialized }?.let { editor.putString(KEY_BACKUP, it) }
+        editor.putString(KEY_PROJECTS, serialized).apply()
+        lastCompleteSnapshot = serialized
     }
 
     private fun VideoProject.toJson(): JSONObject = JSONObject().apply {
@@ -434,6 +459,8 @@ class ProjectStore(context: Context) {
 
     private companion object {
         const val KEY_PROJECTS = "projects_v1"
+        const val KEY_BACKUP = "projects_v1_previous_snapshot"
+        const val KEY_RAW_RECOVERY = "projects_v1_raw_recovery"
         const val TAG = "FabVidProjectStore"
     }
 }

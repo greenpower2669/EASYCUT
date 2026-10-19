@@ -29,6 +29,7 @@ import com.fabvidedit.app.model.SourceAudioKeyframe
 import com.fabvidedit.app.model.SourceAudioTrack
 import com.fabvidedit.app.model.TextLayer
 import com.fabvidedit.app.model.TimelineMode
+import com.fabvidedit.app.model.TimelineSnapPolicy
 import com.fabvidedit.app.model.TransformKeyframe
 import com.fabvidedit.app.model.TransitionType
 import com.fabvidedit.app.model.VideoClip
@@ -80,6 +81,23 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
 
     private val undoStack = ArrayDeque<VideoProject>()
+    private var continuousEditBaseline: VideoProject? = null
+
+    fun beginContinuousEdit() {
+        if (continuousEditBaseline == null) continuousEditBaseline = _activeProject.value
+    }
+
+    fun endContinuousEdit() {
+        val before = continuousEditBaseline ?: return
+        continuousEditBaseline = null
+        val after = _activeProject.value ?: return
+        if (before.id == after.id && before.copy(updatedAt = after.updatedAt) != after) {
+            undoStack.addLast(before)
+            trimHistory(undoStack)
+            redoStack.clear()
+            updateHistoryFlags()
+        }
+    }
     private val redoStack = ArrayDeque<VideoProject>()
     private val _canUndo = MutableStateFlow(false)
     val canUndo: StateFlow<Boolean> = _canUndo.asStateFlow()
@@ -258,8 +276,10 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun trimVisualMedia(project: VideoProject, clipId: String, startMs: Long, endMs: Long) {
         val anchor = project.clips.firstOrNull { it.id == clipId } ?: return
+        if (anchor.durationMs < 2L) return
         val start = startMs.coerceIn(0L, anchor.durationMs - 1L)
         val end = endMs.coerceIn(start + 1L, anchor.durationMs)
+        if (start == anchor.trimStartMs && end == anchor.trimEndMs) return
         val requestedLeftOutputMs = ((start - anchor.trimStartMs) / anchor.speed.coerceAtLeast(0.01f)).toLong()
         val requestedRightOutputMs = ((anchor.trimEndMs - end) / anchor.speed.coerceAtLeast(0.01f)).toLong()
         val groupId = anchor.syncGroupId.takeIf { anchor.syncLocked }
@@ -421,12 +441,14 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         updateProject(project.copy(clips = clips))
     }
 
-    fun removeSelectedClip() {
+    fun removeSelectedClip(ripple: Boolean = true) {
         val project = _activeProject.value ?: return
         val selectedId = _selectedClipId.value ?: return
         val removed = project.clips.firstOrNull { it.id == selectedId } ?: return
         val linkedGroupId = removed.syncGroupId.takeIf { removed.syncLocked }
-        val visualUpdate = project.rippleDeleteClip(selectedId)
+        val visualUpdate = if (ripple) project.rippleDeleteClip(selectedId) else project.copy(
+            clips = project.clips.filterNot { it.id == selectedId },
+        ).withValidTransitions()
         val updated = if (linkedGroupId == null) {
             visualUpdate
         } else {
@@ -451,12 +473,12 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         moveClip(id, targetTrackIndex = 0, targetStartMs = endOfV1)
     }
 
-    fun moveClip(clipId: String, targetTrackIndex: Int, targetStartMs: Long) {
+    fun moveClip(clipId: String, targetTrackIndex: Int, targetStartMs: Long, snapEnabled: Boolean = true, playheadMs: Long? = null) {
         val project = _activeProject.value ?: return
         val anchor = project.clips.firstOrNull { it.id == clipId } ?: return
         val groupId = anchor.syncGroupId.takeIf { anchor.syncLocked }
         if (groupId == null) {
-            updateProject(project.moveClipOnTimeline(clipId, targetTrackIndex, targetStartMs))
+            updateProject(project.moveClipOnTimeline(clipId, targetTrackIndex, targetStartMs, snapEnabled, playheadMs))
             _selectedClipId.value = clipId
             return
         }
@@ -469,6 +491,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
             clipId,
             targetTrackIndex,
             (anchor.timelineStartMs + safeDelta).coerceAtLeast(0L),
+            snapEnabled, playheadMs,
         )
         val movedAnchor = movedAnchorProject.clips.first { it.id == clipId }
         val actualDelta = movedAnchor.timelineStartMs - anchor.timelineStartMs
@@ -1020,15 +1043,20 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         _selectedClipId.value = null
     }
 
-    fun moveSourceAudioTrack(id: String, targetTrackIndex: Int, targetStartMs: Long) {
+    fun moveSourceAudioTrack(id: String, targetTrackIndex: Int, targetStartMs: Long, snapEnabled: Boolean = true, playheadMs: Long? = null) {
         val project = _activeProject.value ?: return
         val anchor = project.sourceAudioTracks.firstOrNull { it.id == id } ?: return
+        val requestedStart = if (snapEnabled) {
+            val neighbors = project.sourceAudioTracks.filter { it.id != id && it.timelineTrackIndex == targetTrackIndex }
+            TimelineSnapPolicy.snapStart(targetStartMs, anchor.outputDurationMs,
+                neighbors.flatMap { listOf(it.timelineStartMs, it.timelineStartMs + it.outputDurationMs) }, playheadMs)
+        } else targetStartMs
         val groupId = anchor.syncGroupId.takeIf { anchor.syncLocked }
         if (groupId == null) {
             updateProject(project.copy(sourceAudioTracks = project.sourceAudioTracks.map { track ->
                 if (track.id == id) track.copy(
                     timelineTrackIndex = targetTrackIndex.coerceAtLeast(0),
-                    timelineStartMs = targetStartMs.coerceAtLeast(0L),
+                    timelineStartMs = requestedStart.coerceAtLeast(0L),
                 ) else track
             }))
             return
@@ -1036,7 +1064,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         val groupStarts = project.clips.filter { it.syncLocked && it.syncGroupId == groupId }.map { it.timelineStartMs } +
             project.sourceAudioTracks.filter { it.syncLocked && it.syncGroupId == groupId }.map { it.timelineStartMs }
         val minimumStart = groupStarts.minOrNull() ?: anchor.timelineStartMs
-        val requestedDelta = targetStartMs.coerceAtLeast(0L) - anchor.timelineStartMs
+        val requestedDelta = requestedStart.coerceAtLeast(0L) - anchor.timelineStartMs
         val delta = requestedDelta.coerceAtLeast(-minimumStart)
         updateProject(project.copy(
             clips = project.clips.map { clip ->
@@ -1058,8 +1086,10 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     fun trimSourceAudioTrack(id: String, startMs: Long, endMs: Long, moveLeftEdge: Boolean) {
         val project = _activeProject.value ?: return
         val anchor = project.sourceAudioTracks.firstOrNull { it.id == id } ?: return
+        if (anchor.durationMs < 2L) return
         val start = startMs.coerceIn(0L, anchor.durationMs - 1L)
         val end = endMs.coerceIn(start + 1L, anchor.durationMs)
+        if (start == anchor.trimStartMs && end == anchor.trimEndMs) return
         @Suppress("UNUSED_VARIABLE")
         val edgeHint = moveLeftEdge
         val requestedLeftOutputMs = start - anchor.trimStartMs
@@ -1075,15 +1105,14 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         } else {
             project.sourceAudioTracks.filter { it.syncLocked && it.syncGroupId == groupId }.mapTo(mutableSetOf()) { it.id }
         }
-        updateProject(
-            applyLinkedTrim(
-                project = project,
-                visualIds = visualIds,
-                audioIds = audioIds,
-                requestedLeftOutputMs = requestedLeftOutputMs,
-                requestedRightOutputMs = requestedRightOutputMs,
-            ),
+        val trimmed = applyLinkedTrim(
+            project = project,
+            visualIds = visualIds,
+            audioIds = audioIds,
+            requestedLeftOutputMs = requestedLeftOutputMs,
+            requestedRightOutputMs = requestedRightOutputMs,
         )
+        if (trimmed != project) updateProject(trimmed)
     }
     fun duplicateSourceAudioTrack(id: String) {
         val project = _activeProject.value ?: return
@@ -1468,12 +1497,13 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
         val candidate = project.withValidTransitions()
         if (previous != null && previous.id == candidate.id) {
             val comparable = candidate.copy(updatedAt = previous.updatedAt)
-            if (comparable != previous) {
+            if (comparable != previous && continuousEditBaseline == null) {
                 undoStack.addLast(previous)
                 trimHistory(undoStack)
                 redoStack.clear()
             }
         }
+        if (previous != null && candidate.copy(updatedAt = previous.updatedAt) == previous) return
         commitProject(candidate)
         updateHistoryFlags()
     }
@@ -1501,6 +1531,7 @@ class FabVidEditViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun clearEditHistory() {
+        continuousEditBaseline = null
         undoStack.clear()
         redoStack.clear()
         updateHistoryFlags()

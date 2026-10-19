@@ -1,5 +1,57 @@
 # todo.md — FabVidEdit
 
+## État de livraison 0.0.19 — 19/10/2026
+- [ ] Blocage actuel : GitHub Actions pour 0.0.19 en état `queued` ; aucune compilation, aucun binaire ni sortie Android 0.0.19 encore confirmés. Lien du run le plus récent : https://github.com/greenpower2669/EASYCUT/actions/runs/39285173634. Contrôler le dernier run du HEAD avant toute annonce APK.
+
+
+## Compatibilité API / Undo — 19/10/2026
+- [x] Éviter la rupture d'une référence onDelete restante dans V06ClipInspector, propager le mode ripple.
+- [x] Historique source audio : grouper les ajustements de volume d'un geste de slider en une seule entrée undo.
+
+
+## Sécurité récupération — 0.0.19
+- [x] Éviter de sauvegarder comme backup un JSON partiellement corrompu ; mémoriser le dernier snapshot entièrement parsé et préserver la source brute dans `KEY_RAW_RECOVERY`.
+
+
+## Compatibilité API Kotlin EASYCUT-TOUCH-PRO-019
+`removeSelectedClip(ripple: Boolean = true)` a maintenant un paramètre optionnel : les références de fonction `::removeSelectedClip` dans les éditeurs historiques ne sont plus automatiquement de type `() -> Unit`. Deux callbacks d'anciennes vues adaptés explicitement en lambda sans argument pour éviter une erreur de compilation, sans modifier leur politique ripple historique.
+
+
+## Retouches de cohérence tactile — 19/10/2026
+- [x] Stabiliser callbacks de glissement avec rememberUpdatedState ; clamp visuel des trims et retour audio différé.
+- [x] Cadence décodée utilisée pour pas lecteur si disponible ; approximation explicitement documentée.
+- [x] Historique regroupé pour l'opacité, vérification autre curseur à poursuivre.
+- [ ] Android : zones de zoom élargies, poignée dans clip 64 dp, scroll et drag concurrents.
+
+
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+- [x] Codage candidat UI de zoom, drag, trim vivant, aimant/ripple, haptique, boutons fins, contraste, duplications ; enregistrement de coupe seulement en fin de geste.
+- [x] Version 0.0.19, workflow APK/AAB direct depuis branche sans merge.
+- [ ] Exécuter CI et corriger erreur de compilation éventuelle avant fournir lien.
+- [ ] Contrôler tactile Samsung (drag vs scroll vs pinch, clip court, reconstitution source), films exportés, sauvegarde/restauration.
+- [ ] Améliorer vraie navigation frame-by-frame lorsque cadence source fiable ; les boutons ±33ms ne prétendent pas être une image réelle universelle.
+
+
+## EASYCUT-TOUCH-PRO-019 — 19/10/2026
+- [x] Définir la priorité de gestes : poignées vs drag central, conserver action au relâchement.
+- [x] Introduire SnapPolicy pur et test de bords/playhead ; mode ripple facultatif dans ViewModel.
+- [x] Sécuriser ProjectStore avec sauvegarde précédente, lecture par entrée et pas d'écrasement en cas de récupération.
+- [ ] Intégrer et vérifier UI pincement zoom, scrubbing, aimant/retour haptique, commandes, contraste.
+- [ ] CI tests/lint/APK/AAB, liens directs et validation Samsung.
+- [ ] Compléter si nécessaire la matrice de tests finaux, interruptions et gros exports.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+EASYCUT-AUDIT-018 (19/10/2026) :
+- [x] Vérifier et réaligner les noms de fichiers copiés et transmis à gh release (.apk et .aab version 0.0.18) avant publication.
+- [x] Auditer UI de timeline, sauvegarde trim, pipeline export et workflow ; lire mémoires FabCopilot.
+- [x] Préparer candidat 0.0.18 sur branche isolée, sans fusion main.
+- [ ] Confirmer CI tests/lint/assembleDebug/bundleDebug et Release APK direct/AAB ; aucun lien avant vérification.
+- [ ] Tester poignées gauche/droite vidéo+audio, zoom, groupes liés, sources courtes, vitesse, contrôle MP4.
+- [ ] Reproduire exports H264/HEVC et annuler pendant proxy/encodage/finalisation ; tester grande source, faible stockage, GET ERR.
+- [ ] Auditer chaque autre commande potentiellement inopérante et corriger d'après preuves, sans régresser les fonctions validées.
+
+
 ## PLAN D'EXÉCUTION DE L'ASSISTANT — FAB-MISSION-001 (23/09/2026)
 
 **Les ordres de mission de Fab sont dans [`ordres-de-mission.md`](ordres-de-mission.md), registre canonique séparé et persistant.** Lire ce fichier AVANT de décider de quoi coder et AVANT de répondre « que reste-t-il ? ». Une demande utilisateur reste inchangée tant que non produite ; seul Fab peut l'annuler, la remplacer ou en changer la priorité. `todo.md` décrit MES actions techniques et les vérifications, pas le carnet des projets de Fab. `debughistorical.md` = récit de bugs ; `topo.md` = aide-mémoire technique facultatif de l'agent.

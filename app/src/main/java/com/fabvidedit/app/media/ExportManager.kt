@@ -22,6 +22,7 @@ import com.fabvidedit.app.model.VideoProject
 import com.fabvidedit.app.model.displayAspectRatio
 import com.fabvidedit.app.model.VisualMediaKind
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -143,11 +144,18 @@ class ExportManager(
     private var transformer: Transformer? = null
     private var progressJob: Job? = null
     private var preparationJob: Job? = null
+    private var finalizationJob: Job? = null
+    private var exportGeneration: Long = 0L
     private var temporaryFile: File? = null
     private var preparedAssetDirectory: File? = null
 
     fun start(project: VideoProject, settings: ExportSettings) {
+        if (preparationJob?.isCompleted == false || transformer != null || finalizationJob?.isCompleted == false) {
+            FabVidDiagnostics.traceExport("START_BLOCKED previous operation is still running")
+            return
+        }
         cancel(resetState = false)
+        val requestGeneration = ++exportGeneration
         FabVidDiagnostics.traceExport(
             "BEGIN mode=${project.timelineMode} durationMs=${project.durationMs} clips=${project.clips.size} " +
                 "codec=${settings.codec} fpsMax=${settings.fpsLabel} size=${settings.resolution.label} " +
@@ -176,26 +184,19 @@ class ExportManager(
         onState(ExportState.Running(0, "Préparation des sources d’export"))
 
         preparationJob = scope.launch {
-            val preparedProject = runCatching {
-                withContext(Dispatchers.IO) { prepareProjectForTransformer(project) }
-            }.getOrElse { error ->
+            try {
+                val preparedProject = withContext(Dispatchers.IO) { prepareProjectForTransformer(project) }
+                if (!isActive || requestGeneration != exportGeneration) return@launch
+                preparationJob = null
+                withContext(Dispatchers.Main.immediate) { startTransformer(preparedProject, settings, requestGeneration) }
+            } catch (_: CancellationException) {
+                FabVidDiagnostics.traceExport("EXPORT_PREPARE_CANCELLED")
+            } catch (error: Throwable) {
                 FabVidDiagnostics.logError("EXPORT_PREPARE", error)
-                cleanupPreparedAssets()
-                onState(
-                    ExportState.Error(
-                        diagnosticMessage(error, prefix = "Préparation export impossible"),
-                    ),
-                )
-                return@launch
-            }
-
-            if (!isActive) {
-                cleanupPreparedAssets()
-                return@launch
-            }
-            preparationJob = null
-            withContext(Dispatchers.Main.immediate) {
-                startTransformer(preparedProject, settings)
+                if (requestGeneration == exportGeneration) onState(ExportState.Error(diagnosticMessage(error, "Préparation export impossible")))
+            } finally {
+                if (transformer == null) cleanupPreparedAssets()
+                preparationJob = null
             }
         }
     }
@@ -320,7 +321,7 @@ class ExportManager(
         )
     }
 
-    private fun startTransformer(project: VideoProject, settings: ExportSettings) {
+    private fun startTransformer(project: VideoProject, settings: ExportSettings, requestGeneration: Long) {
         val safeProjectName = project.name
             .replace(Regex("[^a-zA-Z0-9À-ÿ_-]+"), "-")
             .trim('-')
@@ -333,6 +334,7 @@ class ExportManager(
 
         val listener = object : Transformer.Listener {
             override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                if (requestGeneration != exportGeneration) { output.delete(); return }
                 progressJob?.cancel()
                 FabVidDiagnostics.traceExport(
                     "ENCODE_DONE frames=${exportResult.videoFrameCount} durationMs=${exportResult.approximateDurationMs} " +
@@ -360,7 +362,7 @@ class ExportManager(
                 } else null
                 if (warning != null) FabVidDiagnostics.traceExport("ENCODER_FALLBACK $warning")
                 onState(ExportState.Running(100, "Enregistrement dans la galerie"))
-                scope.launch {
+                finalizationJob = scope.launch {
                     // Never touch the validated video pixels: optional AAC remux stream-copies video.
                     val processed = File(output.parentFile, "${output.nameWithoutExtension}-audio.mp4")
                     try {
@@ -376,16 +378,19 @@ class ExportManager(
                             publishToGallery(file, fileName)
                         }.getOrThrow()
                         FabVidDiagnostics.traceExport("GALLERY_OK output=$fileName")
-                        onState(ExportState.Success(galleryUri, fileName, warning))
+                        if (requestGeneration == exportGeneration && isActive) onState(ExportState.Success(galleryUri, fileName, warning))
+                    } catch (_: CancellationException) {
+                        FabVidDiagnostics.traceExport("EXPORT_FINALIZE_CANCELLED")
                     } catch (error: Throwable) {
                         FabVidDiagnostics.logError("EXPORT_AUDIO_OR_GALLERY", error)
-                        onState(ExportState.Error(diagnosticMessage(
+                        if (requestGeneration == exportGeneration) onState(ExportState.Error(diagnosticMessage(
                             error, prefix = "Finalisation audio ou enregistrement impossible",
                         )))
                     } finally {
                         processed.delete()
                         cleanupAfterExport(output)
                         transformer = null
+                        finalizationJob = null
                     }
                 }
             }
@@ -395,6 +400,7 @@ class ExportManager(
                 exportResult: ExportResult,
                 exportException: ExportException,
             ) {
+                if (requestGeneration != exportGeneration) { output.delete(); return }
                 progressJob?.cancel()
                 val message = transformerDiagnostic(exportException)
                 FabVidDiagnostics.logError("EXPORT_TRANSFORMER", exportException)
@@ -449,15 +455,23 @@ class ExportManager(
     }
 
     fun cancel(resetState: Boolean = true) {
+        exportGeneration++
+        val preparing = preparationJob?.isCompleted == false
         preparationJob?.cancel()
-        preparationJob = null
+        if (!preparing) preparationJob = null
         progressJob?.cancel()
         progressJob = null
+        val finalizing = finalizationJob?.isCompleted == false
+        finalizationJob?.cancel()
+        if (!finalizing) finalizationJob = null
         transformer?.cancel()
         transformer = null
-        temporaryFile?.delete()
-        temporaryFile = null
-        cleanupPreparedAssets()
+        // A native FFmpeg operation can outlive cancellation: its own finally cleans its files.
+        if (!preparing && !finalizing) {
+            temporaryFile?.delete()
+            temporaryFile = null
+            cleanupPreparedAssets()
+        }
         if (resetState) onState(ExportState.Idle)
     }
 

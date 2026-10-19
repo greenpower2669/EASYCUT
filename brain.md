@@ -1,5 +1,25 @@
 # brain.md — FabVidEdit
 
+## Sécurité récupération — 0.0.19
+Sauvegardes : la dernière version complète validée est mise de côté avant remplacement. Si la source JSON est incomplète ou malformée, garder l'original brut séparément, afficher les projets récupérables et ne jamais remplacer automatiquement la source par une liste tronquée. L'éditeur ne doit pas diffuser ces données à un service externe.
+
+
+## Retouches de cohérence tactile — 19/10/2026
+Navigation fine : prendre la cadence décodée réelle si Media3 la fournit, autrement avancer d'environ 33 ms ; aucun engagement de frame-accurate universel. Geste de trim affiché et borné par les limites des sources ; meilleur contraste de la frise et commandes zoom élargies. Curseur d'opacité : un seul point d'annulation par glissement via begin/endContinuousEdit. Garde continue pour changement de sélection.
+
+
+## Phase UI/CI EASYCUT-TOUCH-PRO-019
+Version candidate 0.0.19/code 52. Gestes et modes ajoutés dans CapCutMultitrackEditorV06 ; déplacement direct au centre par glissement, bordures pour trim, zoom pincé avec ancre du centre, previews périodiques pendant trim sans sauvegarde intermédiaire, boutons de pas ≈33 ms (cadence exacte source à étudier), snap/ripple/contraste activables, duplication et vitesse depuis barre. Test de terrain indispensable.
+
+
+## EASYCUT-TOUCH-PRO-019 — ergonomie tactile (accord Fab)
+Déplacement vidéo/audio direct à un doigt sur la zone centrale, poignées de coupe prioritaires en bordure. Zoom pincé ancré dans la frise, snap facultatif aux autres bords / tête de lecture, suppression en mode compactage ou trou préservé, navigation à petits pas près de l'image, outils directs et affichage contrasté. Chaque geste persiste un seul changement et garde les keyframes, projets originaux et export existant. Le stockage tient une sauvegarde précédente JSON, récupération partielle sans écrasement automatique. Les tests physiques et codec restent nécessaires.
+
+
+## Mise à jour FabCopilot — 19/10/2026
+Contrat EASYCUT-AUDIT-018 (19/10/2026) : conserver l'aperçu et le multipiste validés, sans modification des vidéos originales, SAR ou keyframes. Poignées 20dp des deux côtés en vidéo et audio, retour visuel pendant glissement et coupe écrite au relâchement. Protection contre export chevauché ou annulé et nettoyage des temporaires seulement à la fin du travail natif. Candidat non testé sur Android.
+
+
 ## Contrat rétabli (FABVID-REG-001)
 Version de référence technique : branche `agent/v0.25-matrix-texture-preview` au commit `0cb6d330a88d8d654f4e5bc9edd50e5a523887d4`. Branche de correction : `agent/v0.25.1-fab-copilot-regressions`. Fab constate : aperçu bugué, gros fichiers mal optimisés, formats de sortie et paramètres régressés. Les symptômes précis sur téléphone restent à reproduire ; ne pas prétendre les avoir validés.
 
